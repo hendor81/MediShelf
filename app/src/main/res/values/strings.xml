@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">MediShelf</string>
+    <string name="home_setup_title">Il tuo armadietto, pronto a prendere forma</string>
+    <string name="home_setup_body">Setup iniziale completato. Le prossime issue aggiungeranno inventario, scadenze e gestione locale dei medicinali.</string>
+    <string name="home_setup_primary_action">Aggiungi medicinale</string>
+    <string name="home_setup_secondary_label">Versione Free offline-first</string>
 </resources>
