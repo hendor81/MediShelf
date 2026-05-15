@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "com.hendorsoftware.medishelf"
+    namespace = "it.hendorsoftware.medishelf"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -12,7 +12,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.hendorsoftware.medishelf"
+        applicationId = "it.hendorsoftware.medishelf"
         minSdk = 24
         targetSdk = 36
         versionCode = 1

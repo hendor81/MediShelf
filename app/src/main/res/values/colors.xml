@@ -1,10 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="purple_200">#FFBB86FC</color>
-    <color name="purple_500">#FF6200EE</color>
-    <color name="purple_700">#FF3700B3</color>
-    <color name="teal_200">#FF03DAC5</color>
-    <color name="teal_700">#FF018786</color>
+    <color name="medishelf_primary">#2F6F68</color>
+    <color name="medishelf_on_primary">#FFFFFFFF</color>
+    <color name="medishelf_secondary">#6D7F55</color>
+    <color name="medishelf_background">#FFFDF8</color>
+    <color name="medishelf_surface">#FFFFFFFF</color>
+    <color name="medishelf_surface_variant">#E6EEE9</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 </resources>
