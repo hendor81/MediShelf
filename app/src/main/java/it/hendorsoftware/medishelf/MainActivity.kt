@@ -4,15 +4,17 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import dagger.hilt.android.AndroidEntryPoint
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 
 /**
  * Activity principale dell'app.
  *
  * Avvia il contenuto Compose e applica il tema base di MediShelf. La schermata
- * mostrata e' un placeholder controllato dallo scaffold, senza feature
- * funzionali di inventario o persistenza.
+ * mostrata e' un placeholder controllato dallo scaffold. L'annotazione Hilt
+ * abilita l'integrazione futura con ViewModel iniettati nelle route Compose.
  */
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     /**
