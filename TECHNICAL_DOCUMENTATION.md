@@ -53,6 +53,34 @@ Annotare compromessi, TODO rilevanti e decisioni da rivalutare.
 Ogni milestone del backlog deve prevedere una issue o sotto-issue di aggiornamento documentazione tecnica, da chiudere solo dopo aver allineato questo file allo stato reale del progetto.
 
 
+## Stato attuale - Milestone 1
+
+### Design system iniziale
+La base visuale Compose e' centralizzata nel package `core.designsystem`.
+
+Elementi introdotti:
+- `MediShelfTheme`, applicato da `MainActivity` al contenuto Compose dell'app;
+- palette Material 3 chiara/scura in `Color.kt` e `Theme.kt`;
+- colori semantici per stati medicinali tramite `MediShelfStatusColors`;
+- scala tipografica base in `Type.kt`;
+- shape condivise in `Shape.kt`;
+- token dimensionali riusabili in `Dimens.kt`;
+- risorse colore in `colors.xml`;
+- stringhe UI e stringhe di Preview in `strings.xml`.
+
+Componenti riusabili disponibili:
+- `MedicineStatusBadge`;
+- `EmptyState`;
+- `ConfirmDeleteDialog`;
+- `MediShelfTopAppBar`.
+
+Ogni componente introdotto ha una Preview Compose locale e usa risorse o token
+centralizzati per testi, colori e dimensioni.
+
+Limite noto: i componenti non sono ancora collegati a schermate reali perche'
+inventario, dettaglio e scadenzario saranno implementati nelle issue successive.
+
+
 ## Collegamento con gli altri documenti
 La documentazione tecnica deve restare allineata con:
 

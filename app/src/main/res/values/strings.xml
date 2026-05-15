@@ -4,4 +4,18 @@
     <string name="home_setup_body">Setup iniziale completato. Le prossime issue aggiungeranno inventario, scadenze e gestione locale dei medicinali.</string>
     <string name="home_setup_primary_action">Aggiungi medicinale</string>
     <string name="home_setup_secondary_label">Versione Free offline-first</string>
+    <string name="medicine_status_valid">Valido</string>
+    <string name="medicine_status_expiring_soon">In scadenza</string>
+    <string name="medicine_status_expired">Scaduto</string>
+    <string name="medicine_status_out_of_stock">Esaurito</string>
+    <string name="medicine_status_no_expiration">Senza scadenza</string>
+    <string name="medicine_status_archived">Archiviato</string>
+    <string name="designsystem_empty_state_title">Nessun elemento da mostrare</string>
+    <string name="designsystem_empty_state_body">Quando aggiungerai contenuti, li vedrai qui in modo ordinato.</string>
+    <string name="designsystem_empty_state_action">Aggiungi</string>
+    <string name="designsystem_delete_dialog_title">Eliminare questo elemento?</string>
+    <string name="designsystem_delete_dialog_body">La cancellazione definitiva richiede conferma e non rimuove nulla con un solo tap.</string>
+    <string name="designsystem_delete_dialog_confirm">Elimina</string>
+    <string name="designsystem_delete_dialog_dismiss">Annulla</string>
+    <string name="designsystem_top_app_bar_title">MediShelf</string>
 </resources>
