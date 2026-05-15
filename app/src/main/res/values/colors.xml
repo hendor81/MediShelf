@@ -2,10 +2,19 @@
 <resources>
     <color name="medishelf_primary">#2F6F68</color>
     <color name="medishelf_on_primary">#FFFFFFFF</color>
+    <color name="medishelf_primary_container">#D8EEE8</color>
+    <color name="medishelf_on_primary_container">#103B36</color>
     <color name="medishelf_secondary">#6D7F55</color>
+    <color name="medishelf_secondary_container">#E4EBCF</color>
     <color name="medishelf_background">#FFFDF8</color>
     <color name="medishelf_surface">#FFFFFFFF</color>
     <color name="medishelf_surface_variant">#E6EEE9</color>
+    <color name="medishelf_status_valid_container">#DDEEDB</color>
+    <color name="medishelf_status_expiring_container">#FFE9B5</color>
+    <color name="medishelf_status_expired_container">#FFDAD5</color>
+    <color name="medishelf_status_out_of_stock_container">#E1E7EC</color>
+    <color name="medishelf_status_no_expiration_container">#DCEAF7</color>
+    <color name="medishelf_status_archived_container">#E8E4DC</color>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
 </resources>
