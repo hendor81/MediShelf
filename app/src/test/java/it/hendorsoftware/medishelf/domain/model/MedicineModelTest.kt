@@ -82,11 +82,10 @@ class MedicineModelTest {
         assertEquals(
             setOf(
                 MedicineStatus.VALID,
-                MedicineStatus.EXPIRING_SOON,
+                MedicineStatus.EXPIRING,
                 MedicineStatus.EXPIRED,
                 MedicineStatus.OUT_OF_STOCK,
-                MedicineStatus.UNKNOWN_EXPIRATION,
-                MedicineStatus.ARCHIVED,
+                MedicineStatus.NO_EXPIRATION_DATE,
             ),
             statuses,
         )
