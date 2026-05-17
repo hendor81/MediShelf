@@ -1,15 +1,27 @@
 package it.hendorsoftware.medishelf.di
 
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
+import it.hendorsoftware.medishelf.core.time.DateProvider
+import it.hendorsoftware.medishelf.core.time.SystemDateProvider
+import javax.inject.Singleton
 
 /**
  * Modulo Hilt dedicato ai provider di data e ora.
- *
- * La issue corrente configura solo il punto di estensione: i provider concreti
- * verranno aggiunti quando saranno disponibili le astrazioni in `core.time`.
  */
 @Module
 @InstallIn(SingletonComponent::class)
-object TimeModule
+object TimeModule {
+
+    /**
+     * Espone il provider di data di produzione dietro l'interfaccia testabile.
+     *
+     * @param systemDateProvider implementazione basata sull'orologio del dispositivo.
+     * @return provider di data usato dalle regole di dominio.
+     */
+    @Provides
+    @Singleton
+    fun provideDateProvider(systemDateProvider: SystemDateProvider): DateProvider = systemDateProvider
+}

@@ -16,7 +16,7 @@ enum class MedicineStatus {
     /**
      * Medicinale attivo con scadenza entro la soglia configurata.
      */
-    EXPIRING_SOON,
+    EXPIRING,
 
     /**
      * Medicinale attivo con data di scadenza gia superata.
@@ -31,10 +31,5 @@ enum class MedicineStatus {
     /**
      * Medicinale attivo per cui non e stata indicata una data di scadenza.
      */
-    UNKNOWN_EXPIRATION,
-
-    /**
-     * Medicinale archiviato ed escluso dall'inventario attivo.
-     */
-    ARCHIVED,
+    NO_EXPIRATION_DATE,
 }
