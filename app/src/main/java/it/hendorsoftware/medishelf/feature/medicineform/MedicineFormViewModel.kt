@@ -3,8 +3,12 @@ package it.hendorsoftware.medishelf.feature.medicineform
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import it.hendorsoftware.medishelf.domain.model.Medicine
+import it.hendorsoftware.medishelf.domain.model.MedicineId
 import it.hendorsoftware.medishelf.domain.model.QuantityInfo
 import it.hendorsoftware.medishelf.domain.usecase.AddMedicineUseCase
+import it.hendorsoftware.medishelf.domain.usecase.GetMedicineByIdUseCase
+import it.hendorsoftware.medishelf.domain.usecase.UpdateMedicineUseCase
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 import javax.inject.Inject
@@ -15,18 +19,20 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 /**
- * ViewModel del form di inserimento medicinale.
+ * ViewModel del form di inserimento e modifica medicinale.
  *
  * Coordina validazione leggera dei campi UI, conversione dei valori opzionali
- * e salvataggio tramite [AddMedicineUseCase], mantenendo Room fuori dalla
- * feature layer.
+ * e salvataggio tramite use case, mantenendo Room fuori dal feature layer.
  */
 @HiltViewModel
 class MedicineFormViewModel @Inject constructor(
     private val addMedicineUseCase: AddMedicineUseCase,
+    private val getMedicineByIdUseCase: GetMedicineByIdUseCase,
+    private val updateMedicineUseCase: UpdateMedicineUseCase,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MedicineFormUiState())
+    private var currentMedicine: Medicine? = null
 
     /**
      * Stato osservabile dalla route Compose.
@@ -34,6 +40,45 @@ class MedicineFormViewModel @Inject constructor(
      * @return stream dello stato corrente del form.
      */
     val uiState: StateFlow<MedicineFormUiState> = _uiState.asStateFlow()
+
+    /**
+     * Carica un medicinale esistente e precompila il form in modalita modifica.
+     *
+     * @param medicineId identificativo ricevuto dalla route di navigazione.
+     */
+    fun loadMedicineForEdit(medicineId: String) {
+        val id = medicineId.toLongOrNull()?.let(::MedicineId)
+
+        if (id == null) {
+            currentMedicine = null
+            _uiState.value = MedicineFormUiState(
+                mode = MedicineFormMode.Edit,
+                isNotFound = true,
+            )
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { state ->
+                state.copy(
+                    mode = MedicineFormMode.Edit,
+                    isLoading = true,
+                    isNotFound = false,
+                    isSaved = false,
+                )
+            }
+
+            val medicine = getMedicineByIdUseCase(id)
+            currentMedicine = medicine
+
+            _uiState.value = medicine?.toEditUiState()
+                ?: MedicineFormUiState(
+                    mode = MedicineFormMode.Edit,
+                    isLoading = false,
+                    isNotFound = true,
+                )
+        }
+    }
 
     /**
      * Aggiorna il nome obbligatorio e rimuove l'errore se il valore torna valido.
@@ -120,10 +165,10 @@ class MedicineFormViewModel @Inject constructor(
     }
 
     /**
-     * Valida i campi e salva un nuovo medicinale quando i dati sono coerenti.
+     * Valida i campi e salva il medicinale quando i dati sono coerenti.
      *
      * La quantita e la scadenza restano opzionali: valori vuoti vengono salvati
-     * come assenti e non bloccano il flusso di inserimento.
+     * come assenti e non bloccano ne inserimento ne modifica.
      */
     fun onSaveClick() {
         val currentState = _uiState.value
@@ -138,18 +183,69 @@ class MedicineFormViewModel @Inject constructor(
             _uiState.update { state -> state.copy(isSaving = true, isSaved = false) }
 
             val validatedState = _uiState.value
-            addMedicineUseCase(
-                name = validatedState.name,
-                packageForm = validatedState.packageForm.trimToNull(),
-                quantity = validatedState.toQuantityInfo(),
-                expirationDate = validatedState.expirationDate.trimToNull()?.let(LocalDate::parse),
-                storageLocation = validatedState.storageLocation.trimToNull(),
-                notes = validatedState.notes.trimToNull(),
-            )
+            val wasSaved = when (validatedState.mode) {
+                MedicineFormMode.Add -> {
+                    addMedicine(validatedState)
+                    true
+                }
+                MedicineFormMode.Edit -> updateMedicine(validatedState)
+            }
 
-            _uiState.update { state -> state.copy(isSaving = false, isSaved = true) }
+            if (wasSaved) {
+                _uiState.update { state -> state.copy(isSaving = false, isSaved = true) }
+            }
         }
     }
+
+    private suspend fun addMedicine(state: MedicineFormUiState) {
+        addMedicineUseCase(
+            name = state.name,
+            packageForm = state.packageForm.trimToNull(),
+            quantity = state.toQuantityInfo(),
+            expirationDate = state.expirationDate.trimToNull()?.let(LocalDate::parse),
+            storageLocation = state.storageLocation.trimToNull(),
+            notes = state.notes.trimToNull(),
+        )
+    }
+
+    private suspend fun updateMedicine(state: MedicineFormUiState): Boolean {
+        val medicine = currentMedicine
+
+        if (medicine == null) {
+            _uiState.update { currentState ->
+                currentState.copy(isSaving = false, isNotFound = true)
+            }
+            return false
+        }
+
+        val updatedMedicine = medicine.copy(
+            name = state.name,
+            packageForm = state.packageForm.trimToNull(),
+            quantity = state.toQuantityInfo(),
+            expirationDate = state.expirationDate.trimToNull()?.let(LocalDate::parse),
+            storageLocation = state.storageLocation.trimToNull(),
+            notes = state.notes.trimToNull(),
+        )
+
+        currentMedicine = updateMedicineUseCase(updatedMedicine)
+        return true
+    }
+
+    private fun Medicine.toEditUiState(): MedicineFormUiState = MedicineFormUiState(
+        mode = MedicineFormMode.Edit,
+        name = name,
+        packageForm = packageForm.orEmpty(),
+        quantity = quantity?.amount?.toInputText().orEmpty(),
+        quantityUnit = quantity?.unit.orEmpty(),
+        lowStockThreshold = quantity?.lowStockThreshold?.toInputText().orEmpty(),
+        expirationDate = expirationDate?.toString().orEmpty(),
+        storageLocation = storageLocation.orEmpty(),
+        notes = notes.orEmpty(),
+        isLoading = false,
+        isNotFound = false,
+        isSaving = false,
+        isSaved = false,
+    )
 
     private fun MedicineFormUiState.validate(): ValidationResult {
         val quantityValidation = quantity.parseOptionalNonNegativeDouble()
@@ -187,6 +283,13 @@ class MedicineFormViewModel @Inject constructor(
     }
 
     private fun String.trimToNull(): String? = trim().takeIf(String::isNotEmpty)
+
+    private fun Double.toInputText(): String =
+        if (this % WHOLE_NUMBER_DIVISOR == 0.0) {
+            toLong().toString()
+        } else {
+            toString()
+        }
 
     private fun String.parseOptionalNonNegativeDouble(): OptionalNumberValidation {
         val normalizedValue = trim().replace(',', '.')
@@ -232,4 +335,8 @@ class MedicineFormViewModel @Inject constructor(
         val state: MedicineFormUiState,
         val isValid: Boolean,
     )
+
+    private companion object {
+        private const val WHOLE_NUMBER_DIVISOR = 1.0
+    }
 }

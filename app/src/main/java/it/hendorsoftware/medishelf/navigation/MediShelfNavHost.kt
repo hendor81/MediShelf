@@ -16,7 +16,6 @@ import it.hendorsoftware.medishelf.feature.expiry.ExpiryScreen
 import it.hendorsoftware.medishelf.feature.home.HomeScreen
 import it.hendorsoftware.medishelf.feature.inventory.InventoryScreen
 import it.hendorsoftware.medishelf.feature.medicinedetail.MedicineDetailScreen
-import it.hendorsoftware.medishelf.feature.medicineform.MedicineEditPlaceholderScreen
 import it.hendorsoftware.medishelf.feature.medicineform.MedicineFormRoute
 import it.hendorsoftware.medishelf.feature.settings.SettingsScreen
 
@@ -98,9 +97,10 @@ fun MediShelfNavHost(
             route = MediShelfRoute.EditMedicine.route,
             arguments = medicineIdArguments(),
         ) { backStackEntry ->
-            MedicineEditPlaceholderScreen(
+            MedicineFormRoute(
                 medicineId = backStackEntry.requireMedicineId(),
-                onDoneClick = { navController.popBackStack() },
+                onSaved = { navController.popBackStack() },
+                onCloseClick = { navController.popBackStack() },
             )
         }
     }

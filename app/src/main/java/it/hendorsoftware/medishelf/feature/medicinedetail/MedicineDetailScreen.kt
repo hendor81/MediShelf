@@ -2,7 +2,10 @@ package it.hendorsoftware.medishelf.feature.medicinedetail
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -33,7 +36,17 @@ fun MedicineDetailScreen(
     Scaffold(
         modifier = modifier,
         topBar = {
-            MediShelfTopAppBar(title = stringResource(R.string.medicine_detail_screen_title))
+            MediShelfTopAppBar(
+                title = stringResource(R.string.medicine_detail_screen_title),
+                actions = {
+                    IconButton(onClick = onEditClick) {
+                        Icon(
+                            imageVector = Icons.Outlined.Edit,
+                            contentDescription = stringResource(R.string.navigation_action_edit_medicine),
+                        )
+                    }
+                },
+            )
         },
     ) { innerPadding ->
         MediShelfPlaceholderScreen(
@@ -41,12 +54,6 @@ fun MedicineDetailScreen(
             body = stringResource(R.string.medicine_detail_placeholder_body, medicineId),
             modifier = Modifier.padding(innerPadding),
         ) {
-            Button(
-                onClick = onEditClick,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(text = stringResource(R.string.navigation_action_edit_medicine))
-            }
             OutlinedButton(
                 onClick = onArchiveClick,
                 modifier = Modifier.fillMaxWidth(),

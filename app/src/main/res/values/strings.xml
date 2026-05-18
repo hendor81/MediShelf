@@ -13,6 +13,8 @@
     <string name="medicine_add_placeholder_title">Nuovo medicinale</string>
     <string name="medicine_add_placeholder_body">Placeholder del form di inserimento. La versione completa usa il nome obbligatorio e lascia quantita e scadenza opzionali.</string>
     <string name="medicine_form_intro">Inserisci solo il nome per salvare subito. Quantita, scadenza e dettagli possono essere completati anche piu avanti.</string>
+    <string name="medicine_form_edit_intro">Correggi o completa i dati salvati. Nome obbligatorio, quantita e scadenza restano opzionali.</string>
+    <string name="medicine_form_loading">Caricamento del medicinale...</string>
     <string name="medicine_form_name_label">Nome medicinale</string>
     <string name="medicine_form_package_form_label">Formato o confezione</string>
     <string name="medicine_form_package_form_support">Esempio: compresse, sciroppo, pomata</string>
@@ -30,10 +32,14 @@
     <string name="medicine_form_negative_number_error">Il valore non puo essere negativo.</string>
     <string name="medicine_form_invalid_date_error">Usa il formato AAAA-MM-GG oppure lascia il campo vuoto.</string>
     <string name="medicine_form_save_action">Salva medicinale</string>
+    <string name="medicine_form_update_action">Salva modifiche</string>
     <string name="medicine_form_save_success">Medicinale salvato.</string>
+    <string name="medicine_form_update_success">Modifiche salvate.</string>
     <string name="medicine_edit_screen_title">Modifica medicinale</string>
     <string name="medicine_edit_placeholder_title">Modifica medicinale</string>
     <string name="medicine_edit_placeholder_body">Placeholder del form di modifica per il medicinale con ID %1$s.</string>
+    <string name="medicine_edit_not_found_title">Medicinale non trovato</string>
+    <string name="medicine_edit_not_found_body">La voce richiesta non e piu disponibile nell\'inventario locale.</string>
     <string name="expiry_screen_title">Scadenzario</string>
     <string name="expiry_placeholder_title">Scadenze sotto controllo</string>
     <string name="expiry_placeholder_body">Placeholder delle sezioni in scadenza, scaduti e senza data.</string>
@@ -50,6 +56,7 @@
     <string name="navigation_action_open_archive">Vai ad Archivio</string>
     <string name="navigation_action_open_detail">Apri dettaglio esempio</string>
     <string name="navigation_action_edit_medicine">Modifica medicinale</string>
+    <string name="navigation_action_go_back">Torna indietro</string>
     <string name="navigation_action_complete_placeholder">Completa placeholder</string>
     <string name="medicine_status_valid">Valido</string>
     <string name="medicine_status_expiring_soon">In scadenza</string>
