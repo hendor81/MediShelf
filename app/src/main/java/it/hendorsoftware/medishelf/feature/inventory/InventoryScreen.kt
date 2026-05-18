@@ -1,79 +1,385 @@
 package it.hendorsoftware.medishelf.feature.inventory
 
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Button
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Add
+import androidx.compose.material.icons.outlined.Archive
+import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Inventory2
+import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material3.Card
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import it.hendorsoftware.medishelf.R
-import it.hendorsoftware.medishelf.core.designsystem.component.MediShelfPlaceholderScreen
+import it.hendorsoftware.medishelf.core.designsystem.component.EmptyState
 import it.hendorsoftware.medishelf.core.designsystem.component.MediShelfTopAppBar
+import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBadge
+import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBadgeStatus
+import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfDimens
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 
 /**
- * Placeholder della schermata Inventario.
+ * Route della schermata Inventario.
  *
  * @param onAddMedicineClick callback per aprire il form di inserimento.
  * @param onMedicineClick callback per aprire un dettaglio medicinale.
  * @param onArchiveClick callback per aprire l'archivio.
  * @param modifier modificatore Compose applicato alla schermata.
+ * @param viewModel ViewModel Hilt della feature.
+ */
+@Composable
+fun InventoryRoute(
+    onAddMedicineClick: () -> Unit,
+    onMedicineClick: (String) -> Unit,
+    onArchiveClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: InventoryViewModel = hiltViewModel(),
+) {
+    val uiState by viewModel.uiState.collectAsState()
+
+    InventoryScreen(
+        uiState = uiState,
+        onAddMedicineClick = onAddMedicineClick,
+        onMedicineClick = onMedicineClick,
+        onArchiveClick = onArchiveClick,
+        modifier = modifier,
+    )
+}
+
+/**
+ * Schermata stateless dell'Inventario dei medicinali attivi.
+ *
+ * @param uiState stato completo della lista inventario.
+ * @param onAddMedicineClick callback per aprire il form di inserimento.
+ * @param onMedicineClick callback per aprire il dettaglio della voce selezionata.
+ * @param onArchiveClick callback per aprire l'archivio.
+ * @param modifier modificatore Compose applicato alla schermata.
  */
 @Composable
 fun InventoryScreen(
+    uiState: InventoryUiState,
     onAddMedicineClick: () -> Unit,
-    onMedicineClick: () -> Unit,
+    onMedicineClick: (String) -> Unit,
     onArchiveClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
         modifier = modifier,
         topBar = {
-            MediShelfTopAppBar(title = stringResource(R.string.inventory_screen_title))
+            MediShelfTopAppBar(
+                title = stringResource(R.string.inventory_screen_title),
+                actions = {
+                    IconButton(onClick = onArchiveClick) {
+                        Icon(
+                            imageVector = Icons.Outlined.Archive,
+                            contentDescription = stringResource(
+                                R.string.inventory_open_archive_content_description,
+                            ),
+                        )
+                    }
+                },
+            )
+        },
+        floatingActionButton = {
+            ExtendedFloatingActionButton(
+                onClick = onAddMedicineClick,
+                icon = {
+                    Icon(
+                        imageVector = Icons.Outlined.Add,
+                        contentDescription = null,
+                    )
+                },
+                text = {
+                    Text(text = stringResource(R.string.navigation_action_add_medicine))
+                },
+            )
         },
     ) { innerPadding ->
-        MediShelfPlaceholderScreen(
-            title = stringResource(R.string.inventory_placeholder_title),
-            body = stringResource(R.string.inventory_placeholder_body),
-            modifier = Modifier.padding(innerPadding),
+        InventoryContent(
+            uiState = uiState,
+            onAddMedicineClick = onAddMedicineClick,
+            onMedicineClick = onMedicineClick,
+            modifier = Modifier
+                .padding(innerPadding)
+                .fillMaxSize(),
+        )
+    }
+}
+
+@Composable
+private fun InventoryContent(
+    uiState: InventoryUiState,
+    onAddMedicineClick: () -> Unit,
+    onMedicineClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Column(modifier = modifier) {
+        if (uiState.isLoading) {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+
+        if (!uiState.isLoading && uiState.medicines.isEmpty()) {
+            EmptyState(
+                title = stringResource(R.string.inventory_empty_title),
+                body = stringResource(R.string.inventory_empty_body),
+                actionLabel = stringResource(R.string.navigation_action_add_medicine),
+                onActionClick = onAddMedicineClick,
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(MediShelfDimens.ScreenPadding),
+                icon = {
+                    Icon(
+                        imageVector = Icons.Outlined.Inventory2,
+                        contentDescription = null,
+                    )
+                },
+            )
+            return
+        }
+
+        LazyColumn(
+            modifier = Modifier.fillMaxSize(),
+            contentPadding = PaddingValues(
+                start = MediShelfDimens.ScreenPadding,
+                top = MediShelfDimens.ScreenPadding,
+                end = MediShelfDimens.ScreenPadding,
+                bottom = MediShelfDimens.SpacingExtraLarge + MediShelfDimens.MinInteractiveSize,
+            ),
+            verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingMedium),
         ) {
-            Button(
-                onClick = onAddMedicineClick,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(text = stringResource(R.string.navigation_action_add_medicine))
-            }
-            OutlinedButton(
-                onClick = onMedicineClick,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(text = stringResource(R.string.navigation_action_open_detail))
-            }
-            OutlinedButton(
-                onClick = onArchiveClick,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(text = stringResource(R.string.navigation_action_open_archive))
+            items(
+                items = uiState.medicines,
+                key = InventoryMedicineItemUiModel::id,
+            ) { medicine ->
+                InventoryMedicineListItem(
+                    medicine = medicine,
+                    onClick = { onMedicineClick(medicine.id) },
+                )
             }
         }
     }
 }
 
 /**
- * Preview dell'Inventario placeholder.
+ * Item riusabile della lista inventario.
+ *
+ * @param medicine modello UI della voce da mostrare.
+ * @param onClick callback per aprire il dettaglio.
+ * @param modifier modificatore Compose applicato alla card.
+ */
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@Composable
+fun InventoryMedicineListItem(
+    medicine: InventoryMedicineItemUiModel,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .testTag(InventoryTestTags.medicineItem(medicine.id))
+            .clickable(onClick = onClick),
+        shape = MaterialTheme.shapes.medium,
+    ) {
+        Column(
+            modifier = Modifier.padding(MediShelfDimens.SpacingMedium),
+            verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmall),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingMedium),
+                verticalAlignment = Alignment.Top,
+            ) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingExtraSmall),
+                ) {
+                    Text(
+                        text = medicine.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurface,
+                    )
+                    medicine.packageForm?.let { packageForm ->
+                        Text(
+                            text = packageForm,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+
+                MedicineStatusBadge(status = medicine.status)
+            }
+
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingMedium),
+                verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmall),
+            ) {
+                medicine.expirationDate?.let { expirationDate ->
+                    InventoryMedicineMetadata(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.CalendarMonth,
+                                contentDescription = null,
+                            )
+                        },
+                        text = stringResource(
+                            R.string.inventory_item_expiration,
+                            expirationDate,
+                        ),
+                    )
+                }
+                medicine.quantity?.let { quantity ->
+                    InventoryMedicineMetadata(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Inventory2,
+                                contentDescription = null,
+                            )
+                        },
+                        text = stringResource(R.string.inventory_item_quantity, quantity),
+                    )
+                }
+                medicine.storageLocation?.let { storageLocation ->
+                    InventoryMedicineMetadata(
+                        icon = {
+                            Icon(
+                                imageVector = Icons.Outlined.LocationOn,
+                                contentDescription = null,
+                            )
+                        },
+                        text = stringResource(
+                            R.string.inventory_item_location,
+                            storageLocation,
+                        ),
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun InventoryMedicineMetadata(
+    icon: @Composable () -> Unit,
+    text: String,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingExtraSmall),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        icon()
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+    }
+}
+
+/**
+ * Preview dell'Inventario con medicinali attivi.
  */
 @Preview(showBackground = true)
 @Composable
 private fun InventoryScreenPreview() {
     MediShelfTheme {
         InventoryScreen(
+            uiState = InventoryUiState(
+                isLoading = false,
+                medicines = sampleInventoryMedicines,
+            ),
             onAddMedicineClick = {},
             onMedicineClick = {},
             onArchiveClick = {},
         )
     }
+}
+
+/**
+ * Preview dell'Inventario vuoto.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun InventoryScreenEmptyPreview() {
+    MediShelfTheme {
+        InventoryScreen(
+            uiState = InventoryUiState(isLoading = false),
+            onAddMedicineClick = {},
+            onMedicineClick = {},
+            onArchiveClick = {},
+        )
+    }
+}
+
+private val sampleInventoryMedicines = listOf(
+    InventoryMedicineItemUiModel(
+        id = "1",
+        name = "Paracetamolo",
+        packageForm = "Compresse",
+        status = MedicineStatusBadgeStatus.Valid,
+        expirationDate = "31/12/2026",
+        quantity = "12 compresse",
+        storageLocation = "Bagno",
+    ),
+    InventoryMedicineItemUiModel(
+        id = "2",
+        name = "Sciroppo tosse",
+        packageForm = "Flacone",
+        status = MedicineStatusBadgeStatus.ExpiringSoon,
+        expirationDate = "05/06/2026",
+        quantity = null,
+        storageLocation = "Cucina",
+    ),
+    InventoryMedicineItemUiModel(
+        id = "3",
+        name = "Pomata lenitiva",
+        packageForm = null,
+        status = MedicineStatusBadgeStatus.NoExpiration,
+        expirationDate = null,
+        quantity = null,
+        storageLocation = null,
+    ),
+)
+
+/**
+ * Test tag stabili della schermata Inventario.
+ */
+object InventoryTestTags {
+
+    /**
+     * Restituisce il tag della card associata al medicinale.
+     *
+     * @param medicineId identificativo della voce visualizzata.
+     * @return test tag stabile dell'item.
+     */
+    fun medicineItem(medicineId: String): String = "inventory_medicine_item_$medicineId"
 }
