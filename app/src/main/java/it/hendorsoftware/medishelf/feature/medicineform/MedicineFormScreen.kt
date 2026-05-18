@@ -35,20 +35,37 @@ import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 /**
  * Route del form di inserimento medicinale.
  *
+ * @param medicineId identificativo opzionale che abilita la modalita modifica.
  * @param onSaved callback invocata dopo il salvataggio riuscito, usata dalla
  * navigazione per tornare al flusso previsto.
+ * @param onCloseClick callback usata dagli stati non recuperabili, per esempio
+ * medicinale non trovato.
  * @param modifier modificatore Compose applicato alla schermata.
  * @param viewModel ViewModel Hilt della feature.
  */
 @Composable
 fun MedicineFormRoute(
+    medicineId: String? = null,
     onSaved: () -> Unit,
+    onCloseClick: () -> Unit = onSaved,
     modifier: Modifier = Modifier,
     viewModel: MedicineFormViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val saveSuccessMessage = stringResource(R.string.medicine_form_save_success)
+    val saveSuccessMessage = stringResource(
+        if (uiState.mode == MedicineFormMode.Edit) {
+            R.string.medicine_form_update_success
+        } else {
+            R.string.medicine_form_save_success
+        },
+    )
+
+    LaunchedEffect(medicineId) {
+        if (medicineId != null) {
+            viewModel.loadMedicineForEdit(medicineId)
+        }
+    }
 
     LaunchedEffect(uiState.isSaved) {
         if (uiState.isSaved) {
@@ -71,13 +88,14 @@ fun MedicineFormRoute(
         onStorageLocationChanged = viewModel::onStorageLocationChanged,
         onNotesChanged = viewModel::onNotesChanged,
         onSaveClick = viewModel::onSaveClick,
+        onNotFoundDoneClick = onCloseClick,
         snackbarHostState = snackbarHostState,
         modifier = modifier,
     )
 }
 
 /**
- * Schermata stateless per inserire una nuova voce dell'inventario.
+ * Schermata stateless per inserire o modificare una voce dell'inventario.
  *
  * @param uiState stato completo del form.
  * @param onNameChanged callback per il campo nome obbligatorio.
@@ -89,6 +107,7 @@ fun MedicineFormRoute(
  * @param onStorageLocationChanged callback per luogo di conservazione.
  * @param onNotesChanged callback per note libere.
  * @param onSaveClick callback di salvataggio.
+ * @param onNotFoundDoneClick callback per chiudere lo stato medicinale non trovato.
  * @param snackbarHostState host per mostrare feedback discreti della schermata.
  * @param modifier modificatore Compose applicato alla schermata.
  */
@@ -104,16 +123,43 @@ fun MedicineFormScreen(
     onStorageLocationChanged: (String) -> Unit,
     onNotesChanged: (String) -> Unit,
     onSaveClick: () -> Unit,
+    onNotFoundDoneClick: () -> Unit = {},
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     modifier: Modifier = Modifier,
 ) {
+    val isEditMode = uiState.mode == MedicineFormMode.Edit
+
     Scaffold(
         modifier = modifier,
         topBar = {
-            MediShelfTopAppBar(title = stringResource(R.string.medicine_add_screen_title))
+            MediShelfTopAppBar(
+                title = stringResource(
+                    if (isEditMode) {
+                        R.string.medicine_edit_screen_title
+                    } else {
+                        R.string.medicine_add_screen_title
+                    },
+                ),
+            )
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
     ) { innerPadding ->
+        if (uiState.isNotFound) {
+            MediShelfPlaceholderScreen(
+                title = stringResource(R.string.medicine_edit_not_found_title),
+                body = stringResource(R.string.medicine_edit_not_found_body),
+                modifier = Modifier.padding(innerPadding),
+            ) {
+                Button(
+                    onClick = onNotFoundDoneClick,
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Text(text = stringResource(R.string.navigation_action_go_back))
+                }
+            }
+            return@Scaffold
+        }
+
         Column(
             modifier = Modifier
                 .padding(innerPadding)
@@ -122,16 +168,32 @@ fun MedicineFormScreen(
             verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingMedium),
         ) {
             Text(
-                text = stringResource(R.string.medicine_form_intro),
+                text = stringResource(
+                    if (isEditMode) {
+                        R.string.medicine_form_edit_intro
+                    } else {
+                        R.string.medicine_form_intro
+                    },
+                ),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+
+            if (uiState.isLoading) {
+                LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+                Text(
+                    text = stringResource(R.string.medicine_form_loading),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
 
             MedicineFormTextField(
                 value = uiState.name,
                 onValueChange = onNameChanged,
                 label = stringResource(R.string.medicine_form_name_label),
                 error = uiState.nameError.toMessage(),
+                enabled = !uiState.isLoading,
                 singleLine = true,
             )
 
@@ -140,6 +202,7 @@ fun MedicineFormScreen(
                 onValueChange = onPackageFormChanged,
                 label = stringResource(R.string.medicine_form_package_form_label),
                 supportingText = stringResource(R.string.medicine_form_package_form_support),
+                enabled = !uiState.isLoading,
                 singleLine = true,
             )
 
@@ -150,6 +213,7 @@ fun MedicineFormScreen(
                 supportingText = stringResource(R.string.medicine_form_optional_support),
                 error = uiState.quantityError.toMessage(),
                 keyboardType = KeyboardType.Decimal,
+                enabled = !uiState.isLoading,
                 singleLine = true,
             )
 
@@ -158,6 +222,7 @@ fun MedicineFormScreen(
                 onValueChange = onQuantityUnitChanged,
                 label = stringResource(R.string.medicine_form_quantity_unit_label),
                 supportingText = stringResource(R.string.medicine_form_quantity_unit_support),
+                enabled = !uiState.isLoading,
                 singleLine = true,
             )
 
@@ -168,6 +233,7 @@ fun MedicineFormScreen(
                 supportingText = stringResource(R.string.medicine_form_optional_support),
                 error = uiState.lowStockThresholdError.toMessage(),
                 keyboardType = KeyboardType.Decimal,
+                enabled = !uiState.isLoading,
                 singleLine = true,
             )
 
@@ -178,6 +244,7 @@ fun MedicineFormScreen(
                 supportingText = stringResource(R.string.medicine_form_expiration_date_support),
                 error = uiState.expirationDateError.toMessage(),
                 keyboardType = KeyboardType.Number,
+                enabled = !uiState.isLoading,
                 singleLine = true,
             )
 
@@ -186,6 +253,7 @@ fun MedicineFormScreen(
                 onValueChange = onStorageLocationChanged,
                 label = stringResource(R.string.medicine_form_storage_location_label),
                 supportingText = stringResource(R.string.medicine_form_optional_support),
+                enabled = !uiState.isLoading,
                 singleLine = true,
             )
 
@@ -194,6 +262,7 @@ fun MedicineFormScreen(
                 onValueChange = onNotesChanged,
                 label = stringResource(R.string.medicine_form_notes_label),
                 supportingText = stringResource(R.string.medicine_form_optional_support),
+                enabled = !uiState.isLoading,
                 minLines = MedicineFormDefaults.NotesMinLines,
             )
 
@@ -203,45 +272,18 @@ fun MedicineFormScreen(
 
             Button(
                 onClick = onSaveClick,
-                enabled = !uiState.isSaving,
+                enabled = !uiState.isSaving && !uiState.isLoading,
                 modifier = Modifier.fillMaxWidth(),
             ) {
-                Text(text = stringResource(R.string.medicine_form_save_action))
-            }
-        }
-    }
-}
-
-/**
- * Placeholder temporaneo della modalita' modifica, non inclusa nella issue 14.
- *
- * @param medicineId identificativo del medicinale che sara' modificato in una
- * issue successiva.
- * @param onDoneClick callback per uscire dal placeholder.
- * @param modifier modificatore Compose applicato alla schermata.
- */
-@Composable
-fun MedicineEditPlaceholderScreen(
-    medicineId: String,
-    onDoneClick: () -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    Scaffold(
-        modifier = modifier,
-        topBar = {
-            MediShelfTopAppBar(title = stringResource(R.string.medicine_edit_screen_title))
-        },
-    ) { innerPadding ->
-        MediShelfPlaceholderScreen(
-            title = stringResource(R.string.medicine_edit_placeholder_title),
-            body = stringResource(R.string.medicine_edit_placeholder_body, medicineId),
-            modifier = Modifier.padding(innerPadding),
-        ) {
-            Button(
-                onClick = onDoneClick,
-                modifier = Modifier.fillMaxWidth(),
-            ) {
-                Text(text = stringResource(R.string.navigation_action_complete_placeholder))
+                Text(
+                    text = stringResource(
+                        if (isEditMode) {
+                            R.string.medicine_form_update_action
+                        } else {
+                            R.string.medicine_form_save_action
+                        },
+                    ),
+                )
             }
         }
     }
@@ -258,6 +300,7 @@ private fun MedicineFormTextField(
     modifier: Modifier = Modifier,
     supportingText: String? = null,
     error: String? = null,
+    enabled: Boolean = true,
     keyboardType: KeyboardType = KeyboardType.Text,
     singleLine: Boolean = false,
     minLines: Int = MedicineFormDefaults.DefaultMinLines,
@@ -274,6 +317,7 @@ private fun MedicineFormTextField(
             }
         },
         isError = error != null,
+        enabled = enabled,
         keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
         singleLine = singleLine,
         minLines = minLines,
@@ -346,15 +390,58 @@ private fun MedicineFormScreenFilledPreview() {
 }
 
 /**
- * Preview del placeholder di modifica mantenuto fuori dallo scope di inserimento.
+ * Preview del form in modalita modifica con dati gia caricati.
  */
 @Preview(showBackground = true)
 @Composable
-private fun MedicineEditPlaceholderScreenPreview() {
+private fun MedicineFormScreenEditPreview() {
     MediShelfTheme {
-        MedicineEditPlaceholderScreen(
-            medicineId = "sample-medicine-id",
-            onDoneClick = {},
+        MedicineFormScreen(
+            uiState = MedicineFormUiState(
+                mode = MedicineFormMode.Edit,
+                name = "Ibuprofene",
+                packageForm = "Sciroppo",
+                quantity = "1",
+                quantityUnit = "flacone",
+                lowStockThreshold = "1",
+                expirationDate = "2027-03-31",
+                storageLocation = "Cucina",
+                notes = "Da controllare prima delle vacanze.",
+            ),
+            onNameChanged = {},
+            onPackageFormChanged = {},
+            onQuantityChanged = {},
+            onQuantityUnitChanged = {},
+            onLowStockThresholdChanged = {},
+            onExpirationDateChanged = {},
+            onStorageLocationChanged = {},
+            onNotesChanged = {},
+            onSaveClick = {},
+        )
+    }
+}
+
+/**
+ * Preview dello stato di modifica quando il medicinale non esiste.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun MedicineFormScreenNotFoundPreview() {
+    MediShelfTheme {
+        MedicineFormScreen(
+            uiState = MedicineFormUiState(
+                mode = MedicineFormMode.Edit,
+                isNotFound = true,
+            ),
+            onNameChanged = {},
+            onPackageFormChanged = {},
+            onQuantityChanged = {},
+            onQuantityUnitChanged = {},
+            onLowStockThresholdChanged = {},
+            onExpirationDateChanged = {},
+            onStorageLocationChanged = {},
+            onNotesChanged = {},
+            onSaveClick = {},
         )
     }
 }
