@@ -3,17 +3,14 @@ package it.hendorsoftware.medishelf.domain.usecase
 import it.hendorsoftware.medishelf.domain.model.Medicine
 import it.hendorsoftware.medishelf.domain.model.MedicineId
 import it.hendorsoftware.medishelf.domain.model.QuantityInfo
-import it.hendorsoftware.medishelf.domain.repository.MedicineRepository
+import it.hendorsoftware.medishelf.domain.repository.FakeMedicineRepository
 import java.time.Instant
 import java.time.LocalDate
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
-import org.junit.Assert.assertThrows
+import org.junit.Assert.fail
 import org.junit.Test
 
 /**
@@ -28,14 +25,15 @@ class MedicineUseCaseTest {
      * Verifica che l'inserimento rifiuti nomi vuoti prima di salvare.
      */
     @Test
-    fun shouldRejectBlankNameWhenAddingMedicine() {
+    fun shouldRejectBlankNameWhenAddingMedicine() = runTest {
         val repository = FakeMedicineRepository()
         val useCase = AddMedicineUseCase(repository)
 
-        assertThrows(IllegalArgumentException::class.java) {
-            runBlocking {
-                useCase(name = "   ", createdAt = now)
-            }
+        try {
+            useCase(name = "   ", createdAt = now)
+            fail("Il nome vuoto deve essere rifiutato.")
+        } catch (exception: IllegalArgumentException) {
+            assertEquals("Medicine name cannot be blank.", exception.message)
         }
 
         assertEquals(0, repository.savedMedicines.size)
@@ -45,7 +43,7 @@ class MedicineUseCaseTest {
      * Verifica che l'inserimento normalizzi il nome e deleghi al repository.
      */
     @Test
-    fun shouldTrimNameWhenAddingMedicine() = runBlocking {
+    fun shouldTrimNameWhenAddingMedicine() = runTest {
         val repository = FakeMedicineRepository()
         val useCase = AddMedicineUseCase(repository)
 
@@ -68,7 +66,7 @@ class MedicineUseCaseTest {
      * Verifica che la modifica salvi il medicinale normalizzato.
      */
     @Test
-    fun shouldUpdateMedicineUsingTrimmedName() = runBlocking {
+    fun shouldUpdateMedicineUsingTrimmedName() = runTest {
         val repository = FakeMedicineRepository()
         val useCase = UpdateMedicineUseCase(repository)
         val editedMedicine = baseMedicine(name = "  Ibuprofene  ")
@@ -84,7 +82,7 @@ class MedicineUseCaseTest {
      * Verifica che l'archiviazione passi dal repository domain e aggiorni lo stream archivio.
      */
     @Test
-    fun shouldArchiveMedicineThroughRepository() = runBlocking {
+    fun shouldArchiveMedicineThroughRepository() = runTest {
         val repository = FakeMedicineRepository(initialMedicines = listOf(baseMedicine()))
         val useCase = ArchiveMedicineUseCase(repository)
 
@@ -101,7 +99,7 @@ class MedicineUseCaseTest {
      * Verifica che la cancellazione definitiva passi dal repository domain.
      */
     @Test
-    fun shouldDeleteMedicineThroughRepository() = runBlocking {
+    fun shouldDeleteMedicineThroughRepository() = runTest {
         val repository = FakeMedicineRepository(initialMedicines = listOf(baseMedicine()))
         val useCase = DeleteMedicineUseCase(repository)
 
@@ -114,7 +112,7 @@ class MedicineUseCaseTest {
      * Verifica che i use case di lettura espongano gli stream del repository.
      */
     @Test
-    fun shouldExposeActiveAndArchivedMedicinesFromRepository() = runBlocking {
+    fun shouldExposeActiveAndArchivedMedicinesFromRepository() = runTest {
         val activeMedicine = baseMedicine(id = MedicineId(1L), name = "Paracetamolo")
         val archivedMedicine = baseMedicine(
             id = MedicineId(2L),
@@ -141,6 +139,20 @@ class MedicineUseCaseTest {
         assertNull(GetMedicineByIdUseCase(repository)(MedicineId(99L)))
     }
 
+    /**
+     * Verifica che il fake riusabile pubblichi aggiornamenti sugli stream Flow.
+     */
+    @Test
+    fun shouldPublishUpdatedMedicinesFromReusableFakeRepository() = runTest {
+        val repository = FakeMedicineRepository()
+        val medicine = baseMedicine(name = "Magnesio")
+
+        repository.setMedicines(listOf(medicine))
+
+        assertEquals(listOf(medicine), repository.observeActiveMedicines().first())
+        assertEquals(listOf(medicine), repository.currentMedicines())
+    }
+
     private fun baseMedicine(
         id: MedicineId = MedicineId(1L),
         name: String = "Paracetamolo",
@@ -164,60 +176,4 @@ class MedicineUseCaseTest {
         archivedAt = archivedAt,
     )
 
-    private class FakeMedicineRepository(
-        initialMedicines: List<Medicine> = emptyList(),
-    ) : MedicineRepository {
-
-        private val medicines = MutableStateFlow(initialMedicines)
-
-        val savedMedicines = mutableListOf<Medicine>()
-
-        override fun observeActiveMedicines(): Flow<List<Medicine>> =
-            medicines.map { values -> values.filterNot(Medicine::isArchived) }
-
-        override fun observeArchivedMedicines(): Flow<List<Medicine>> =
-            medicines.map { values -> values.filter(Medicine::isArchived) }
-
-        override suspend fun getMedicineById(id: MedicineId): Medicine? =
-            medicines.value.firstOrNull { medicine -> medicine.id == id }
-
-        override suspend fun saveMedicine(medicine: Medicine) {
-            savedMedicines += medicine
-
-            val currentMedicines = medicines.value.toMutableList()
-            val currentIndex = currentMedicines.indexOfFirst { current ->
-                current.id == medicine.id
-            }
-
-            if (currentIndex >= 0) {
-                currentMedicines[currentIndex] = medicine
-            } else {
-                currentMedicines += medicine
-            }
-
-            medicines.value = currentMedicines
-        }
-
-        override suspend fun archiveMedicine(id: MedicineId) {
-            medicines.value = medicines.value.map { medicine ->
-                if (medicine.id == id) {
-                    medicine.copy(
-                        isArchived = true,
-                        updatedAt = ARCHIVED_AT,
-                        archivedAt = ARCHIVED_AT,
-                    )
-                } else {
-                    medicine
-                }
-            }
-        }
-
-        override suspend fun deleteMedicine(id: MedicineId) {
-            medicines.value = medicines.value.filterNot { medicine -> medicine.id == id }
-        }
-
-        private companion object {
-            private val ARCHIVED_AT: Instant = Instant.parse("2026-05-18T12:00:00Z")
-        }
-    }
 }
