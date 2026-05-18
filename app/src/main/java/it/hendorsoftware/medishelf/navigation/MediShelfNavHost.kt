@@ -14,7 +14,7 @@ import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 import it.hendorsoftware.medishelf.feature.archive.ArchiveScreen
 import it.hendorsoftware.medishelf.feature.expiry.ExpiryScreen
 import it.hendorsoftware.medishelf.feature.home.HomeScreen
-import it.hendorsoftware.medishelf.feature.inventory.InventoryScreen
+import it.hendorsoftware.medishelf.feature.inventory.InventoryRoute
 import it.hendorsoftware.medishelf.feature.medicinedetail.MedicineDetailScreen
 import it.hendorsoftware.medishelf.feature.medicineform.MedicineFormRoute
 import it.hendorsoftware.medishelf.feature.settings.SettingsScreen
@@ -46,10 +46,10 @@ fun MediShelfNavHost(
             )
         }
         composable(MediShelfRoute.Inventory.route) {
-            InventoryScreen(
+            InventoryRoute(
                 onAddMedicineClick = { navController.navigate(MediShelfRoute.AddMedicine.route) },
-                onMedicineClick = {
-                    navController.navigate(MediShelfRoute.MedicineDetail.createRoute(SAMPLE_MEDICINE_ID))
+                onMedicineClick = { medicineId ->
+                    navController.navigate(MediShelfRoute.MedicineDetail.createRoute(medicineId))
                 },
                 onArchiveClick = { navController.navigate(MediShelfRoute.Archive.route) },
             )

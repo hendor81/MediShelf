@@ -6,6 +6,12 @@
     <string name="inventory_screen_title">Inventario</string>
     <string name="inventory_placeholder_title">Inventario dei medicinali</string>
     <string name="inventory_placeholder_body">Placeholder della lista dei medicinali attivi, con accesso a dettaglio, aggiunta e archivio.</string>
+    <string name="inventory_empty_title">Inventario vuoto</string>
+    <string name="inventory_empty_body">Aggiungi il primo medicinale per iniziare a tenere ordinato il tuo armadietto.</string>
+    <string name="inventory_item_expiration">Scadenza %1$s</string>
+    <string name="inventory_item_quantity">Quantita %1$s</string>
+    <string name="inventory_item_location">Luogo %1$s</string>
+    <string name="inventory_open_archive_content_description">Apri archivio</string>
     <string name="medicine_detail_screen_title">Dettaglio medicinale</string>
     <string name="medicine_detail_placeholder_title">Dettaglio medicinale</string>
     <string name="medicine_detail_placeholder_body">Placeholder del dettaglio per il medicinale con ID %1$s. La schermata reale mostra stato, scadenza, quantita e azioni.</string>
