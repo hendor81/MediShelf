@@ -7,8 +7,8 @@ import dagger.hilt.components.SingletonComponent
 /**
  * Modulo Hilt dedicato ai use case applicativi.
  *
- * In questa fase dichiara solo il punto di raccolta dei provider, senza creare
- * use case reali fuori dalla loro issue di implementazione.
+ * I use case concreti usano constructor injection; questo modulo resta il
+ * punto di raccolta per eventuali provider espliciti futuri.
  */
 @Module
 @InstallIn(SingletonComponent::class)
