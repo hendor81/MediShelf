@@ -12,6 +12,8 @@ import it.hendorsoftware.medishelf.domain.rules.MedicineStatusCalculator
 import it.hendorsoftware.medishelf.domain.usecase.ArchiveMedicineUseCase
 import it.hendorsoftware.medishelf.domain.usecase.DeleteMedicineUseCase
 import it.hendorsoftware.medishelf.domain.usecase.GetMedicineByIdUseCase
+import it.hendorsoftware.medishelf.domain.usecase.MedicineQuantityUpdateResult
+import it.hendorsoftware.medishelf.domain.usecase.UpdateMedicineQuantityUseCase
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -31,6 +33,7 @@ class MedicineDetailViewModel @Inject constructor(
     private val getMedicineByIdUseCase: GetMedicineByIdUseCase,
     private val archiveMedicineUseCase: ArchiveMedicineUseCase,
     private val deleteMedicineUseCase: DeleteMedicineUseCase,
+    private val updateMedicineQuantityUseCase: UpdateMedicineQuantityUseCase,
     private val statusCalculator: MedicineStatusCalculator,
 ) : ViewModel() {
 
@@ -77,6 +80,7 @@ class MedicineDetailViewModel @Inject constructor(
 
             val medicine = getMedicineByIdUseCase(id)
             _uiState.value = if (medicine == null) {
+                currentMedicineId = null
                 MedicineDetailUiState(
                     isLoading = false,
                     isNotFound = true,
@@ -88,6 +92,27 @@ class MedicineDetailViewModel @Inject constructor(
                 )
             }
         }
+    }
+
+    /**
+     * Incrementa rapidamente la quantita, se gia indicata dall'utente.
+     */
+    fun onQuantityIncrementClick() {
+        updateQuantity { id -> updateMedicineQuantityUseCase.increment(id) }
+    }
+
+    /**
+     * Decrementa rapidamente la quantita senza consentire valori negativi.
+     */
+    fun onQuantityDecrementClick() {
+        updateQuantity { id -> updateMedicineQuantityUseCase.decrement(id) }
+    }
+
+    /**
+     * Consuma il feedback una volta mostrato dalla UI.
+     */
+    fun onQuantityFeedbackShown() {
+        _uiState.update { state -> state.copy(quantityFeedback = null) }
     }
 
     /**
@@ -156,6 +181,60 @@ class MedicineDetailViewModel @Inject constructor(
         }
     }
 
+    private fun updateQuantity(
+        action: suspend (MedicineId) -> MedicineQuantityUpdateResult,
+    ) {
+        val id = currentMedicineId ?: return
+
+        viewModelScope.launch {
+            _uiState.update { state ->
+                state.copy(isActionInProgress = true, quantityFeedback = null)
+            }
+
+            when (val result = action(id)) {
+                is MedicineQuantityUpdateResult.Updated -> {
+                    _uiState.update { state ->
+                        state.copy(
+                            isActionInProgress = false,
+                            medicine = result.medicine.toUiModel(),
+                            quantityFeedback = MedicineDetailQuantityFeedback.Updated,
+                        )
+                    }
+                }
+
+                is MedicineQuantityUpdateResult.AlreadyZero -> {
+                    _uiState.update { state ->
+                        state.copy(
+                            isActionInProgress = false,
+                            medicine = result.medicine.toUiModel(),
+                            quantityFeedback = MedicineDetailQuantityFeedback.AlreadyZero,
+                        )
+                    }
+                }
+
+                MedicineQuantityUpdateResult.MissingQuantity -> {
+                    _uiState.update { state ->
+                        state.copy(
+                            isActionInProgress = false,
+                            quantityFeedback = MedicineDetailQuantityFeedback.MissingQuantity,
+                        )
+                    }
+                }
+
+                MedicineQuantityUpdateResult.NotFound -> {
+                    currentMedicineId = null
+                    _uiState.update { state ->
+                        state.copy(
+                            isActionInProgress = false,
+                            isNotFound = true,
+                            medicine = null,
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     private fun Medicine.toUiModel(): MedicineDetailUiModel {
         val status = if (isArchived) {
             MedicineStatusBadgeStatus.Archived
@@ -175,6 +254,7 @@ class MedicineDetailViewModel @Inject constructor(
                 listOfNotNull(info.amount.toDisplayText(), info.unit)
                     .joinToString(separator = " ")
             },
+            isQuantityAtZero = quantity?.amount == ZERO_QUANTITY,
             expirationDate = expirationDate?.format(ExpirationDateFormatter),
             storageLocation = storageLocation,
             notes = notes,
@@ -199,6 +279,7 @@ class MedicineDetailViewModel @Inject constructor(
 
     private companion object {
         private const val WHOLE_NUMBER_DIVISOR = 1.0
+        private const val ZERO_QUANTITY = 0.0
         private val ExpirationDateFormatter: DateTimeFormatter =
             DateTimeFormatter.ofPattern("dd/MM/yyyy")
     }

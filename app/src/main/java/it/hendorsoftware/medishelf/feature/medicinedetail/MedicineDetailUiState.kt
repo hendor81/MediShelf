@@ -12,6 +12,7 @@ import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBad
  * @param isActionInProgress indica che archiviazione o cancellazione sono in corso.
  * @param hasArchiveCompleted segnala alla route che l'archiviazione e terminata.
  * @param hasDeleteCompleted segnala alla route che la cancellazione e terminata.
+ * @param quantityFeedback feedback discreto da mostrare dopo azioni sulla quantita.
  */
 data class MedicineDetailUiState(
     val isLoading: Boolean = true,
@@ -21,6 +22,7 @@ data class MedicineDetailUiState(
     val isActionInProgress: Boolean = false,
     val hasArchiveCompleted: Boolean = false,
     val hasDeleteCompleted: Boolean = false,
+    val quantityFeedback: MedicineDetailQuantityFeedback? = null,
 )
 
 /**
@@ -31,6 +33,7 @@ data class MedicineDetailUiState(
  * @param packageForm formato o confezione, mostrato solo se presente.
  * @param status stato visuale calcolato dal dominio o dedotto dall'archiviazione.
  * @param quantity quantita formattata, oppure null quando non indicata.
+ * @param isQuantityAtZero indica se la quantita nota e gia pari a zero.
  * @param expirationDate data di scadenza formattata, oppure null quando assente.
  * @param storageLocation luogo di conservazione, oppure null quando assente.
  * @param notes note libere, oppure null quando assenti.
@@ -42,8 +45,18 @@ data class MedicineDetailUiModel(
     val packageForm: String?,
     val status: MedicineStatusBadgeStatus,
     val quantity: String?,
+    val isQuantityAtZero: Boolean,
     val expirationDate: String?,
     val storageLocation: String?,
     val notes: String?,
     val isArchived: Boolean,
 )
+
+/**
+ * Feedback utente per le azioni rapide sulla quantita.
+ */
+enum class MedicineDetailQuantityFeedback {
+    Updated,
+    MissingQuantity,
+    AlreadyZero,
+}

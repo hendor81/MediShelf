@@ -10,6 +10,7 @@ import it.hendorsoftware.medishelf.domain.rules.MedicineStatusCalculator
 import it.hendorsoftware.medishelf.domain.usecase.ArchiveMedicineUseCase
 import it.hendorsoftware.medishelf.domain.usecase.DeleteMedicineUseCase
 import it.hendorsoftware.medishelf.domain.usecase.GetMedicineByIdUseCase
+import it.hendorsoftware.medishelf.domain.usecase.UpdateMedicineQuantityUseCase
 import it.hendorsoftware.medishelf.testing.MainDispatcherRule
 import java.time.Instant
 import java.time.LocalDate
@@ -105,6 +106,105 @@ class MedicineDetailViewModelTest {
     }
 
     /**
+     * Verifica che l'azione rapida incrementi una quantita gia presente.
+     */
+    @Test
+    fun shouldIncrementQuantityWhenPresent() = runTest {
+        val repository = FakeMedicineRepository(initialMedicines = listOf(sampleMedicine()))
+        val viewModel = createViewModel(repository)
+
+        viewModel.loadMedicine("1")
+        advanceUntilIdle()
+        viewModel.onQuantityIncrementClick()
+        advanceUntilIdle()
+
+        val savedMedicine = repository.savedMedicines.single()
+
+        assertEquals(13.0, requireNotNull(savedMedicine.quantity).amount, DOUBLE_DELTA)
+        assertEquals("13 compresse", viewModel.uiState.value.medicine?.quantity)
+        assertEquals(MedicineDetailQuantityFeedback.Updated, viewModel.uiState.value.quantityFeedback)
+    }
+
+    /**
+     * Verifica che l'azione rapida decrementi senza perdere unita e soglia.
+     */
+    @Test
+    fun shouldDecrementQuantityWhenPresent() = runTest {
+        val repository = FakeMedicineRepository(initialMedicines = listOf(sampleMedicine()))
+        val viewModel = createViewModel(repository)
+
+        viewModel.loadMedicine("1")
+        advanceUntilIdle()
+        viewModel.onQuantityDecrementClick()
+        advanceUntilIdle()
+
+        val savedMedicine = repository.savedMedicines.single()
+        val quantity = requireNotNull(savedMedicine.quantity)
+
+        assertEquals(11.0, quantity.amount, DOUBLE_DELTA)
+        assertEquals("compresse", quantity.unit)
+        assertEquals(2.0, requireNotNull(quantity.lowStockThreshold), DOUBLE_DELTA)
+        assertEquals("11 compresse", viewModel.uiState.value.medicine?.quantity)
+        assertEquals(MedicineDetailQuantityFeedback.Updated, viewModel.uiState.value.quantityFeedback)
+    }
+
+    /**
+     * Verifica che la quantita assente non venga sostituita con un valore fittizio.
+     */
+    @Test
+    fun shouldNotCreateQuantityWhenMissing() = runTest {
+        val repository = FakeMedicineRepository(
+            initialMedicines = listOf(sampleMedicine(quantity = null)),
+        )
+        val viewModel = createViewModel(repository)
+
+        viewModel.loadMedicine("1")
+        advanceUntilIdle()
+        viewModel.onQuantityIncrementClick()
+        advanceUntilIdle()
+
+        assertTrue(repository.savedMedicines.isEmpty())
+        assertNull(repository.currentMedicines().single().quantity)
+        assertNull(viewModel.uiState.value.medicine?.quantity)
+        assertEquals(
+            MedicineDetailQuantityFeedback.MissingQuantity,
+            viewModel.uiState.value.quantityFeedback,
+        )
+    }
+
+    /**
+     * Verifica che il decremento a zero non produca valori negativi.
+     */
+    @Test
+    fun shouldKeepQuantityAtZeroWhenDecrementingZero() = runTest {
+        val repository = FakeMedicineRepository(
+            initialMedicines = listOf(
+                sampleMedicine(
+                    quantity = QuantityInfo(
+                        amount = 0.0,
+                        unit = "compresse",
+                        lowStockThreshold = 2.0,
+                    ),
+                ),
+            ),
+        )
+        val viewModel = createViewModel(repository)
+
+        viewModel.loadMedicine("1")
+        advanceUntilIdle()
+        viewModel.onQuantityDecrementClick()
+        advanceUntilIdle()
+
+        val medicine = viewModel.uiState.value.medicine
+
+        assertTrue(repository.savedMedicines.isEmpty())
+        assertEquals(0.0, requireNotNull(repository.currentMedicines().single().quantity).amount, DOUBLE_DELTA)
+        assertEquals("0 compresse", medicine?.quantity)
+        assertTrue(medicine?.isQuantityAtZero == true)
+        assertEquals(MedicineDetailQuantityFeedback.AlreadyZero, viewModel.uiState.value.quantityFeedback)
+    }
+
+    /**
      * Verifica che l'archiviazione sia distinta dalla cancellazione definitiva.
      */
     @Test
@@ -150,6 +250,7 @@ class MedicineDetailViewModelTest {
             getMedicineByIdUseCase = GetMedicineByIdUseCase(repository),
             archiveMedicineUseCase = ArchiveMedicineUseCase(repository),
             deleteMedicineUseCase = DeleteMedicineUseCase(repository),
+            updateMedicineQuantityUseCase = UpdateMedicineQuantityUseCase(repository),
             statusCalculator = MedicineStatusCalculator(
                 dateProvider = FakeDateProvider(LocalDate.of(2026, 5, 18)),
             ),
@@ -177,4 +278,8 @@ class MedicineDetailViewModelTest {
         updatedAt = Instant.parse("2026-05-10T10:00:00Z"),
         archivedAt = null,
     )
+
+    private companion object {
+        private const val DOUBLE_DELTA = 0.0
+    }
 }
