@@ -16,7 +16,8 @@ import it.hendorsoftware.medishelf.feature.expiry.ExpiryScreen
 import it.hendorsoftware.medishelf.feature.home.HomeScreen
 import it.hendorsoftware.medishelf.feature.inventory.InventoryScreen
 import it.hendorsoftware.medishelf.feature.medicinedetail.MedicineDetailScreen
-import it.hendorsoftware.medishelf.feature.medicineform.MedicineFormScreen
+import it.hendorsoftware.medishelf.feature.medicineform.MedicineEditPlaceholderScreen
+import it.hendorsoftware.medishelf.feature.medicineform.MedicineFormRoute
 import it.hendorsoftware.medishelf.feature.settings.SettingsScreen
 
 private const val SAMPLE_MEDICINE_ID = "sample-medicine-id"
@@ -72,9 +73,8 @@ fun MediShelfNavHost(
             SettingsScreen()
         }
         composable(MediShelfRoute.AddMedicine.route) {
-            MedicineFormScreen(
-                medicineId = null,
-                onDoneClick = {
+            MedicineFormRoute(
+                onSaved = {
                     navController.navigate(MediShelfRoute.Inventory.route) {
                         popUpTo(MediShelfRoute.Home.route)
                     }
@@ -98,7 +98,7 @@ fun MediShelfNavHost(
             route = MediShelfRoute.EditMedicine.route,
             arguments = medicineIdArguments(),
         ) { backStackEntry ->
-            MedicineFormScreen(
+            MedicineEditPlaceholderScreen(
                 medicineId = backStackEntry.requireMedicineId(),
                 onDoneClick = { navController.popBackStack() },
             )
