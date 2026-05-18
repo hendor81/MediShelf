@@ -15,7 +15,7 @@ import it.hendorsoftware.medishelf.feature.archive.ArchiveScreen
 import it.hendorsoftware.medishelf.feature.expiry.ExpiryScreen
 import it.hendorsoftware.medishelf.feature.home.HomeScreen
 import it.hendorsoftware.medishelf.feature.inventory.InventoryRoute
-import it.hendorsoftware.medishelf.feature.medicinedetail.MedicineDetailScreen
+import it.hendorsoftware.medishelf.feature.medicinedetail.MedicineDetailRoute
 import it.hendorsoftware.medishelf.feature.medicineform.MedicineFormRoute
 import it.hendorsoftware.medishelf.feature.settings.SettingsScreen
 
@@ -85,12 +85,14 @@ fun MediShelfNavHost(
             arguments = medicineIdArguments(),
         ) { backStackEntry ->
             val medicineId = backStackEntry.requireMedicineId()
-            MedicineDetailScreen(
+            MedicineDetailRoute(
                 medicineId = medicineId,
                 onEditClick = {
                     navController.navigate(MediShelfRoute.EditMedicine.createRoute(medicineId))
                 },
-                onArchiveClick = { navController.navigate(MediShelfRoute.Archive.route) },
+                onArchived = { navController.navigate(MediShelfRoute.Archive.route) },
+                onDeleted = { navController.popBackStack() },
+                onCloseClick = { navController.popBackStack() },
             )
         }
         composable(
