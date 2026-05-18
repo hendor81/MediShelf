@@ -21,6 +21,12 @@
     <string name="medicine_detail_main_data_title">Dati principali</string>
     <string name="medicine_detail_quantity_label">Quantita</string>
     <string name="medicine_detail_quantity_not_set">Quantita non indicata</string>
+    <string name="medicine_detail_quantity_add_action">Aggiungi quantita</string>
+    <string name="medicine_detail_quantity_increment_content_description">Aumenta quantita</string>
+    <string name="medicine_detail_quantity_decrement_content_description">Riduci quantita</string>
+    <string name="medicine_detail_quantity_updated">Quantita aggiornata.</string>
+    <string name="medicine_detail_quantity_missing_feedback">Aggiungi una quantita prima di usare le azioni rapide.</string>
+    <string name="medicine_detail_quantity_zero_feedback">La quantita e gia a zero.</string>
     <string name="medicine_detail_expiration_label">Scadenza</string>
     <string name="medicine_detail_expiration_not_set">Scadenza non indicata</string>
     <string name="medicine_detail_storage_location_label">Luogo</string>

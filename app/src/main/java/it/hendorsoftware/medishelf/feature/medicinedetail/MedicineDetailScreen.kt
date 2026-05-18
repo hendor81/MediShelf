@@ -11,24 +11,30 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.outlined.Notes
+import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -87,6 +93,10 @@ fun MedicineDetailRoute(
     MedicineDetailScreen(
         uiState = uiState,
         onEditClick = onEditClick,
+        onAddQuantityClick = onEditClick,
+        onQuantityIncrementClick = viewModel::onQuantityIncrementClick,
+        onQuantityDecrementClick = viewModel::onQuantityDecrementClick,
+        onQuantityFeedbackShown = viewModel::onQuantityFeedbackShown,
         onArchiveClick = viewModel::onArchiveClick,
         onDeleteClick = viewModel::onDeleteClick,
         onDeleteConfirm = viewModel::onDeleteConfirmed,
@@ -101,6 +111,10 @@ fun MedicineDetailRoute(
  *
  * @param uiState stato completo del dettaglio.
  * @param onEditClick callback per aprire la modifica tramite icona matita.
+ * @param onAddQuantityClick callback esplicita per impostare la quantita assente.
+ * @param onQuantityIncrementClick callback per aumentare rapidamente la quantita.
+ * @param onQuantityDecrementClick callback per ridurre rapidamente la quantita.
+ * @param onQuantityFeedbackShown callback per consumare il feedback discreto.
  * @param onArchiveClick callback per archiviare la voce.
  * @param onDeleteClick callback per aprire la conferma di cancellazione.
  * @param onDeleteConfirm callback invocata dal dialog dopo conferma esplicita.
@@ -112,6 +126,10 @@ fun MedicineDetailRoute(
 fun MedicineDetailScreen(
     uiState: MedicineDetailUiState,
     onEditClick: () -> Unit,
+    onAddQuantityClick: () -> Unit,
+    onQuantityIncrementClick: () -> Unit,
+    onQuantityDecrementClick: () -> Unit,
+    onQuantityFeedbackShown: () -> Unit,
     onArchiveClick: () -> Unit,
     onDeleteClick: () -> Unit,
     onDeleteConfirm: () -> Unit,
@@ -120,9 +138,21 @@ fun MedicineDetailScreen(
     modifier: Modifier = Modifier,
 ) {
     val hasMedicine = uiState.medicine != null
+    val snackbarHostState = remember { SnackbarHostState() }
+    val quantityFeedbackMessage = uiState.quantityFeedback?.toMessage()
+
+    LaunchedEffect(quantityFeedbackMessage) {
+        if (quantityFeedbackMessage != null) {
+            snackbarHostState.showSnackbar(quantityFeedbackMessage)
+            onQuantityFeedbackShown()
+        }
+    }
 
     Scaffold(
         modifier = modifier,
+        snackbarHost = {
+            SnackbarHost(hostState = snackbarHostState)
+        },
         topBar = {
             MediShelfTopAppBar(
                 title = stringResource(R.string.medicine_detail_screen_title),
@@ -151,6 +181,9 @@ fun MedicineDetailScreen(
     ) { innerPadding ->
         MedicineDetailContent(
             uiState = uiState,
+            onAddQuantityClick = onAddQuantityClick,
+            onQuantityIncrementClick = onQuantityIncrementClick,
+            onQuantityDecrementClick = onQuantityDecrementClick,
             onArchiveClick = onArchiveClick,
             onNotFoundDoneClick = onNotFoundDoneClick,
             modifier = Modifier
@@ -174,6 +207,9 @@ fun MedicineDetailScreen(
 @Composable
 private fun MedicineDetailContent(
     uiState: MedicineDetailUiState,
+    onAddQuantityClick: () -> Unit,
+    onQuantityIncrementClick: () -> Unit,
+    onQuantityDecrementClick: () -> Unit,
     onArchiveClick: () -> Unit,
     onNotFoundDoneClick: () -> Unit,
     modifier: Modifier = Modifier,
@@ -187,6 +223,9 @@ private fun MedicineDetailContent(
         uiState.medicine != null -> MedicineDetailData(
             medicine = uiState.medicine,
             isActionInProgress = uiState.isActionInProgress,
+            onAddQuantityClick = onAddQuantityClick,
+            onQuantityIncrementClick = onQuantityIncrementClick,
+            onQuantityDecrementClick = onQuantityDecrementClick,
             onArchiveClick = onArchiveClick,
             modifier = modifier,
         )
@@ -231,6 +270,9 @@ private fun MedicineDetailNotFound(
 private fun MedicineDetailData(
     medicine: MedicineDetailUiModel,
     isActionInProgress: Boolean,
+    onAddQuantityClick: () -> Unit,
+    onQuantityIncrementClick: () -> Unit,
+    onQuantityDecrementClick: () -> Unit,
     onArchiveClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
@@ -277,10 +319,13 @@ private fun MedicineDetailData(
         MedicineDetailInfoCard(
             title = stringResource(R.string.medicine_detail_main_data_title),
         ) {
-            MedicineDetailInfoRow(
-                icon = Icons.Outlined.Inventory2,
-                label = stringResource(R.string.medicine_detail_quantity_label),
-                value = medicine.quantity ?: stringResource(R.string.medicine_detail_quantity_not_set),
+            MedicineDetailQuantityRow(
+                quantity = medicine.quantity,
+                isQuantityAtZero = medicine.isQuantityAtZero,
+                isActionInProgress = isActionInProgress,
+                onAddQuantityClick = onAddQuantityClick,
+                onQuantityIncrementClick = onQuantityIncrementClick,
+                onQuantityDecrementClick = onQuantityDecrementClick,
             )
             MedicineDetailInfoRow(
                 icon = Icons.Outlined.CalendarMonth,
@@ -329,6 +374,89 @@ private fun MedicineDetailData(
                 ),
                 modifier = Modifier.padding(start = MediShelfDimens.SpacingSmall),
             )
+        }
+    }
+}
+
+@Composable
+private fun MedicineDetailQuantityRow(
+    quantity: String?,
+    isQuantityAtZero: Boolean,
+    isActionInProgress: Boolean,
+    onAddQuantityClick: () -> Unit,
+    onQuantityIncrementClick: () -> Unit,
+    onQuantityDecrementClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmall),
+        verticalAlignment = Alignment.Top,
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.Inventory2,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+        )
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingExtraSmall),
+        ) {
+            Text(
+                text = stringResource(R.string.medicine_detail_quantity_label),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            Text(
+                text = quantity ?: stringResource(R.string.medicine_detail_quantity_not_set),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+            )
+            if (quantity == null) {
+                OutlinedButton(
+                    onClick = onAddQuantityClick,
+                    enabled = !isActionInProgress,
+                    modifier = Modifier.testTag(MedicineDetailTestTags.ADD_QUANTITY_BUTTON),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Add,
+                        contentDescription = null,
+                    )
+                    Text(
+                        text = stringResource(R.string.medicine_detail_quantity_add_action),
+                        modifier = Modifier.padding(start = MediShelfDimens.SpacingSmall),
+                    )
+                }
+            }
+        }
+
+        if (quantity != null) {
+            Row(horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingExtraSmall)) {
+                IconButton(
+                    onClick = onQuantityDecrementClick,
+                    enabled = !isActionInProgress && !isQuantityAtZero,
+                    modifier = Modifier.testTag(MedicineDetailTestTags.DECREMENT_QUANTITY_BUTTON),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Remove,
+                        contentDescription = stringResource(
+                            R.string.medicine_detail_quantity_decrement_content_description,
+                        ),
+                    )
+                }
+                IconButton(
+                    onClick = onQuantityIncrementClick,
+                    enabled = !isActionInProgress,
+                    modifier = Modifier.testTag(MedicineDetailTestTags.INCREMENT_QUANTITY_BUTTON),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Add,
+                        contentDescription = stringResource(
+                            R.string.medicine_detail_quantity_increment_content_description,
+                        ),
+                    )
+                }
+            }
         }
     }
 }
@@ -394,7 +522,20 @@ private fun MedicineDetailInfoRow(
  */
 object MedicineDetailTestTags {
     const val ARCHIVE_BUTTON = "medicine_detail_archive_button"
+    const val ADD_QUANTITY_BUTTON = "medicine_detail_add_quantity_button"
+    const val INCREMENT_QUANTITY_BUTTON = "medicine_detail_increment_quantity_button"
+    const val DECREMENT_QUANTITY_BUTTON = "medicine_detail_decrement_quantity_button"
 }
+
+@Composable
+private fun MedicineDetailQuantityFeedback.toMessage(): String = stringResource(
+    when (this) {
+        MedicineDetailQuantityFeedback.Updated -> R.string.medicine_detail_quantity_updated
+        MedicineDetailQuantityFeedback.MissingQuantity ->
+            R.string.medicine_detail_quantity_missing_feedback
+        MedicineDetailQuantityFeedback.AlreadyZero -> R.string.medicine_detail_quantity_zero_feedback
+    },
+)
 
 /**
  * Preview del Dettaglio medicinale con dati completi.
@@ -409,6 +550,10 @@ private fun MedicineDetailScreenPreview() {
                 medicine = sampleMedicineDetail,
             ),
             onEditClick = {},
+            onAddQuantityClick = {},
+            onQuantityIncrementClick = {},
+            onQuantityDecrementClick = {},
+            onQuantityFeedbackShown = {},
             onArchiveClick = {},
             onDeleteClick = {},
             onDeleteConfirm = {},
@@ -437,6 +582,10 @@ private fun MedicineDetailScreenMissingDataPreview() {
                 ),
             ),
             onEditClick = {},
+            onAddQuantityClick = {},
+            onQuantityIncrementClick = {},
+            onQuantityDecrementClick = {},
+            onQuantityFeedbackShown = {},
             onArchiveClick = {},
             onDeleteClick = {},
             onDeleteConfirm = {},
@@ -459,6 +608,10 @@ private fun MedicineDetailScreenNotFoundPreview() {
                 isNotFound = true,
             ),
             onEditClick = {},
+            onAddQuantityClick = {},
+            onQuantityIncrementClick = {},
+            onQuantityDecrementClick = {},
+            onQuantityFeedbackShown = {},
             onArchiveClick = {},
             onDeleteClick = {},
             onDeleteConfirm = {},
@@ -474,6 +627,7 @@ private val sampleMedicineDetail = MedicineDetailUiModel(
     packageForm = "Compresse",
     status = MedicineStatusBadgeStatus.Valid,
     quantity = "12 compresse",
+    isQuantityAtZero = false,
     expirationDate = "31/12/2026",
     storageLocation = "Bagno",
     notes = "Confezione iniziata.",
