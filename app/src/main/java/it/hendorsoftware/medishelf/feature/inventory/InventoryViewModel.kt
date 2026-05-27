@@ -11,6 +11,7 @@ import it.hendorsoftware.medishelf.domain.rules.MedicineStatusCalculator
 import it.hendorsoftware.medishelf.domain.usecase.GetActiveMedicinesUseCase
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -29,6 +30,7 @@ class InventoryViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(InventoryUiState())
+    private val searchQuery = MutableStateFlow("")
 
     /**
      * Stato osservabile dalla route Compose.
@@ -43,12 +45,44 @@ class InventoryViewModel @Inject constructor(
 
     private fun observeActiveMedicines() {
         viewModelScope.launch {
-            getActiveMedicinesUseCase().collect { medicines ->
-                _uiState.value = InventoryUiState(
+            combine(getActiveMedicinesUseCase(), searchQuery) { medicines, query ->
+                val filteredMedicines = medicines.filterByName(query)
+                InventoryUiState(
                     isLoading = false,
-                    medicines = medicines.map { medicine -> medicine.toUiModel() },
+                    medicines = filteredMedicines.map { medicine -> medicine.toUiModel() },
+                    searchQuery = query,
+                    hasActiveMedicines = medicines.isNotEmpty(),
                 )
+            }.collect { inventoryUiState ->
+                _uiState.value = inventoryUiState
             }
+        }
+    }
+
+    /**
+     * Aggiorna la query testuale usata per cercare i medicinali per nome.
+     *
+     * @param query testo digitato dall'utente nel campo ricerca.
+     */
+    fun onSearchQueryChanged(query: String) {
+        searchQuery.value = query
+    }
+
+    /**
+     * Svuota il campo ricerca e ripristina la lista completa dei medicinali attivi.
+     */
+    fun onSearchQueryCleared() {
+        searchQuery.value = ""
+    }
+
+    private fun List<Medicine>.filterByName(query: String): List<Medicine> {
+        val normalizedQuery = query.trim()
+
+        return if (normalizedQuery.isBlank()) {
+            this
+        } else {
+            // Il filtro resta qui, fuori dalla Composable, cosi la UI riceve una lista gia coerente.
+            filter { medicine -> medicine.name.contains(normalizedQuery, ignoreCase = true) }
         }
     }
 
