@@ -31,6 +31,7 @@ class InventoryViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(InventoryUiState())
     private val searchQuery = MutableStateFlow("")
+    private val selectedStatusFilter = MutableStateFlow(InventoryStatusFilter.All)
 
     /**
      * Stato osservabile dalla route Compose.
@@ -45,12 +46,28 @@ class InventoryViewModel @Inject constructor(
 
     private fun observeActiveMedicines() {
         viewModelScope.launch {
-            combine(getActiveMedicinesUseCase(), searchQuery) { medicines, query ->
-                val filteredMedicines = medicines.filterByName(query)
+            combine(
+                getActiveMedicinesUseCase(),
+                searchQuery,
+                selectedStatusFilter,
+            ) { medicines, query, statusFilter ->
+                val medicinesWithStatus = medicines.map { medicine ->
+                    medicine to statusCalculator.calculate(
+                        medicine = medicine,
+                        expiringThresholdDays = MediShelfDefaults.ExpiringThresholdDays,
+                    )
+                }
+                val filteredMedicines = medicinesWithStatus.filterByNameAndStatus(
+                    query = query,
+                    statusFilter = statusFilter,
+                )
                 InventoryUiState(
                     isLoading = false,
-                    medicines = filteredMedicines.map { medicine -> medicine.toUiModel() },
+                    medicines = filteredMedicines.map { (medicine, status) ->
+                        medicine.toUiModel(status)
+                    },
                     searchQuery = query,
+                    selectedStatusFilter = statusFilter,
                     hasActiveMedicines = medicines.isNotEmpty(),
                 )
             }.collect { inventoryUiState ->
@@ -75,24 +92,33 @@ class InventoryViewModel @Inject constructor(
         searchQuery.value = ""
     }
 
-    private fun List<Medicine>.filterByName(query: String): List<Medicine> {
+    /**
+     * Aggiorna il filtro di stato usato per restringere l'inventario.
+     *
+     * @param filter filtro selezionato nel controllo della schermata.
+     */
+    fun onStatusFilterSelected(filter: InventoryStatusFilter) {
+        selectedStatusFilter.value = filter
+    }
+
+    private fun List<Pair<Medicine, MedicineStatus>>.filterByNameAndStatus(
+        query: String,
+        statusFilter: InventoryStatusFilter,
+    ): List<Pair<Medicine, MedicineStatus>> {
         val normalizedQuery = query.trim()
 
-        return if (normalizedQuery.isBlank()) {
-            this
-        } else {
+        return filter { (medicine, status) ->
             // Il filtro resta qui, fuori dalla Composable, cosi la UI riceve una lista gia coerente.
-            filter { medicine -> medicine.name.contains(normalizedQuery, ignoreCase = true) }
+            val matchesName = normalizedQuery.isBlank() ||
+                medicine.name.contains(normalizedQuery, ignoreCase = true)
+            val matchesStatus = statusFilter.includes(status)
+
+            matchesName && matchesStatus
         }
     }
 
-    private fun Medicine.toUiModel(): InventoryMedicineItemUiModel {
-        val status = statusCalculator.calculate(
-            medicine = this,
-            expiringThresholdDays = MediShelfDefaults.ExpiringThresholdDays,
-        )
-
-        return InventoryMedicineItemUiModel(
+    private fun Medicine.toUiModel(status: MedicineStatus): InventoryMedicineItemUiModel =
+        InventoryMedicineItemUiModel(
             id = id.value.toString(),
             name = name,
             packageForm = packageForm,
@@ -104,7 +130,6 @@ class InventoryViewModel @Inject constructor(
             },
             storageLocation = storageLocation,
         )
-    }
 
     private fun MedicineStatus.toBadgeStatus(): MedicineStatusBadgeStatus = when (this) {
         MedicineStatus.VALID -> MedicineStatusBadgeStatus.Valid

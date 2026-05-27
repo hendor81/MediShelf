@@ -11,7 +11,8 @@
     <string name="inventory_search_label">Cerca per nome</string>
     <string name="inventory_search_clear_content_description">Cancella ricerca</string>
     <string name="inventory_search_empty_title">Nessun risultato</string>
-    <string name="inventory_search_empty_body">Non ci sono medicinali con questo nome. Prova a modificare la ricerca.</string>
+    <string name="inventory_search_empty_body">Non ci sono medicinali che corrispondono ai filtri attuali. Prova a modificare ricerca o stato.</string>
+    <string name="inventory_status_filter_all">Tutti</string>
     <string name="inventory_item_expiration">Scadenza %1$s</string>
     <string name="inventory_item_quantity">Quantita %1$s</string>
     <string name="inventory_item_location">Luogo %1$s</string>
