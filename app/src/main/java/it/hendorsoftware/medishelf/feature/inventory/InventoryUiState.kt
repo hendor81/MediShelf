@@ -8,12 +8,14 @@ import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBad
  * @param isLoading indica se la lista sta osservando il primo caricamento.
  * @param medicines elementi attivi gia pronti per la visualizzazione.
  * @param searchQuery testo usato per filtrare i medicinali per nome.
+ * @param selectedStatusFilter filtro di stato selezionato dall'utente.
  * @param hasActiveMedicines indica se l'inventario contiene almeno una voce attiva prima della ricerca.
  */
 data class InventoryUiState(
     val isLoading: Boolean = true,
     val medicines: List<InventoryMedicineItemUiModel> = emptyList(),
     val searchQuery: String = "",
+    val selectedStatusFilter: InventoryStatusFilter = InventoryStatusFilter.All,
     val hasActiveMedicines: Boolean = false,
 )
 

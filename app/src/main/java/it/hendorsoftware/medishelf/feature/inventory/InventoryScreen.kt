@@ -23,6 +23,7 @@ import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -73,6 +74,7 @@ fun InventoryRoute(
         onArchiveClick = onArchiveClick,
         onSearchQueryChanged = viewModel::onSearchQueryChanged,
         onSearchQueryCleared = viewModel::onSearchQueryCleared,
+        onStatusFilterSelected = viewModel::onStatusFilterSelected,
         modifier = modifier,
     )
 }
@@ -86,6 +88,7 @@ fun InventoryRoute(
  * @param onArchiveClick callback per aprire l'archivio.
  * @param onSearchQueryChanged callback per aggiornare la ricerca testuale.
  * @param onSearchQueryCleared callback per svuotare la ricerca.
+ * @param onStatusFilterSelected callback per aggiornare il filtro di stato.
  * @param modifier modificatore Compose applicato alla schermata.
  */
 @Composable
@@ -96,6 +99,7 @@ fun InventoryScreen(
     onArchiveClick: () -> Unit,
     onSearchQueryChanged: (String) -> Unit,
     onSearchQueryCleared: () -> Unit,
+    onStatusFilterSelected: (InventoryStatusFilter) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -136,6 +140,7 @@ fun InventoryScreen(
             onMedicineClick = onMedicineClick,
             onSearchQueryChanged = onSearchQueryChanged,
             onSearchQueryCleared = onSearchQueryCleared,
+            onStatusFilterSelected = onStatusFilterSelected,
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
@@ -150,6 +155,7 @@ private fun InventoryContent(
     onMedicineClick: (String) -> Unit,
     onSearchQueryChanged: (String) -> Unit,
     onSearchQueryCleared: () -> Unit,
+    onStatusFilterSelected: (InventoryStatusFilter) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
@@ -170,39 +176,54 @@ private fun InventoryContent(
                         end = MediShelfDimens.ScreenPadding,
                     ),
             )
+
+            InventoryStatusFilterChips(
+                selectedFilter = uiState.selectedStatusFilter,
+                onFilterSelected = onStatusFilterSelected,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        start = MediShelfDimens.ScreenPadding,
+                        top = MediShelfDimens.SpacingSmall,
+                        end = MediShelfDimens.ScreenPadding,
+                    ),
+            )
         }
 
         if (!uiState.isLoading && uiState.medicines.isEmpty()) {
-            val isSearchEmptyState = uiState.searchQuery.isNotBlank() && uiState.hasActiveMedicines
+            val isFilteredEmptyState = (
+                uiState.searchQuery.isNotBlank() ||
+                    uiState.selectedStatusFilter != InventoryStatusFilter.All
+                ) && uiState.hasActiveMedicines
 
             EmptyState(
                 title = stringResource(
-                    if (isSearchEmptyState) {
+                    if (isFilteredEmptyState) {
                         R.string.inventory_search_empty_title
                     } else {
                         R.string.inventory_empty_title
                     },
                 ),
                 body = stringResource(
-                    if (isSearchEmptyState) {
+                    if (isFilteredEmptyState) {
                         R.string.inventory_search_empty_body
                     } else {
                         R.string.inventory_empty_body
                     },
                 ),
-                actionLabel = if (isSearchEmptyState) {
+                actionLabel = if (isFilteredEmptyState) {
                     null
                 } else {
                     stringResource(R.string.navigation_action_add_medicine)
                 },
-                onActionClick = if (isSearchEmptyState) null else onAddMedicineClick,
+                onActionClick = if (isFilteredEmptyState) null else onAddMedicineClick,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
                     .padding(MediShelfDimens.ScreenPadding),
                 icon = {
                     Icon(
-                        imageVector = if (isSearchEmptyState) {
+                        imageVector = if (isFilteredEmptyState) {
                             Icons.Outlined.Search
                         } else {
                             Icons.Outlined.Inventory2
@@ -274,6 +295,31 @@ private fun InventorySearchField(
             }
         },
     )
+}
+
+@OptIn(ExperimentalLayoutApi::class)
+@Composable
+private fun InventoryStatusFilterChips(
+    selectedFilter: InventoryStatusFilter,
+    onFilterSelected: (InventoryStatusFilter) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    FlowRow(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmall),
+        verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingExtraSmall),
+    ) {
+        InventoryStatusFilter.entries.forEach { filter ->
+            FilterChip(
+                selected = filter == selectedFilter,
+                onClick = { onFilterSelected(filter) },
+                label = {
+                    Text(text = stringResource(filter.labelResId))
+                },
+                modifier = Modifier.testTag(InventoryTestTags.statusFilter(filter)),
+            )
+        }
+    }
 }
 
 /**
@@ -412,6 +458,7 @@ private fun InventoryScreenPreview() {
             onArchiveClick = {},
             onSearchQueryChanged = {},
             onSearchQueryCleared = {},
+            onStatusFilterSelected = {},
         )
     }
 }
@@ -430,6 +477,7 @@ private fun InventoryScreenEmptyPreview() {
             onArchiveClick = {},
             onSearchQueryChanged = {},
             onSearchQueryCleared = {},
+            onStatusFilterSelected = {},
         )
     }
 }
@@ -453,6 +501,7 @@ private fun InventoryScreenSearchEmptyPreview() {
             onArchiveClick = {},
             onSearchQueryChanged = {},
             onSearchQueryCleared = {},
+            onStatusFilterSelected = {},
         )
     }
 }
@@ -493,6 +542,14 @@ private val sampleInventoryMedicines = listOf(
 object InventoryTestTags {
     const val SearchField = "inventory_search_field"
     const val ClearSearchButton = "inventory_clear_search_button"
+
+    /**
+     * Restituisce il tag del filtro di stato richiesto.
+     *
+     * @param filter filtro visualizzato.
+     * @return test tag stabile del chip.
+     */
+    fun statusFilter(filter: InventoryStatusFilter): String = "inventory_status_filter_${filter.name}"
 
     /**
      * Restituisce il tag della card associata al medicinale.

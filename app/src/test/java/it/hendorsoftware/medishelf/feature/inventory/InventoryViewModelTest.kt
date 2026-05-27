@@ -197,11 +197,127 @@ class InventoryViewModelTest {
         )
     }
 
+    /**
+     * Verifica che il filtro valido mostri solo medicinali senza criticita note.
+     */
+    @Test
+    fun shouldFilterValidMedicines() = runTest {
+        val viewModel = createViewModelWithStatusSamples()
+
+        advanceUntilIdle()
+        viewModel.onStatusFilterSelected(InventoryStatusFilter.Valid)
+        advanceUntilIdle()
+
+        assertEquals(InventoryStatusFilter.Valid, viewModel.uiState.value.selectedStatusFilter)
+        assertEquals(listOf("Valido"), viewModel.uiState.value.medicines.map { item -> item.name })
+        assertTrue(viewModel.uiState.value.hasActiveMedicines)
+    }
+
+    /**
+     * Verifica che il filtro in scadenza usi lo stato calcolato dal dominio.
+     */
+    @Test
+    fun shouldFilterExpiringMedicines() = runTest {
+        val viewModel = createViewModelWithStatusSamples()
+
+        advanceUntilIdle()
+        viewModel.onStatusFilterSelected(InventoryStatusFilter.ExpiringSoon)
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf("In scadenza"),
+            viewModel.uiState.value.medicines.map { item -> item.name },
+        )
+    }
+
+    /**
+     * Verifica che il filtro scaduto mostri solo medicinali con data gia superata.
+     */
+    @Test
+    fun shouldFilterExpiredMedicines() = runTest {
+        val viewModel = createViewModelWithStatusSamples()
+
+        advanceUntilIdle()
+        viewModel.onStatusFilterSelected(InventoryStatusFilter.Expired)
+        advanceUntilIdle()
+
+        assertEquals(listOf("Scaduto"), viewModel.uiState.value.medicines.map { item -> item.name })
+    }
+
+    /**
+     * Verifica che il filtro esaurito abbia priorita sulla data di scadenza.
+     */
+    @Test
+    fun shouldFilterOutOfStockMedicines() = runTest {
+        val viewModel = createViewModelWithStatusSamples()
+
+        advanceUntilIdle()
+        viewModel.onStatusFilterSelected(InventoryStatusFilter.OutOfStock)
+        advanceUntilIdle()
+
+        assertEquals(listOf("Esaurito"), viewModel.uiState.value.medicines.map { item -> item.name })
+    }
+
+    /**
+     * Verifica che il filtro senza data mostri solo medicinali privi di scadenza.
+     */
+    @Test
+    fun shouldFilterMedicinesWithoutExpirationDate() = runTest {
+        val viewModel = createViewModelWithStatusSamples()
+
+        advanceUntilIdle()
+        viewModel.onStatusFilterSelected(InventoryStatusFilter.NoExpirationDate)
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf("Senza scadenza"),
+            viewModel.uiState.value.medicines.map { item -> item.name },
+        )
+    }
+
     private fun createViewModel(repository: FakeMedicineRepository): InventoryViewModel =
         InventoryViewModel(
             getActiveMedicinesUseCase = GetActiveMedicinesUseCase(repository),
             statusCalculator = MedicineStatusCalculator(
                 dateProvider = FakeDateProvider(LocalDate.of(2026, 5, 18)),
+            ),
+        )
+
+    private fun createViewModelWithStatusSamples(): InventoryViewModel =
+        createViewModel(
+            repository = FakeMedicineRepository(
+                initialMedicines = listOf(
+                    sampleMedicine(
+                        id = MedicineId(1L),
+                        name = "Valido",
+                        expirationDate = LocalDate.of(2026, 7, 10),
+                    ),
+                    sampleMedicine(
+                        id = MedicineId(2L),
+                        name = "In scadenza",
+                        expirationDate = LocalDate.of(2026, 5, 31),
+                    ),
+                    sampleMedicine(
+                        id = MedicineId(3L),
+                        name = "Scaduto",
+                        expirationDate = LocalDate.of(2026, 5, 1),
+                    ),
+                    sampleMedicine(
+                        id = MedicineId(4L),
+                        name = "Esaurito",
+                        quantity = QuantityInfo(
+                            amount = 0.0,
+                            unit = "compresse",
+                            lowStockThreshold = 2.0,
+                        ),
+                        expirationDate = LocalDate.of(2026, 7, 10),
+                    ),
+                    sampleMedicine(
+                        id = MedicineId(5L),
+                        name = "Senza scadenza",
+                        expirationDate = null,
+                    ),
+                ),
             ),
         )
 

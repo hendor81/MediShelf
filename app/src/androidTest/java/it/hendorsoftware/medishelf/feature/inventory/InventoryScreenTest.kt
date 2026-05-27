@@ -132,10 +132,33 @@ class InventoryScreenTest {
             .assertIsDisplayed()
     }
 
+    /**
+     * Verifica che il chip di filtro inoltri la selezione al chiamante.
+     */
+    @Test
+    fun shouldSendStatusFilterSelection() {
+        var selectedFilter: InventoryStatusFilter? = null
+
+        setInventoryContent(
+            uiState = InventoryUiState(
+                isLoading = false,
+                medicines = listOf(sampleMedicineItem),
+            ),
+            onStatusFilterSelected = { filter -> selectedFilter = filter },
+        )
+
+        composeTestRule
+            .onNodeWithTag(InventoryTestTags.statusFilter(InventoryStatusFilter.Expired))
+            .performClick()
+
+        assertEquals(InventoryStatusFilter.Expired, selectedFilter)
+    }
+
     private fun setInventoryContent(
         uiState: InventoryUiState,
         onMedicineClick: (String) -> Unit = {},
         onSearchQueryChanged: (String) -> Unit = {},
+        onStatusFilterSelected: (InventoryStatusFilter) -> Unit = {},
     ) {
         composeTestRule.setContent {
             MediShelfTheme {
@@ -146,6 +169,7 @@ class InventoryScreenTest {
                     onArchiveClick = {},
                     onSearchQueryChanged = onSearchQueryChanged,
                     onSearchQueryCleared = {},
+                    onStatusFilterSelected = onStatusFilterSelected,
                 )
             }
         }
