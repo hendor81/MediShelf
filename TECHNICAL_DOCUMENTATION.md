@@ -390,6 +390,283 @@ CI.
 - Rimuovere o sostituire i test template Android generati dallo scaffold.
 
 
+## Stato attuale - Milestone 2
+
+La Milestone 2 ha reso funzionale il nucleo di inventario base. Le aree
+Inventario, Inserimento/Modifica, Dettaglio medicinale e Archivio non sono piu
+solo placeholder: osservano o modificano i dati locali tramite ViewModel, use
+case e repository Room. Home, Scadenzario e Impostazioni restano invece
+placeholder navigabili.
+
+### Scope funzionale implementato
+Feature collegate a dati reali:
+- inserimento di un medicinale con solo nome obbligatorio;
+- modifica di un medicinale esistente;
+- consultazione dell'inventario attivo;
+- ricerca per nome nell'inventario;
+- filtro inventario per stato calcolato;
+- apertura del dettaglio da Inventario e Archivio usando id reali;
+- incremento e decremento rapido della quantita quando gia indicata;
+- archiviazione logica dal dettaglio;
+- cancellazione definitiva dal dettaglio dopo conferma;
+- consultazione dell'Archivio con lista di medicinali non piu attivi.
+
+Feature ancora placeholder o fuori dalla Milestone 2:
+- Home / Dashboard con riepilogo reale;
+- Scadenzario con sezioni in scadenza, scaduti e senza data;
+- Impostazioni reali;
+- notifiche locali;
+- ripristino da archivio;
+- ordinamenti configurabili;
+- stato o filtro dedicato alla scorta bassa.
+
+### Feature Inventario
+`InventoryRoute` usa `InventoryViewModel` tramite Hilt e passa a
+`InventoryScreen` uno `InventoryUiState` immutabile.
+
+Il ViewModel:
+- osserva `GetActiveMedicinesUseCase`;
+- combina stream medicinali, query di ricerca e filtro selezionato;
+- calcola lo stato con `MedicineStatusCalculator`;
+- formatta data, quantita e id per la UI;
+- espone `hasActiveMedicines` per distinguere inventario vuoto e ricerca senza
+  risultati.
+
+La schermata Inventario mostra:
+- top app bar con accesso all'Archivio;
+- campo ricerca testuale;
+- chip di filtro per tutti gli stati domain implementati;
+- FAB di aggiunta medicinale;
+- lista di card compatte con nome, formato, badge stato, scadenza, quantita e
+  luogo quando presenti;
+- empty state dedicato per inventario vuoto e nessun risultato.
+
+I filtri disponibili sono:
+- tutti;
+- valido;
+- in scadenza;
+- scaduto;
+- esaurito;
+- senza scadenza.
+
+La ricerca e il filtro vivono nel ViewModel, non nella Composable. Non esiste
+ancora un `SearchMedicinesUseCase` separato: per ora la scelta e locale alla
+feature, coerente con lo scope piccolo della Milestone 2.
+
+### Feature Inserimento / Modifica
+`MedicineFormRoute` usa `MedicineFormViewModel` e abilita la modalita modifica
+quando riceve un `medicineId` dalla route `medicine/{medicineId}/edit`.
+
+Il form supporta:
+- nome obbligatorio;
+- formato/confezione opzionale;
+- quantita opzionale;
+- unita quantita opzionale;
+- soglia scorta bassa opzionale;
+- data scadenza opzionale in formato ISO `yyyy-MM-dd`;
+- luogo conservazione opzionale;
+- note opzionali.
+
+Validazioni implementate:
+- nome non vuoto;
+- quantita numerica opzionale e non negativa;
+- soglia scorta bassa numerica opzionale e non negativa;
+- data opzionale valida secondo `LocalDate.parse`.
+
+Valori numerici con virgola vengono normalizzati sostituendo `,` con `.` prima
+del parsing. I campi vuoti restano assenti nel domain model. La quantita resta
+realmente opzionale: salvare una voce con solo nome e' supportato e testato.
+
+In modifica il ViewModel carica la voce tramite `GetMedicineByIdUseCase`,
+precompila i campi, mantiene id e `createdAt`, aggiorna `updatedAt` tramite
+`UpdateMedicineUseCase` e mostra uno stato dedicato se l'id non e valido o non
+esiste piu.
+
+### Feature Dettaglio medicinale
+`MedicineDetailRoute` carica il dato con `MedicineDetailViewModel` partendo
+dall'id di navigazione.
+
+Il dettaglio mostra:
+- nome;
+- formato/confezione;
+- badge stato;
+- quantita o testo neutro quando assente;
+- scadenza o testo neutro quando assente;
+- luogo o testo neutro quando assente;
+- note o testo neutro quando assenti;
+- icona matita per modifica;
+- icona cestino per cancellazione definitiva;
+- pulsante di archiviazione.
+
+Azioni implementate:
+- modifica tramite route `medicine/{medicineId}/edit`;
+- aggiunta quantita mancante tramite apertura del form di modifica;
+- incremento quantita di 1 quando la quantita e nota;
+- decremento quantita di 1 senza scendere sotto zero;
+- feedback discreto per quantita aggiornata, quantita assente e quantita gia a
+  zero;
+- archiviazione logica;
+- cancellazione fisica solo dopo dialog di conferma.
+
+`UpdateMedicineQuantityUseCase` mantiene la quantita opzionale: se il valore non
+e stato impostato non crea una quantita fittizia, ma restituisce
+`MissingQuantity`. Il decremento a zero restituisce `AlreadyZero` quando non
+puo applicare ulteriori riduzioni.
+
+### Feature Archivio
+`ArchiveRoute` usa `ArchiveViewModel` e osserva `GetArchivedMedicinesUseCase`.
+
+La schermata Archivio mostra:
+- stato di caricamento;
+- empty state quando non ci sono medicinali archiviati;
+- copy che la qualifica come area secondaria;
+- lista di card con badge `Archiviato`;
+- dati opzionali mostrati solo quando presenti;
+- apertura del dettaglio con id reale della voce archiviata.
+
+L'Archivio e attualmente consultivo: non esiste ancora un use case o un'azione UI
+per ripristinare una voce nell'inventario attivo.
+
+### Dominio e use case
+I modelli domain restano quelli introdotti nella Milestone 1:
+- `Medicine`;
+- `MedicineId`;
+- `QuantityInfo`;
+- `MedicineStatus`.
+
+Use case disponibili nello stato corrente:
+- `AddMedicineUseCase`;
+- `UpdateMedicineUseCase`;
+- `ArchiveMedicineUseCase`;
+- `DeleteMedicineUseCase`;
+- `GetActiveMedicinesUseCase`;
+- `GetArchivedMedicinesUseCase`;
+- `GetMedicineByIdUseCase`;
+- `UpdateMedicineQuantityUseCase`.
+
+`MedicineNameValidator` continua a normalizzare il nome tramite trim.
+`MedicineStatusCalculator` continua a calcolare lo stato derivato senza
+persistenza. La soglia in scadenza usata dalle feature e
+`MediShelfDefaults.ExpiringThresholdDays`.
+
+### Persistenza locale
+Lo schema Room non e cambiato nella Milestone 2:
+- database `MediShelfDatabase`;
+- file `medishelf.db`;
+- versione schema `1`;
+- `exportSchema = false`;
+- tabella `medicines`;
+- id `Long` autogenerato;
+- archiviazione logica con `isArchived` e `archivedAt`;
+- `LocalDate` salvato come stringa ISO;
+- `Instant` salvato come epoch millis.
+
+Le query DAO attualmente usate dalle feature sono:
+- `observeActiveMedicines`, ordinata per nome case-insensitive;
+- `observeArchivedMedicines`, ordinata per data di archiviazione/aggiornamento
+  decrescente e poi per nome;
+- `getMedicineById`;
+- `insertMedicine`;
+- `updateMedicine`;
+- `archiveMedicine`;
+- `deleteMedicineById`.
+
+Non sono state introdotte migrazioni, perche lo schema persistente e ancora
+alla versione iniziale.
+
+### Navigazione aggiornata
+Le route restano:
+- `home`;
+- `inventory`;
+- `expiry`;
+- `archive`;
+- `settings`;
+- `medicine/add`;
+- `medicine/{medicineId}`;
+- `medicine/{medicineId}/edit`.
+
+Differenze rispetto alla Milestone 1:
+- Inventario apre il dettaglio con l'id reale della card selezionata;
+- Archivio apre il dettaglio con l'id reale della card archiviata;
+- il form di inserimento salva e torna all'Inventario;
+- il form di modifica salva e torna al Dettaglio;
+- il dettaglio archiviato naviga verso Archivio;
+- il dettaglio cancellato torna indietro.
+
+Limite residuo: lo Scadenzario e ancora placeholder e continua ad aprire il
+dettaglio con `SAMPLE_MEDICINE_ID`, quindi non e collegato a medicinali reali.
+
+### UI e design system
+La Milestone 2 riusa il design system esistente:
+- `MediShelfTopAppBar`;
+- `MedicineStatusBadge`;
+- `EmptyState`;
+- `ConfirmDeleteDialog`;
+- tema, shape e dimensioni centralizzate.
+
+Le stringhe visibili introdotte per form, inventario, dettaglio e archivio sono
+in `strings.xml`. Le schermate hanno Preview per stati pieni, vuoti, mancanti o
+non trovati quando rilevante. I test UI usano test tag stabili per elementi
+interattivi di Inventario, Dettaglio e Archivio.
+
+### Test presenti dopo la Milestone 2
+Test unitari JVM aggiunti o estesi:
+- `InventoryViewModelTest`, per caricamento attivi, ricerca, filtro stato,
+  campi opzionali e reazione all'archiviazione;
+- `MedicineFormViewModelTest`, per salvataggio con solo nome, validazioni,
+  conversione quantita, caricamento modifica, update e not found;
+- `MedicineDetailViewModelTest`, per caricamento dettaglio, campi opzionali,
+  increment/decrement quantita, quantita assente, zero, archiviazione e
+  cancellazione confermata;
+- `ArchiveViewModelTest`, per caricamento soli archiviati, empty state e campi
+  opzionali;
+- test di dominio, mapper, use case e DAO gia presenti dalla Milestone 1.
+
+Test strumentali/Compose presenti:
+- `InventoryScreenTest`, per empty state, dettagli item, tap verso dettaglio,
+  ricerca e filtro;
+- `MedicineFormScreenTest`, per campo nome e inserimento testuale;
+- `MedicineDetailScreenTest`, per dati principali, modifica, archiviazione e
+  conferma cancellazione;
+- `NavigationSmokeTest`, per navigazione principale da Home.
+
+Restano presenti i test template `ExampleUnitTest` ed
+`ExampleInstrumentedTest`.
+
+### Deviazioni e allineamenti da monitorare
+- Il domain enum non contiene `ARCHIVED`; lo stato archiviato e rappresentato
+  come proprieta `isArchived` e come badge UI in Dettaglio/Archivio.
+- Il naming reale degli stati resta `EXPIRING` e `NO_EXPIRATION_DATE`, mentre
+  alcuni documenti usano `EXPIRING_SOON` e `UNKNOWN_EXPIRATION`.
+- `lowStockThreshold` e persistito e modificabile dal form, ma non produce
+  ancora uno stato visuale o un filtro dedicato di scorta bassa.
+- La ricerca e implementata nel `InventoryViewModel`, non come use case
+  autonomo.
+- L'Archivio non consente ancora il ripristino, anche se la documentazione di
+  prodotto lo prevede come evoluzione naturale.
+- Lo Scadenzario non e ancora collegato ai dati reali e usa ancora una route di
+  esempio.
+- Home non mostra ancora riepiloghi reali dell'armadietto.
+- Non ci sono ancora impostazioni per cambiare soglia in scadenza o notifiche:
+  le feature usano il default centralizzato.
+
+### Debito tecnico noto aggiornato
+- Implementare Home / Dashboard con riepilogo reale dei medicinali attivi.
+- Implementare Scadenzario reale con sezioni in scadenza, scaduti e senza data.
+- Implementare impostazioni reali per soglia scadenza e notifiche.
+- Decidere se introdurre uno stato domain `ARCHIVED` o mantenere stabilmente
+  archiviazione come dimensione separata.
+- Allineare il naming degli stati tra documentazione e codice.
+- Introdurre ripristino da Archivio quando previsto dalla milestone dedicata.
+- Valutare un use case dedicato alla ricerca se la logica uscira dai soli
+  requisiti dell'Inventario.
+- Introdurre stato/filtro di scorta bassa se la soglia deve avere impatto UI.
+- Collegare lo Scadenzario a id reali e rimuovere `SAMPLE_MEDICINE_ID`.
+- Rimuovere i test template generati dallo scaffold.
+- Estendere la CI con lint esplicito ed eventuali test strumentali.
+- Valutare `exportSchema = true` quando inizieranno migrazioni Room.
+
+
 ## Collegamento con gli altri documenti
 La documentazione tecnica deve restare allineata con:
 
