@@ -64,6 +64,25 @@ class InventoryViewModelTest {
     }
 
     /**
+     * Verifica che l'inventario reagisca allo stream dopo l'archiviazione logica.
+     */
+    @Test
+    fun shouldRemoveMedicineFromInventoryAfterArchive() = runTest {
+        val repository = FakeMedicineRepository(initialMedicines = listOf(sampleMedicine()))
+        val viewModel = createViewModel(repository)
+
+        advanceUntilIdle()
+        repository.archiveMedicine(MedicineId(1L))
+        advanceUntilIdle()
+
+        val uiState = viewModel.uiState.value
+
+        assertTrue(uiState.medicines.isEmpty())
+        assertFalse(uiState.hasActiveMedicines)
+        assertEquals(listOf(MedicineId(1L)), repository.archivedMedicineIds)
+    }
+
+    /**
      * Verifica che i campi opzionali assenti restino nascosti a livello UI.
      */
     @Test

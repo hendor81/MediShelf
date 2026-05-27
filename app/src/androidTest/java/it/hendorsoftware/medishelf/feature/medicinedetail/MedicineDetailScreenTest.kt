@@ -60,6 +60,22 @@ class MedicineDetailScreenTest {
     }
 
     /**
+     * Verifica che il pulsante di archiviazione esponga un'azione distinta dalla cancellazione.
+     */
+    @Test
+    fun shouldRequestArchiveWhenArchiveButtonIsClicked() {
+        var archiveClicks = 0
+
+        setMedicineDetailContent(onArchiveClick = { archiveClicks++ })
+
+        composeTestRule
+            .onNodeWithText("Archivia medicinale")
+            .performClick()
+
+        assertEquals(1, archiveClicks)
+    }
+
+    /**
      * Verifica che la cancellazione mostri un dialog e richieda conferma.
      */
     @Test
@@ -113,6 +129,7 @@ class MedicineDetailScreenTest {
             medicine = sampleMedicineDetail,
         ),
         onEditClick: () -> Unit = {},
+        onArchiveClick: () -> Unit = {},
         onDeleteClick: () -> Unit = {},
         onDeleteConfirm: () -> Unit = {},
     ) {
@@ -121,7 +138,11 @@ class MedicineDetailScreenTest {
                 MedicineDetailScreen(
                     uiState = uiState,
                     onEditClick = onEditClick,
-                    onArchiveClick = {},
+                    onAddQuantityClick = {},
+                    onQuantityIncrementClick = {},
+                    onQuantityDecrementClick = {},
+                    onQuantityFeedbackShown = {},
+                    onArchiveClick = onArchiveClick,
                     onDeleteClick = onDeleteClick,
                     onDeleteConfirm = onDeleteConfirm,
                     onDeleteDismiss = {},
@@ -137,6 +158,7 @@ class MedicineDetailScreenTest {
         packageForm = "Compresse",
         status = MedicineStatusBadgeStatus.Valid,
         quantity = "12 compresse",
+        isQuantityAtZero = false,
         expirationDate = "31/12/2026",
         storageLocation = "Bagno",
         notes = "Confezione iniziata",
