@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
 import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBadgeStatus
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 import org.junit.Assert.assertEquals
@@ -90,9 +91,51 @@ class InventoryScreenTest {
         assertEquals("1", openedMedicineId)
     }
 
+    /**
+     * Verifica che il campo ricerca inoltri il testo digitato al chiamante.
+     */
+    @Test
+    fun shouldSendSearchQueryChanges() {
+        var searchQuery = ""
+
+        setInventoryContent(
+            uiState = InventoryUiState(
+                isLoading = false,
+                medicines = listOf(sampleMedicineItem),
+            ),
+            onSearchQueryChanged = { query -> searchQuery = query },
+        )
+
+        composeTestRule
+            .onNodeWithTag(InventoryTestTags.SearchField)
+            .performTextInput("para")
+
+        assertEquals("para", searchQuery)
+    }
+
+    /**
+     * Verifica lo stato vuoto dedicato quando la ricerca non trova medicinali.
+     */
+    @Test
+    fun shouldShowSearchEmptyState() {
+        setInventoryContent(
+            uiState = InventoryUiState(
+                isLoading = false,
+                medicines = emptyList(),
+                searchQuery = "aspirina",
+                hasActiveMedicines = true,
+            ),
+        )
+
+        composeTestRule
+            .onNodeWithText("Nessun risultato")
+            .assertIsDisplayed()
+    }
+
     private fun setInventoryContent(
         uiState: InventoryUiState,
         onMedicineClick: (String) -> Unit = {},
+        onSearchQueryChanged: (String) -> Unit = {},
     ) {
         composeTestRule.setContent {
             MediShelfTheme {
@@ -101,6 +144,8 @@ class InventoryScreenTest {
                     onAddMedicineClick = {},
                     onMedicineClick = onMedicineClick,
                     onArchiveClick = {},
+                    onSearchQueryChanged = onSearchQueryChanged,
+                    onSearchQueryCleared = {},
                 )
             }
         }

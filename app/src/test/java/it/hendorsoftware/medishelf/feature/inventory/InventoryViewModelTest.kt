@@ -17,6 +17,7 @@ import kotlinx.coroutines.test.runTest
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -89,6 +90,111 @@ class InventoryViewModelTest {
         assertNull(item.quantity)
         assertNull(item.expirationDate)
         assertNull(item.storageLocation)
+    }
+
+    /**
+     * Verifica che la ricerca accetti una parte del nome e aggiorni la lista esposta.
+     */
+    @Test
+    fun shouldFilterMedicinesByPartialNameQuery() = runTest {
+        val viewModel = createViewModel(
+            repository = FakeMedicineRepository(
+                initialMedicines = listOf(
+                    sampleMedicine(name = "Paracetamolo"),
+                    sampleMedicine(id = MedicineId(2L), name = "Ibuprofene"),
+                ),
+            ),
+        )
+
+        advanceUntilIdle()
+
+        viewModel.onSearchQueryChanged("ceta")
+        advanceUntilIdle()
+
+        val uiState = viewModel.uiState.value
+
+        assertEquals("ceta", uiState.searchQuery)
+        assertEquals(listOf("Paracetamolo"), uiState.medicines.map { item -> item.name })
+        assertTrue(uiState.hasActiveMedicines)
+    }
+
+    /**
+     * Verifica che il filtro sul nome non dipenda da maiuscole o minuscole.
+     */
+    @Test
+    fun shouldFilterMedicinesIgnoringCase() = runTest {
+        val viewModel = createViewModel(
+            repository = FakeMedicineRepository(
+                initialMedicines = listOf(
+                    sampleMedicine(name = "Paracetamolo"),
+                    sampleMedicine(id = MedicineId(2L), name = "Ibuprofene"),
+                ),
+            ),
+        )
+
+        advanceUntilIdle()
+
+        viewModel.onSearchQueryChanged("IBU")
+        advanceUntilIdle()
+
+        assertEquals(
+            listOf("Ibuprofene"),
+            viewModel.uiState.value.medicines.map { item -> item.name },
+        )
+    }
+
+    /**
+     * Verifica che una query senza corrispondenze produca una lista vuota ma mantenga traccia
+     * del fatto che l'inventario contiene elementi attivi.
+     */
+    @Test
+    fun shouldExposeEmptyResultWhenSearchDoesNotMatchAnyMedicine() = runTest {
+        val viewModel = createViewModel(
+            repository = FakeMedicineRepository(
+                initialMedicines = listOf(sampleMedicine(name = "Paracetamolo")),
+            ),
+        )
+
+        advanceUntilIdle()
+
+        viewModel.onSearchQueryChanged("aspirina")
+        advanceUntilIdle()
+
+        val uiState = viewModel.uiState.value
+
+        assertEquals("aspirina", uiState.searchQuery)
+        assertTrue(uiState.medicines.isEmpty())
+        assertTrue(uiState.hasActiveMedicines)
+    }
+
+    /**
+     * Verifica che la pulizia della query ripristini la lista completa.
+     */
+    @Test
+    fun shouldClearSearchQuery() = runTest {
+        val viewModel = createViewModel(
+            repository = FakeMedicineRepository(
+                initialMedicines = listOf(
+                    sampleMedicine(name = "Paracetamolo"),
+                    sampleMedicine(id = MedicineId(2L), name = "Ibuprofene"),
+                ),
+            ),
+        )
+
+        advanceUntilIdle()
+
+        viewModel.onSearchQueryChanged("ibu")
+        advanceUntilIdle()
+        viewModel.onSearchQueryCleared()
+        advanceUntilIdle()
+
+        val uiState = viewModel.uiState.value
+
+        assertEquals("", uiState.searchQuery)
+        assertEquals(
+            listOf("Paracetamolo", "Ibuprofene"),
+            uiState.medicines.map { item -> item.name },
+        )
     }
 
     private fun createViewModel(repository: FakeMedicineRepository): InventoryViewModel =

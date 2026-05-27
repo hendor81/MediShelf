@@ -8,6 +8,10 @@
     <string name="inventory_placeholder_body">Placeholder della lista dei medicinali attivi, con accesso a dettaglio, aggiunta e archivio.</string>
     <string name="inventory_empty_title">Inventario vuoto</string>
     <string name="inventory_empty_body">Aggiungi il primo medicinale per iniziare a tenere ordinato il tuo armadietto.</string>
+    <string name="inventory_search_label">Cerca per nome</string>
+    <string name="inventory_search_clear_content_description">Cancella ricerca</string>
+    <string name="inventory_search_empty_title">Nessun risultato</string>
+    <string name="inventory_search_empty_body">Non ci sono medicinali con questo nome. Prova a modificare la ricerca.</string>
     <string name="inventory_item_expiration">Scadenza %1$s</string>
     <string name="inventory_item_quantity">Quantita %1$s</string>
     <string name="inventory_item_location">Luogo %1$s</string>

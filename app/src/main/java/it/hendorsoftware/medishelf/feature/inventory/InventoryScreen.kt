@@ -16,8 +16,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Archive
 import androidx.compose.material.icons.outlined.CalendarMonth
+import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.LocationOn
+import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
@@ -25,6 +27,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.collectAsState
@@ -68,6 +71,8 @@ fun InventoryRoute(
         onAddMedicineClick = onAddMedicineClick,
         onMedicineClick = onMedicineClick,
         onArchiveClick = onArchiveClick,
+        onSearchQueryChanged = viewModel::onSearchQueryChanged,
+        onSearchQueryCleared = viewModel::onSearchQueryCleared,
         modifier = modifier,
     )
 }
@@ -79,6 +84,8 @@ fun InventoryRoute(
  * @param onAddMedicineClick callback per aprire il form di inserimento.
  * @param onMedicineClick callback per aprire il dettaglio della voce selezionata.
  * @param onArchiveClick callback per aprire l'archivio.
+ * @param onSearchQueryChanged callback per aggiornare la ricerca testuale.
+ * @param onSearchQueryCleared callback per svuotare la ricerca.
  * @param modifier modificatore Compose applicato alla schermata.
  */
 @Composable
@@ -87,6 +94,8 @@ fun InventoryScreen(
     onAddMedicineClick: () -> Unit,
     onMedicineClick: (String) -> Unit,
     onArchiveClick: () -> Unit,
+    onSearchQueryChanged: (String) -> Unit,
+    onSearchQueryCleared: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -125,6 +134,8 @@ fun InventoryScreen(
             uiState = uiState,
             onAddMedicineClick = onAddMedicineClick,
             onMedicineClick = onMedicineClick,
+            onSearchQueryChanged = onSearchQueryChanged,
+            onSearchQueryCleared = onSearchQueryCleared,
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
@@ -137,6 +148,8 @@ private fun InventoryContent(
     uiState: InventoryUiState,
     onAddMedicineClick: () -> Unit,
     onMedicineClick: (String) -> Unit,
+    onSearchQueryChanged: (String) -> Unit,
+    onSearchQueryCleared: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
@@ -144,18 +157,56 @@ private fun InventoryContent(
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         }
 
-        if (!uiState.isLoading && uiState.medicines.isEmpty()) {
-            EmptyState(
-                title = stringResource(R.string.inventory_empty_title),
-                body = stringResource(R.string.inventory_empty_body),
-                actionLabel = stringResource(R.string.navigation_action_add_medicine),
-                onActionClick = onAddMedicineClick,
+        if (!uiState.isLoading) {
+            InventorySearchField(
+                query = uiState.searchQuery,
+                onQueryChanged = onSearchQueryChanged,
+                onClearClick = onSearchQueryCleared,
                 modifier = Modifier
-                    .fillMaxSize()
+                    .fillMaxWidth()
+                    .padding(
+                        start = MediShelfDimens.ScreenPadding,
+                        top = MediShelfDimens.ScreenPadding,
+                        end = MediShelfDimens.ScreenPadding,
+                    ),
+            )
+        }
+
+        if (!uiState.isLoading && uiState.medicines.isEmpty()) {
+            val isSearchEmptyState = uiState.searchQuery.isNotBlank() && uiState.hasActiveMedicines
+
+            EmptyState(
+                title = stringResource(
+                    if (isSearchEmptyState) {
+                        R.string.inventory_search_empty_title
+                    } else {
+                        R.string.inventory_empty_title
+                    },
+                ),
+                body = stringResource(
+                    if (isSearchEmptyState) {
+                        R.string.inventory_search_empty_body
+                    } else {
+                        R.string.inventory_empty_body
+                    },
+                ),
+                actionLabel = if (isSearchEmptyState) {
+                    null
+                } else {
+                    stringResource(R.string.navigation_action_add_medicine)
+                },
+                onActionClick = if (isSearchEmptyState) null else onAddMedicineClick,
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
                     .padding(MediShelfDimens.ScreenPadding),
                 icon = {
                     Icon(
-                        imageVector = Icons.Outlined.Inventory2,
+                        imageVector = if (isSearchEmptyState) {
+                            Icons.Outlined.Search
+                        } else {
+                            Icons.Outlined.Inventory2
+                        },
                         contentDescription = null,
                     )
                 },
@@ -184,6 +235,45 @@ private fun InventoryContent(
             }
         }
     }
+}
+
+@Composable
+private fun InventorySearchField(
+    query: String,
+    onQueryChanged: (String) -> Unit,
+    onClearClick: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    OutlinedTextField(
+        value = query,
+        onValueChange = onQueryChanged,
+        modifier = modifier.testTag(InventoryTestTags.SearchField),
+        label = {
+            Text(text = stringResource(R.string.inventory_search_label))
+        },
+        singleLine = true,
+        leadingIcon = {
+            Icon(
+                imageVector = Icons.Outlined.Search,
+                contentDescription = null,
+            )
+        },
+        trailingIcon = {
+            if (query.isNotEmpty()) {
+                IconButton(
+                    onClick = onClearClick,
+                    modifier = Modifier.testTag(InventoryTestTags.ClearSearchButton),
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Close,
+                        contentDescription = stringResource(
+                            R.string.inventory_search_clear_content_description,
+                        ),
+                    )
+                }
+            }
+        },
+    )
 }
 
 /**
@@ -320,6 +410,8 @@ private fun InventoryScreenPreview() {
             onAddMedicineClick = {},
             onMedicineClick = {},
             onArchiveClick = {},
+            onSearchQueryChanged = {},
+            onSearchQueryCleared = {},
         )
     }
 }
@@ -336,6 +428,31 @@ private fun InventoryScreenEmptyPreview() {
             onAddMedicineClick = {},
             onMedicineClick = {},
             onArchiveClick = {},
+            onSearchQueryChanged = {},
+            onSearchQueryCleared = {},
+        )
+    }
+}
+
+/**
+ * Preview dell'Inventario senza risultati di ricerca.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun InventoryScreenSearchEmptyPreview() {
+    MediShelfTheme {
+        InventoryScreen(
+            uiState = InventoryUiState(
+                isLoading = false,
+                medicines = emptyList(),
+                searchQuery = "tachipirina",
+                hasActiveMedicines = true,
+            ),
+            onAddMedicineClick = {},
+            onMedicineClick = {},
+            onArchiveClick = {},
+            onSearchQueryChanged = {},
+            onSearchQueryCleared = {},
         )
     }
 }
@@ -374,6 +491,8 @@ private val sampleInventoryMedicines = listOf(
  * Test tag stabili della schermata Inventario.
  */
 object InventoryTestTags {
+    const val SearchField = "inventory_search_field"
+    const val ClearSearchButton = "inventory_clear_search_button"
 
     /**
      * Restituisce il tag della card associata al medicinale.
