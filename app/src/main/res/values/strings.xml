@@ -81,6 +81,9 @@
     <string name="archive_screen_title">Archivio</string>
     <string name="archive_placeholder_title">Medicinali archiviati</string>
     <string name="archive_placeholder_body">Placeholder per consultare elementi non piu attivi e ripristinarli in seguito.</string>
+    <string name="archive_empty_title">Archivio vuoto</string>
+    <string name="archive_empty_body">I medicinali che togli dall\'inventario attivo appariranno qui, senza essere eliminati.</string>
+    <string name="archive_secondary_area_body">Area secondaria: qui puoi consultare i medicinali non piu attivi e aprirne il dettaglio quando serve.</string>
     <string name="settings_screen_title">Impostazioni</string>
     <string name="settings_placeholder_title">Preferenze essenziali</string>
     <string name="settings_placeholder_body">Placeholder per soglia scadenze, notifiche locali e preferenze di archiviazione.</string>

@@ -11,7 +11,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
-import it.hendorsoftware.medishelf.feature.archive.ArchiveScreen
+import it.hendorsoftware.medishelf.feature.archive.ArchiveRoute
 import it.hendorsoftware.medishelf.feature.expiry.ExpiryScreen
 import it.hendorsoftware.medishelf.feature.home.HomeScreen
 import it.hendorsoftware.medishelf.feature.inventory.InventoryRoute
@@ -62,9 +62,9 @@ fun MediShelfNavHost(
             )
         }
         composable(MediShelfRoute.Archive.route) {
-            ArchiveScreen(
-                onMedicineClick = {
-                    navController.navigate(MediShelfRoute.MedicineDetail.createRoute(SAMPLE_MEDICINE_ID))
+            ArchiveRoute(
+                onMedicineClick = { medicineId ->
+                    navController.navigate(MediShelfRoute.MedicineDetail.createRoute(medicineId))
                 },
             )
         }
