@@ -78,6 +78,14 @@
     <string name="expiry_screen_title">Scadenzario</string>
     <string name="expiry_placeholder_title">Scadenze sotto controllo</string>
     <string name="expiry_placeholder_body">Placeholder delle sezioni in scadenza, scaduti e senza data.</string>
+    <string name="expiry_empty_title">Nessuna scadenza da gestire</string>
+    <string name="expiry_empty_body">Quando aggiungerai medicinali in scadenza, scaduti o senza data, li troverai qui divisi per sezione.</string>
+    <string name="expiry_section_expiring_title">In scadenza</string>
+    <string name="expiry_section_expiring_body">Medicinali con scadenza entro la soglia configurata.</string>
+    <string name="expiry_section_expired_title">Scaduti</string>
+    <string name="expiry_section_expired_body">Voci con data gia superata, ordinate dalla scadenza piu vicina.</string>
+    <string name="expiry_section_no_expiration_title">Senza data</string>
+    <string name="expiry_section_no_expiration_body">Medicinali attivi per cui puoi completare la scadenza in seguito.</string>
     <string name="archive_screen_title">Archivio</string>
     <string name="archive_placeholder_title">Medicinali archiviati</string>
     <string name="archive_placeholder_body">Placeholder per consultare elementi non piu attivi e ripristinarli in seguito.</string>

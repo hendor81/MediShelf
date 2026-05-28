@@ -12,14 +12,12 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 import it.hendorsoftware.medishelf.feature.archive.ArchiveRoute
-import it.hendorsoftware.medishelf.feature.expiry.ExpiryScreen
+import it.hendorsoftware.medishelf.feature.expiry.ExpiryRoute
 import it.hendorsoftware.medishelf.feature.home.HomeScreen
 import it.hendorsoftware.medishelf.feature.inventory.InventoryRoute
 import it.hendorsoftware.medishelf.feature.medicinedetail.MedicineDetailRoute
 import it.hendorsoftware.medishelf.feature.medicineform.MedicineFormRoute
 import it.hendorsoftware.medishelf.feature.settings.SettingsScreen
-
-private const val SAMPLE_MEDICINE_ID = "sample-medicine-id"
 
 /**
  * NavHost principale della navigation shell MediShelf.
@@ -55,9 +53,9 @@ fun MediShelfNavHost(
             )
         }
         composable(MediShelfRoute.Expiry.route) {
-            ExpiryScreen(
-                onMedicineClick = {
-                    navController.navigate(MediShelfRoute.MedicineDetail.createRoute(SAMPLE_MEDICINE_ID))
+            ExpiryRoute(
+                onMedicineClick = { medicineId ->
+                    navController.navigate(MediShelfRoute.MedicineDetail.createRoute(medicineId))
                 },
             )
         }
