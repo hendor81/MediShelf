@@ -122,6 +122,16 @@ Esempi:
 - I repository concreti stanno nel layer data.
 - Le query devono distinguere chiaramente elementi attivi e archiviati.
 
+## Logging
+- Usare `INFO` per eventi business significativi: avvio di operazioni che modificano stato, includendo gli identificativi business rilevanti, e conferma del completamento con l'esito.
+- Per operazioni di sola lettura è sufficiente un `INFO` all'avvio; non è necessario un log di conferma al completamento.
+- Usare `DEBUG` per dettagli tecnici di basso livello, ad esempio URL invocati, codici HTTP e dettagli infrastrutturali. I log `DEBUG` non devono essere visibili in produzione.
+- Usare `WARN` per anomalie non bloccanti e per funzionalità disabilitate per assenza di configurazione.
+- Usare `ERROR` per eccezioni, includendo sempre l'operazione fallita, l'identificativo business rilevante e l'eccezione come ultimo parametro, così da abilitare lo stack trace automatico di SLF4J.
+- Non loggare mai dati sensibili: token, password, payload completi o dati personali.
+- Ogni messaggio di log deve rendere chiaro cosa si stava facendo, con quale contesto e con quale risultato o errore.
+- Evitare ridondanza: non loggare la stessa informazione più volte nello stesso flusso.
+
 ## Documentazione tecnica durante lo sviluppo
 Ogni milestone deve chiudersi con un aggiornamento della documentazione tecnica.
 
