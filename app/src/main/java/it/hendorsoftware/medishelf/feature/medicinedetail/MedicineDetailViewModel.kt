@@ -3,7 +3,6 @@ package it.hendorsoftware.medishelf.feature.medicinedetail
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import it.hendorsoftware.medishelf.core.common.MediShelfDefaults
 import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBadgeStatus
 import it.hendorsoftware.medishelf.domain.model.Medicine
 import it.hendorsoftware.medishelf.domain.model.MedicineId
@@ -13,12 +12,14 @@ import it.hendorsoftware.medishelf.domain.usecase.ArchiveMedicineUseCase
 import it.hendorsoftware.medishelf.domain.usecase.DeleteMedicineUseCase
 import it.hendorsoftware.medishelf.domain.usecase.GetMedicineByIdUseCase
 import it.hendorsoftware.medishelf.domain.usecase.MedicineQuantityUpdateResult
+import it.hendorsoftware.medishelf.domain.usecase.ObserveUserSettingsUseCase
 import it.hendorsoftware.medishelf.domain.usecase.UpdateMedicineQuantityUseCase
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -34,6 +35,7 @@ class MedicineDetailViewModel @Inject constructor(
     private val archiveMedicineUseCase: ArchiveMedicineUseCase,
     private val deleteMedicineUseCase: DeleteMedicineUseCase,
     private val updateMedicineQuantityUseCase: UpdateMedicineQuantityUseCase,
+    private val observeUserSettingsUseCase: ObserveUserSettingsUseCase,
     private val statusCalculator: MedicineStatusCalculator,
 ) : ViewModel() {
 
@@ -79,6 +81,7 @@ class MedicineDetailViewModel @Inject constructor(
             }
 
             val medicine = getMedicineByIdUseCase(id)
+            val settings = observeUserSettingsUseCase().first()
             _uiState.value = if (medicine == null) {
                 currentMedicineId = null
                 MedicineDetailUiState(
@@ -88,7 +91,7 @@ class MedicineDetailViewModel @Inject constructor(
             } else {
                 MedicineDetailUiState(
                     isLoading = false,
-                    medicine = medicine.toUiModel(),
+                    medicine = medicine.toUiModel(settings.expiringThresholdDays),
                 )
             }
         }
@@ -193,20 +196,26 @@ class MedicineDetailViewModel @Inject constructor(
 
             when (val result = action(id)) {
                 is MedicineQuantityUpdateResult.Updated -> {
+                    val expiringThresholdDays = observeUserSettingsUseCase()
+                        .first()
+                        .expiringThresholdDays
                     _uiState.update { state ->
                         state.copy(
                             isActionInProgress = false,
-                            medicine = result.medicine.toUiModel(),
+                            medicine = result.medicine.toUiModel(expiringThresholdDays),
                             quantityFeedback = MedicineDetailQuantityFeedback.Updated,
                         )
                     }
                 }
 
                 is MedicineQuantityUpdateResult.AlreadyZero -> {
+                    val expiringThresholdDays = observeUserSettingsUseCase()
+                        .first()
+                        .expiringThresholdDays
                     _uiState.update { state ->
                         state.copy(
                             isActionInProgress = false,
-                            medicine = result.medicine.toUiModel(),
+                            medicine = result.medicine.toUiModel(expiringThresholdDays),
                             quantityFeedback = MedicineDetailQuantityFeedback.AlreadyZero,
                         )
                     }
@@ -235,13 +244,13 @@ class MedicineDetailViewModel @Inject constructor(
         }
     }
 
-    private fun Medicine.toUiModel(): MedicineDetailUiModel {
+    private fun Medicine.toUiModel(expiringThresholdDays: Int): MedicineDetailUiModel {
         val status = if (isArchived) {
             MedicineStatusBadgeStatus.Archived
         } else {
             statusCalculator.calculate(
                 medicine = this,
-                expiringThresholdDays = MediShelfDefaults.ExpiringThresholdDays,
+                expiringThresholdDays = expiringThresholdDays,
             ).toBadgeStatus()
         }
 

@@ -3,12 +3,12 @@ package it.hendorsoftware.medishelf.feature.inventory
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import it.hendorsoftware.medishelf.core.common.MediShelfDefaults
 import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBadgeStatus
 import it.hendorsoftware.medishelf.domain.model.Medicine
 import it.hendorsoftware.medishelf.domain.model.MedicineStatus
 import it.hendorsoftware.medishelf.domain.rules.MedicineStatusCalculator
 import it.hendorsoftware.medishelf.domain.usecase.GetActiveMedicinesUseCase
+import it.hendorsoftware.medishelf.domain.usecase.ObserveUserSettingsUseCase
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 import kotlinx.coroutines.flow.combine
@@ -26,6 +26,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class InventoryViewModel @Inject constructor(
     private val getActiveMedicinesUseCase: GetActiveMedicinesUseCase,
+    private val observeUserSettingsUseCase: ObserveUserSettingsUseCase,
     private val statusCalculator: MedicineStatusCalculator,
 ) : ViewModel() {
 
@@ -48,13 +49,14 @@ class InventoryViewModel @Inject constructor(
         viewModelScope.launch {
             combine(
                 getActiveMedicinesUseCase(),
+                observeUserSettingsUseCase(),
                 searchQuery,
                 selectedStatusFilter,
-            ) { medicines, query, statusFilter ->
+            ) { medicines, settings, query, statusFilter ->
                 val medicinesWithStatus = medicines.map { medicine ->
                     medicine to statusCalculator.calculate(
                         medicine = medicine,
-                        expiringThresholdDays = MediShelfDefaults.ExpiringThresholdDays,
+                        expiringThresholdDays = settings.expiringThresholdDays,
                     )
                 }
                 val filteredMedicines = medicinesWithStatus.filterByNameAndStatus(

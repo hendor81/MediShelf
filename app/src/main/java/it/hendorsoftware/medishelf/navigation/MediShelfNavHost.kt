@@ -20,7 +20,7 @@ import it.hendorsoftware.medishelf.feature.home.HomeUiState
 import it.hendorsoftware.medishelf.feature.inventory.InventoryRoute
 import it.hendorsoftware.medishelf.feature.medicinedetail.MedicineDetailRoute
 import it.hendorsoftware.medishelf.feature.medicineform.MedicineFormRoute
-import it.hendorsoftware.medishelf.feature.settings.SettingsScreen
+import it.hendorsoftware.medishelf.feature.settings.SettingsRoute
 
 /**
  * NavHost principale della navigation shell MediShelf.
@@ -86,7 +86,7 @@ fun MediShelfNavHost(
             )
         }
         composable(MediShelfRoute.Settings.route) {
-            SettingsScreen()
+            SettingsRoute()
         }
         composable(MediShelfRoute.AddMedicine.route) {
             MedicineFormRoute(
