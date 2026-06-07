@@ -69,7 +69,8 @@ Evitare:
 
 ### Background
 Preferire:
-- background chiari;
+- background chiaro `#F7F4EE`;
+- background scuro `#071F20`;
 - superfici leggermente differenziate;
 - grigi caldi o neutri;
 - bianco non eccessivamente freddo.
@@ -90,6 +91,10 @@ Il colore non deve mai essere l'unico mezzo per comunicare lo stato: usare sempr
 La tipografia deve privilegiare leggibilità e scansione rapida.
 
 Indicazioni:
+- usare **Poppins** come famiglia tipografica principale;
+- mantenere un fallback sans-serif moderno per ambienti di preview o asset non disponibili;
+- usare peso 400 (`Normal`) per corpo testo, input e metadati;
+- usare peso 600 (`SemiBold`) per titoli, label, badge e pulsanti;
 - titoli schermata chiari e non troppo grandi;
 - nomi dei medicinali ben leggibili;
 - metadati più piccoli ma non sacrificati;
@@ -318,9 +323,11 @@ Regole:
 - usare file del tema per typography e shapes.
 
 ## Preview Compose
-Ogni schermata o componente visuale deve essere accompagnato da Preview Compose.
+Ogni Composable renderizzabile, schermata o componente visuale deve essere accompagnato da Preview Compose.
 
 Regole:
+- ogni helper Composable privato che disegna UI deve avere una Preview dedicata o una Preview locale che lo isoli chiaramente;
+- i wrapper tecnici non preview-safe, ad esempio `Route` con `hiltViewModel()`, Composable che richiedono `NavController`, getter di tema o lambda `@Composable` passate come parametro, possono essere esclusi se esiste una Preview dello stato/stateless Composable sottostante;
 - ogni Composable di schermata deve avere almeno una Preview;
 - ogni componente riusabile deve avere almeno una Preview;
 - le Preview devono usare dati fake locali;

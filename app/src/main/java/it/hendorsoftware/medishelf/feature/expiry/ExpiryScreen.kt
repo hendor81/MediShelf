@@ -362,6 +362,75 @@ private fun ExpiryScreenEmptyPreview() {
     }
 }
 
+/**
+ * Preview del contenuto Scadenzario senza scaffold.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun ExpiryContentPreview() {
+    MediShelfTheme {
+        ExpiryContent(
+            uiState = ExpiryUiState(
+                isLoading = false,
+                expiringMedicines = listOf(sampleExpiryMedicines[0]),
+                expiredMedicines = listOf(sampleExpiryMedicines[1]),
+                noExpirationMedicines = listOf(sampleExpiryMedicines[2]),
+            ),
+            onMedicineClick = {},
+        )
+    }
+}
+
+/**
+ * Preview dell'header di sezione dello Scadenzario.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun ExpirySectionHeaderPreview() {
+    MediShelfTheme {
+        ExpirySectionHeader(
+            title = "In scadenza",
+            body = "Medicinali con scadenza entro la soglia configurata.",
+            modifier = Modifier.padding(MediShelfDimens.ScreenPadding),
+        )
+    }
+}
+
+/**
+ * Preview di una card medicinale dello Scadenzario.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun ExpiryMedicineListItemPreview() {
+    MediShelfTheme {
+        ExpiryMedicineListItem(
+            medicine = sampleExpiryMedicines.first(),
+            onClick = {},
+            modifier = Modifier.padding(MediShelfDimens.ScreenPadding),
+        )
+    }
+}
+
+/**
+ * Preview di un metadato dello Scadenzario.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun ExpiryMedicineMetadataPreview() {
+    MediShelfTheme {
+        ExpiryMedicineMetadata(
+            icon = {
+                Icon(
+                    imageVector = Icons.Outlined.CalendarMonth,
+                    contentDescription = null,
+                )
+            },
+            text = "Scadenza 05/06/2026",
+            modifier = Modifier.padding(MediShelfDimens.ScreenPadding),
+        )
+    }
+}
+
 private val sampleExpiryMedicines = listOf(
     ExpiryMedicineItemUiModel(
         id = "1",

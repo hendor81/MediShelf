@@ -2,6 +2,7 @@ package it.hendorsoftware.medishelf.navigation
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
@@ -13,7 +14,9 @@ import androidx.navigation.navArgument
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 import it.hendorsoftware.medishelf.feature.archive.ArchiveRoute
 import it.hendorsoftware.medishelf.feature.expiry.ExpiryRoute
+import it.hendorsoftware.medishelf.feature.home.HomeRoute
 import it.hendorsoftware.medishelf.feature.home.HomeScreen
+import it.hendorsoftware.medishelf.feature.home.HomeUiState
 import it.hendorsoftware.medishelf.feature.inventory.InventoryRoute
 import it.hendorsoftware.medishelf.feature.medicinedetail.MedicineDetailRoute
 import it.hendorsoftware.medishelf.feature.medicineform.MedicineFormRoute
@@ -30,17 +33,33 @@ fun MediShelfNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
 ) {
+    // Il controllo LocalInspectionMode.current permette di evitare il crash di hiltViewModel()
+    // durante le preview di Android Studio, dove il contesto non è un'Activity Hilt.
+    if (LocalInspectionMode.current) {
+        HomeScreen(
+            uiState = HomeUiState(),
+            onAddMedicineClick = {},
+            onInventoryClick = {},
+            onExpiryClick = {},
+            onAttentionItemClick = {},
+            modifier = modifier
+        )
+        return
+    }
+
     NavHost(
         navController = navController,
         startDestination = MediShelfRoute.Home.route,
         modifier = modifier,
     ) {
         composable(MediShelfRoute.Home.route) {
-            HomeScreen(
+            HomeRoute(
                 onAddMedicineClick = { navController.navigate(MediShelfRoute.AddMedicine.route) },
                 onInventoryClick = { navController.navigate(MediShelfRoute.Inventory.route) },
                 onExpiryClick = { navController.navigate(MediShelfRoute.Expiry.route) },
-                onSettingsClick = { navController.navigate(MediShelfRoute.Settings.route) },
+                onAttentionItemClick = { medicineId ->
+                    navController.navigate(MediShelfRoute.MedicineDetail.createRoute(medicineId))
+                },
             )
         }
         composable(MediShelfRoute.Inventory.route) {

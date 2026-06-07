@@ -445,3 +445,39 @@ private fun MedicineFormScreenNotFoundPreview() {
         )
     }
 }
+
+/**
+ * Preview del text field standard del form.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun MedicineFormTextFieldPreview() {
+    MediShelfTheme {
+        MedicineFormTextField(
+            value = "Paracetamolo",
+            onValueChange = {},
+            label = "Nome medicinale",
+            supportingText = "Campo obbligatorio",
+            modifier = Modifier.padding(MediShelfDimens.ScreenPadding),
+            singleLine = true,
+        )
+    }
+}
+
+/**
+ * Preview del text field del form in stato errore.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun MedicineFormTextFieldErrorPreview() {
+    MediShelfTheme {
+        MedicineFormTextField(
+            value = "",
+            onValueChange = {},
+            label = "Nome medicinale",
+            error = stringResource(R.string.medicine_form_name_required_error),
+            modifier = Modifier.padding(MediShelfDimens.ScreenPadding),
+            singleLine = true,
+        )
+    }
+}

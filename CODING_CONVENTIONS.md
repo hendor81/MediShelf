@@ -158,6 +158,9 @@ Il codice deve essere comprensibile da uno sviluppatore che entra nel progetto m
 - Non duplicare soglie o valori di default: centralizzarli in oggetti dedicati, ad esempio `MediShelfDefaults`.
 
 ## Preview Compose
+- Ogni Composable renderizzabile deve avere almeno una `@Preview` significativa.
 - Ogni Composable di schermata deve avere almeno una `@Preview`.
 - Ogni componente riusabile deve avere almeno una `@Preview`.
+- Ogni helper Composable privato che disegna UI deve avere una Preview dedicata o una Preview locale che lo isoli chiaramente.
+- I wrapper tecnici non preview-safe, ad esempio `Route` con `hiltViewModel()`, Composable che richiedono `NavController`, getter di tema o lambda `@Composable` passate come parametro, possono essere esclusi se esiste una Preview dello stato/stateless Composable sottostante.
 - Le Preview devono usare dati fake locali e stabili.
