@@ -6,10 +6,12 @@ import it.hendorsoftware.medishelf.domain.model.Medicine
 import it.hendorsoftware.medishelf.domain.model.MedicineId
 import it.hendorsoftware.medishelf.domain.model.QuantityInfo
 import it.hendorsoftware.medishelf.domain.repository.FakeMedicineRepository
+import it.hendorsoftware.medishelf.domain.repository.FakeUserSettingsRepository
 import it.hendorsoftware.medishelf.domain.rules.MedicineStatusCalculator
 import it.hendorsoftware.medishelf.domain.usecase.ArchiveMedicineUseCase
 import it.hendorsoftware.medishelf.domain.usecase.DeleteMedicineUseCase
 import it.hendorsoftware.medishelf.domain.usecase.GetMedicineByIdUseCase
+import it.hendorsoftware.medishelf.domain.usecase.ObserveUserSettingsUseCase
 import it.hendorsoftware.medishelf.domain.usecase.UpdateMedicineQuantityUseCase
 import it.hendorsoftware.medishelf.testing.MainDispatcherRule
 import java.time.Instant
@@ -251,6 +253,7 @@ class MedicineDetailViewModelTest {
             archiveMedicineUseCase = ArchiveMedicineUseCase(repository),
             deleteMedicineUseCase = DeleteMedicineUseCase(repository),
             updateMedicineQuantityUseCase = UpdateMedicineQuantityUseCase(repository),
+            observeUserSettingsUseCase = ObserveUserSettingsUseCase(FakeUserSettingsRepository()),
             statusCalculator = MedicineStatusCalculator(
                 dateProvider = FakeDateProvider(LocalDate.of(2026, 5, 18)),
             ),

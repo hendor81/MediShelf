@@ -6,8 +6,10 @@ import it.hendorsoftware.medishelf.domain.model.Medicine
 import it.hendorsoftware.medishelf.domain.model.MedicineId
 import it.hendorsoftware.medishelf.domain.model.QuantityInfo
 import it.hendorsoftware.medishelf.domain.repository.FakeMedicineRepository
+import it.hendorsoftware.medishelf.domain.repository.FakeUserSettingsRepository
 import it.hendorsoftware.medishelf.domain.rules.MedicineStatusCalculator
 import it.hendorsoftware.medishelf.domain.usecase.GetActiveMedicinesUseCase
+import it.hendorsoftware.medishelf.domain.usecase.ObserveUserSettingsUseCase
 import it.hendorsoftware.medishelf.testing.MainDispatcherRule
 import java.time.Instant
 import java.time.LocalDate
@@ -294,9 +296,47 @@ class InventoryViewModelTest {
         )
     }
 
-    private fun createViewModel(repository: FakeMedicineRepository): InventoryViewModel =
+    /**
+     * Verifica che il cambio soglia ricalcoli gli stati derivati dell'inventario.
+     */
+    @Test
+    fun shouldRecalculateStatusesWhenThresholdChanges() = runTest {
+        val settingsRepository = FakeUserSettingsRepository()
+        val viewModel = createViewModel(
+            repository = FakeMedicineRepository(
+                initialMedicines = listOf(
+                    sampleMedicine(
+                        name = "Cambio soglia",
+                        expirationDate = LocalDate.of(2026, 6, 20),
+                    ),
+                ),
+            ),
+            settingsRepository = settingsRepository,
+        )
+
+        advanceUntilIdle()
+
+        assertEquals(
+            MedicineStatusBadgeStatus.Valid,
+            viewModel.uiState.value.medicines.single().status,
+        )
+
+        settingsRepository.updateExpiringThresholdDays(60)
+        advanceUntilIdle()
+
+        assertEquals(
+            MedicineStatusBadgeStatus.ExpiringSoon,
+            viewModel.uiState.value.medicines.single().status,
+        )
+    }
+
+    private fun createViewModel(
+        repository: FakeMedicineRepository,
+        settingsRepository: FakeUserSettingsRepository = FakeUserSettingsRepository(),
+    ): InventoryViewModel =
         InventoryViewModel(
             getActiveMedicinesUseCase = GetActiveMedicinesUseCase(repository),
+            observeUserSettingsUseCase = ObserveUserSettingsUseCase(settingsRepository),
             statusCalculator = MedicineStatusCalculator(
                 dateProvider = FakeDateProvider(LocalDate.of(2026, 5, 18)),
             ),

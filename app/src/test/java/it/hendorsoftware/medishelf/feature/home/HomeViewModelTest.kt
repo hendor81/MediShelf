@@ -6,6 +6,7 @@ import it.hendorsoftware.medishelf.domain.model.Medicine
 import it.hendorsoftware.medishelf.domain.model.MedicineId
 import it.hendorsoftware.medishelf.domain.model.QuantityInfo
 import it.hendorsoftware.medishelf.domain.repository.FakeMedicineRepository
+import it.hendorsoftware.medishelf.domain.repository.FakeUserSettingsRepository
 import it.hendorsoftware.medishelf.domain.rules.MedicineStatusCalculator
 import it.hendorsoftware.medishelf.domain.usecase.GetHomeSummaryUseCase
 import it.hendorsoftware.medishelf.testing.MainDispatcherRule
@@ -163,6 +164,7 @@ class HomeViewModelTest {
         HomeViewModel(
             getHomeSummaryUseCase = GetHomeSummaryUseCase(
                 medicineRepository = repository,
+                userSettingsRepository = FakeUserSettingsRepository(),
                 statusCalculator = MedicineStatusCalculator(
                     dateProvider = FakeDateProvider(LocalDate.of(2026, 6, 7)),
                 ),

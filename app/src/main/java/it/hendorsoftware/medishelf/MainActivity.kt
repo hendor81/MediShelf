@@ -4,8 +4,13 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
+import it.hendorsoftware.medishelf.domain.model.SettingsThemeMode
 
 /**
  * Activity principale dell'app.
@@ -27,7 +32,16 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
-            MediShelfTheme {
+            val viewModel: MainViewModel = hiltViewModel()
+            val uiState by viewModel.uiState.collectAsState()
+            val systemDarkTheme = isSystemInDarkTheme()
+            val darkTheme = when (uiState.themeMode) {
+                SettingsThemeMode.LIGHT -> false
+                SettingsThemeMode.DARK -> true
+                SettingsThemeMode.SYSTEM -> systemDarkTheme
+            }
+
+            MediShelfTheme(darkTheme = darkTheme) {
                 MediShelfApp()
             }
         }

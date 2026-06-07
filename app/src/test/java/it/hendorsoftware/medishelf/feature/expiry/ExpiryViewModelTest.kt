@@ -6,8 +6,10 @@ import it.hendorsoftware.medishelf.domain.model.Medicine
 import it.hendorsoftware.medishelf.domain.model.MedicineId
 import it.hendorsoftware.medishelf.domain.model.QuantityInfo
 import it.hendorsoftware.medishelf.domain.repository.FakeMedicineRepository
+import it.hendorsoftware.medishelf.domain.repository.FakeUserSettingsRepository
 import it.hendorsoftware.medishelf.domain.rules.MedicineStatusCalculator
 import it.hendorsoftware.medishelf.domain.usecase.GetActiveMedicinesUseCase
+import it.hendorsoftware.medishelf.domain.usecase.ObserveUserSettingsUseCase
 import it.hendorsoftware.medishelf.testing.MainDispatcherRule
 import java.time.Instant
 import java.time.LocalDate
@@ -200,6 +202,7 @@ class ExpiryViewModelTest {
     private fun createViewModel(repository: FakeMedicineRepository): ExpiryViewModel =
         ExpiryViewModel(
             getActiveMedicinesUseCase = GetActiveMedicinesUseCase(repository),
+            observeUserSettingsUseCase = ObserveUserSettingsUseCase(FakeUserSettingsRepository()),
             statusCalculator = MedicineStatusCalculator(
                 dateProvider = FakeDateProvider(LocalDate.of(2026, 5, 18)),
             ),

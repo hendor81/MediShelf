@@ -3,15 +3,16 @@ package it.hendorsoftware.medishelf.feature.expiry
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import it.hendorsoftware.medishelf.core.common.MediShelfDefaults
 import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBadgeStatus
 import it.hendorsoftware.medishelf.domain.model.Medicine
 import it.hendorsoftware.medishelf.domain.model.MedicineStatus
 import it.hendorsoftware.medishelf.domain.rules.MedicineStatusCalculator
 import it.hendorsoftware.medishelf.domain.usecase.GetActiveMedicinesUseCase
+import it.hendorsoftware.medishelf.domain.usecase.ObserveUserSettingsUseCase
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,6 +28,7 @@ import kotlinx.coroutines.launch
 @HiltViewModel
 class ExpiryViewModel @Inject constructor(
     private val getActiveMedicinesUseCase: GetActiveMedicinesUseCase,
+    private val observeUserSettingsUseCase: ObserveUserSettingsUseCase,
     private val statusCalculator: MedicineStatusCalculator,
 ) : ViewModel() {
 
@@ -45,17 +47,22 @@ class ExpiryViewModel @Inject constructor(
 
     private fun observeExpirySections() {
         viewModelScope.launch {
-            getActiveMedicinesUseCase().collect { medicines ->
-                _uiState.value = medicines.toExpiryUiState()
+            combine(
+                getActiveMedicinesUseCase(),
+                observeUserSettingsUseCase(),
+            ) { medicines, settings ->
+                medicines.toExpiryUiState(settings.expiringThresholdDays)
+            }.collect { uiState ->
+                _uiState.value = uiState
             }
         }
     }
 
-    private fun List<Medicine>.toExpiryUiState(): ExpiryUiState {
+    private fun List<Medicine>.toExpiryUiState(expiringThresholdDays: Int): ExpiryUiState {
         val medicinesByStatus = map { medicine ->
             medicine to statusCalculator.calculate(
                 medicine = medicine,
-                expiringThresholdDays = MediShelfDefaults.ExpiringThresholdDays,
+                expiringThresholdDays = expiringThresholdDays,
             )
         }
 

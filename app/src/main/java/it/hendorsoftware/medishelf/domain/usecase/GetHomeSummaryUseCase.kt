@@ -1,13 +1,13 @@
 package it.hendorsoftware.medishelf.domain.usecase
 
-import it.hendorsoftware.medishelf.core.common.MediShelfDefaults
 import it.hendorsoftware.medishelf.domain.model.Medicine
 import it.hendorsoftware.medishelf.domain.model.MedicineStatus
 import it.hendorsoftware.medishelf.domain.repository.MedicineRepository
+import it.hendorsoftware.medishelf.domain.repository.UserSettingsRepository
 import it.hendorsoftware.medishelf.domain.rules.MedicineStatusCalculator
 import javax.inject.Inject
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 
 /**
  * Calcola il riepilogo della Home a partire dall'inventario attivo.
@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.map
  */
 class GetHomeSummaryUseCase @Inject constructor(
     private val medicineRepository: MedicineRepository,
+    private val userSettingsRepository: UserSettingsRepository,
     private val statusCalculator: MedicineStatusCalculator,
 ) {
 
@@ -29,15 +30,18 @@ class GetHomeSummaryUseCase @Inject constructor(
      * @return stream aggiornato dei conteggi e delle voci da tenere d'occhio.
      */
     operator fun invoke(): Flow<HomeSummary> =
-        medicineRepository.observeActiveMedicines().map { medicines ->
-            medicines.toHomeSummary()
+        combine(
+            medicineRepository.observeActiveMedicines(),
+            userSettingsRepository.observeSettings(),
+        ) { medicines, settings ->
+            medicines.toHomeSummary(settings.expiringThresholdDays)
         }
 
-    private fun List<Medicine>.toHomeSummary(): HomeSummary {
+    private fun List<Medicine>.toHomeSummary(expiringThresholdDays: Int): HomeSummary {
         val medicinesWithStatus = map { medicine ->
             medicine to statusCalculator.calculate(
                 medicine = medicine,
-                expiringThresholdDays = MediShelfDefaults.ExpiringThresholdDays,
+                expiringThresholdDays = expiringThresholdDays,
             )
         }
 
