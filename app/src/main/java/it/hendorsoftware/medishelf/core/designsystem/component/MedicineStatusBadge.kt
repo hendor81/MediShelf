@@ -34,6 +34,7 @@ enum class MedicineStatusBadgeStatus(
     Valid(R.string.medicine_status_valid),
     ExpiringSoon(R.string.medicine_status_expiring_soon),
     Expired(R.string.medicine_status_expired),
+    LowStock(R.string.medicine_status_low_stock),
     OutOfStock(R.string.medicine_status_out_of_stock),
     NoExpiration(R.string.medicine_status_no_expiration),
     Archived(R.string.medicine_status_archived),
@@ -66,7 +67,7 @@ fun MedicineStatusBadge(
         Text(
             text = stringResource(status.labelResId),
             style = MaterialTheme.typography.labelLarge,
-            fontWeight = FontWeight.Medium,
+            fontWeight = FontWeight.SemiBold,
             color = colors.content,
         )
     }
@@ -92,6 +93,10 @@ private fun MedicineStatusBadgeStatus.badgeColors(): BadgeColors {
         MedicineStatusBadgeStatus.Expired -> BadgeColors(
             container = statusColors.expiredContainer,
             content = statusColors.expiredContent,
+        )
+        MedicineStatusBadgeStatus.LowStock -> BadgeColors(
+            container = statusColors.outOfStockContainer,
+            content = statusColors.outOfStockContent,
         )
         MedicineStatusBadgeStatus.OutOfStock -> BadgeColors(
             container = statusColors.outOfStockContainer,
@@ -133,6 +138,7 @@ private fun MedicineStatusBadgePreview() {
                 MedicineStatusBadge(status = MedicineStatusBadgeStatus.Expired)
             }
             Row(horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmall)) {
+                MedicineStatusBadge(status = MedicineStatusBadgeStatus.LowStock)
                 MedicineStatusBadge(status = MedicineStatusBadgeStatus.OutOfStock)
                 MedicineStatusBadge(status = MedicineStatusBadgeStatus.NoExpiration)
                 MedicineStatusBadge(status = MedicineStatusBadgeStatus.Archived)

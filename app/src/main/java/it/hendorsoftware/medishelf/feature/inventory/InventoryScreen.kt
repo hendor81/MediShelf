@@ -506,6 +506,93 @@ private fun InventoryScreenSearchEmptyPreview() {
     }
 }
 
+/**
+ * Preview del contenuto Inventario senza scaffold.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun InventoryContentPreview() {
+    MediShelfTheme {
+        InventoryContent(
+            uiState = InventoryUiState(
+                isLoading = false,
+                medicines = sampleInventoryMedicines,
+            ),
+            onAddMedicineClick = {},
+            onMedicineClick = {},
+            onSearchQueryChanged = {},
+            onSearchQueryCleared = {},
+            onStatusFilterSelected = {},
+        )
+    }
+}
+
+/**
+ * Preview del campo ricerca Inventario.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun InventorySearchFieldPreview() {
+    MediShelfTheme {
+        InventorySearchField(
+            query = "para",
+            onQueryChanged = {},
+            onClearClick = {},
+            modifier = Modifier.padding(MediShelfDimens.ScreenPadding),
+        )
+    }
+}
+
+/**
+ * Preview dei filtri di stato Inventario.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun InventoryStatusFilterChipsPreview() {
+    MediShelfTheme {
+        InventoryStatusFilterChips(
+            selectedFilter = InventoryStatusFilter.ExpiringSoon,
+            onFilterSelected = {},
+            modifier = Modifier.padding(MediShelfDimens.ScreenPadding),
+        )
+    }
+}
+
+/**
+ * Preview di una card medicinale dell'Inventario.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun InventoryMedicineListItemPreview() {
+    MediShelfTheme {
+        InventoryMedicineListItem(
+            medicine = sampleInventoryMedicines.first(),
+            onClick = {},
+            modifier = Modifier.padding(MediShelfDimens.ScreenPadding),
+        )
+    }
+}
+
+/**
+ * Preview di un metadato dell'Inventario.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun InventoryMedicineMetadataPreview() {
+    MediShelfTheme {
+        InventoryMedicineMetadata(
+            icon = {
+                Icon(
+                    imageVector = Icons.Outlined.CalendarMonth,
+                    contentDescription = null,
+                )
+            },
+            text = "Scadenza 31/12/2026",
+            modifier = Modifier.padding(MediShelfDimens.ScreenPadding),
+        )
+    }
+}
+
 private val sampleInventoryMedicines = listOf(
     InventoryMedicineItemUiModel(
         id = "1",

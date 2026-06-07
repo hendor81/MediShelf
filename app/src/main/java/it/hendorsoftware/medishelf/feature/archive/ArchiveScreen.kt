@@ -291,6 +291,67 @@ private fun ArchiveScreenEmptyPreview() {
     }
 }
 
+/**
+ * Preview del contenuto Archivio senza top app bar.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun ArchiveContentPreview() {
+    MediShelfTheme {
+        ArchiveContent(
+            uiState = ArchiveUiState(
+                isLoading = false,
+                medicines = sampleArchiveMedicines,
+            ),
+            onMedicineClick = {},
+        )
+    }
+}
+
+/**
+ * Preview del contenuto Archivio in stato vuoto.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun ArchiveContentEmptyPreview() {
+    MediShelfTheme {
+        ArchiveContent(
+            uiState = ArchiveUiState(isLoading = false),
+            onMedicineClick = {},
+        )
+    }
+}
+
+/**
+ * Preview di una card medicinale archiviato.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun ArchiveMedicineListItemPreview() {
+    MediShelfTheme {
+        ArchiveMedicineListItem(
+            medicine = sampleArchiveMedicines.first(),
+            onClick = {},
+            modifier = Modifier.padding(MediShelfDimens.ScreenPadding),
+        )
+    }
+}
+
+/**
+ * Preview di un metadato dell'Archivio.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun ArchiveMedicineMetadataPreview() {
+    MediShelfTheme {
+        ArchiveMedicineMetadata(
+            icon = Icons.Outlined.CalendarMonth,
+            text = "Scadenza 05/06/2026",
+            modifier = Modifier.padding(MediShelfDimens.ScreenPadding),
+        )
+    }
+}
+
 private val sampleArchiveMedicines = listOf(
     ArchiveMedicineItemUiModel(
         id = "1",

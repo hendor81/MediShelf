@@ -621,6 +621,159 @@ private fun MedicineDetailScreenNotFoundPreview() {
     }
 }
 
+/**
+ * Preview del contenuto Dettaglio in stato caricamento.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun MedicineDetailContentLoadingPreview() {
+    MediShelfTheme {
+        MedicineDetailContent(
+            uiState = MedicineDetailUiState(isLoading = true),
+            onAddQuantityClick = {},
+            onQuantityIncrementClick = {},
+            onQuantityDecrementClick = {},
+            onArchiveClick = {},
+            onNotFoundDoneClick = {},
+        )
+    }
+}
+
+/**
+ * Preview del contenuto Dettaglio con dati caricati.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun MedicineDetailContentDataPreview() {
+    MediShelfTheme {
+        MedicineDetailContent(
+            uiState = MedicineDetailUiState(
+                isLoading = false,
+                medicine = sampleMedicineDetail,
+            ),
+            onAddQuantityClick = {},
+            onQuantityIncrementClick = {},
+            onQuantityDecrementClick = {},
+            onArchiveClick = {},
+            onNotFoundDoneClick = {},
+        )
+    }
+}
+
+/**
+ * Preview del blocco loading del Dettaglio.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun MedicineDetailLoadingPreview() {
+    MediShelfTheme {
+        MedicineDetailLoading()
+    }
+}
+
+/**
+ * Preview dello stato non trovato del Dettaglio.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun MedicineDetailNotFoundPreview() {
+    MediShelfTheme {
+        MedicineDetailNotFound(onDoneClick = {})
+    }
+}
+
+/**
+ * Preview dei dati principali del Dettaglio.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun MedicineDetailDataPreview() {
+    MediShelfTheme {
+        MedicineDetailData(
+            medicine = sampleMedicineDetail,
+            isActionInProgress = false,
+            onAddQuantityClick = {},
+            onQuantityIncrementClick = {},
+            onQuantityDecrementClick = {},
+            onArchiveClick = {},
+        )
+    }
+}
+
+/**
+ * Preview della riga quantita con valore presente.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun MedicineDetailQuantityRowPreview() {
+    MediShelfTheme {
+        MedicineDetailQuantityRow(
+            quantity = "12 compresse",
+            isQuantityAtZero = false,
+            isActionInProgress = false,
+            onAddQuantityClick = {},
+            onQuantityIncrementClick = {},
+            onQuantityDecrementClick = {},
+            modifier = Modifier.padding(MediShelfDimens.ScreenPadding),
+        )
+    }
+}
+
+/**
+ * Preview della riga quantita senza valore.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun MedicineDetailQuantityRowMissingPreview() {
+    MediShelfTheme {
+        MedicineDetailQuantityRow(
+            quantity = null,
+            isQuantityAtZero = false,
+            isActionInProgress = false,
+            onAddQuantityClick = {},
+            onQuantityIncrementClick = {},
+            onQuantityDecrementClick = {},
+            modifier = Modifier.padding(MediShelfDimens.ScreenPadding),
+        )
+    }
+}
+
+/**
+ * Preview di una card informativa del Dettaglio.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun MedicineDetailInfoCardPreview() {
+    MediShelfTheme {
+        MedicineDetailInfoCard(
+            title = "Dati principali",
+            modifier = Modifier.padding(MediShelfDimens.ScreenPadding),
+        ) {
+            MedicineDetailInfoRow(
+                icon = Icons.Outlined.CalendarMonth,
+                label = "Scadenza",
+                value = "31/12/2026",
+            )
+        }
+    }
+}
+
+/**
+ * Preview di una riga informativa del Dettaglio.
+ */
+@Preview(showBackground = true)
+@Composable
+private fun MedicineDetailInfoRowPreview() {
+    MediShelfTheme {
+        MedicineDetailInfoRow(
+            icon = Icons.Outlined.LocationOn,
+            label = "Luogo",
+            value = "Bagno",
+            modifier = Modifier.padding(MediShelfDimens.ScreenPadding),
+        )
+    }
+}
+
 private val sampleMedicineDetail = MedicineDetailUiModel(
     id = "1",
     name = "Paracetamolo",

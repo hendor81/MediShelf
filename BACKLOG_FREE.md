@@ -102,7 +102,7 @@ Le issue GitHub devono seguire `ISSUE_TEMPLATE.md`, includendo sempre:
 
 
 ## Attività trasversali da includere nelle issue
-- Ogni nuova schermata o componente Compose deve includere la relativa Preview.
+- Ogni nuovo Composable renderizzabile deve includere la relativa Preview; i wrapper tecnici non preview-safe sono ammessi solo se il Composable stateless sottostante ha Preview.
 - Le risorse UI devono essere centralizzate: stringhe in `strings.xml`, dimensioni in `Dimens.kt`, colori in `colors.xml` e tema Compose.
 - Ogni milestone deve chiudersi con una issue di aggiornamento della documentazione tecnica.
 - La Milestone 1 deve includere una issue dedicata alla configurazione di GitHub Actions per build, test e lint.

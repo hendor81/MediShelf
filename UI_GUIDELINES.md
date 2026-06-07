@@ -157,8 +157,11 @@ Quando ci sono più alternative grafiche, scegliere quella che:
 
 
 ## Regole su risorse grafiche e Preview Compose
+- Ogni Composable renderizzabile deve avere almeno una `@Preview` significativa.
 - Ogni Composable di schermata deve avere almeno una `@Preview` significativa.
 - Ogni componente riusabile del design system deve avere almeno una `@Preview`.
+- Ogni helper Composable privato che disegna UI deve avere una Preview dedicata o una Preview locale che lo isoli chiaramente.
+- I wrapper tecnici non preview-safe, ad esempio `Route` con `hiltViewModel()`, Composable che richiedono `NavController`, getter di tema o lambda `@Composable` passate come parametro, possono essere esclusi se esiste una Preview dello stato/stateless Composable sottostante.
 - Le Preview devono usare dati fake locali e non devono dipendere da ViewModel, Hilt, Room o servizi reali.
 - Stringhe visibili all'utente, descrizioni di accessibilità, messaggi di errore e testi dei dialog devono stare in `strings.xml`.
 - Dimensioni, spaziature, radius e misure ricorrenti devono essere centralizzate in `Dimens.kt` o in token equivalenti del design system.

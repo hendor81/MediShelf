@@ -568,11 +568,13 @@ core/common/MediShelfDefaults.kt
 oppure nel relativo package domain se sono regole di dominio.
 
 ## Regola sulle Preview Compose
-Ogni Composable riusabile o schermata prodotta deve avere almeno una `@Preview` significativa.
+Ogni Composable renderizzabile prodotto nel progetto deve avere almeno una `@Preview` significativa.
 
 Regole:
 - ogni `Screen` deve avere una Preview con stato realistico;
 - ogni componente riusabile del design system deve avere una Preview;
+- ogni helper Composable privato che disegna UI deve avere una Preview dedicata o una Preview locale che lo isoli chiaramente;
+- i wrapper tecnici non renderizzabili o non preview-safe, ad esempio `Route` con `hiltViewModel()`, Composable che richiedono `NavController`, getter di tema o lambda `@Composable` passate come parametro, possono essere esclusi se la schermata o il componente stateless sottostante ha Preview;
 - quando utile, aggiungere Preview per empty state, stato errore e stato con dati;
 - le Preview non devono dipendere da ViewModel, Hilt, Room o dati reali;
 - le Preview devono usare dati fake locali e stabili.

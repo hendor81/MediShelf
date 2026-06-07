@@ -2,6 +2,7 @@ package it.hendorsoftware.medishelf
 
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -26,17 +27,21 @@ class NavigationSmokeTest {
     @Test
     fun shouldOpenHomeOnLaunch() {
         composeTestRule
-            .onNodeWithText(composeTestRule.activity.getString(R.string.home_screen_title))
+            .onNodeWithText(composeTestRule.activity.getString(R.string.app_name))
             .assertIsDisplayed()
     }
 
     /**
-     * Controlla il passaggio Home -> Inventario tramite azione placeholder.
+     * Controlla il passaggio Home -> Inventario tramite bottom navigation.
      */
     @Test
     fun shouldNavigateFromHomeToInventory() {
         composeTestRule
-            .onNodeWithText(composeTestRule.activity.getString(R.string.navigation_action_open_inventory))
+            .onNodeWithContentDescription(
+                composeTestRule.activity.getString(
+                    R.string.bottom_navigation_inventory_content_description,
+                ),
+            )
             .performClick()
 
         composeTestRule
@@ -45,12 +50,46 @@ class NavigationSmokeTest {
     }
 
     /**
-     * Controlla il passaggio Home -> Scadenzario tramite azione placeholder.
+     * Controlla il ritorno Inventario -> Home tramite bottom navigation.
+     */
+    @Test
+    fun shouldNavigateBackToHomeFromInventory() {
+        composeTestRule
+            .onNodeWithContentDescription(
+                composeTestRule.activity.getString(
+                    R.string.bottom_navigation_inventory_content_description,
+                ),
+            )
+            .performClick()
+
+        composeTestRule
+            .onNodeWithText(composeTestRule.activity.getString(R.string.inventory_screen_title))
+            .assertIsDisplayed()
+
+        composeTestRule
+            .onNodeWithContentDescription(
+                composeTestRule.activity.getString(
+                    R.string.bottom_navigation_home_content_description,
+                ),
+            )
+            .performClick()
+
+        composeTestRule
+            .onNodeWithText(composeTestRule.activity.getString(R.string.app_name))
+            .assertIsDisplayed()
+    }
+
+    /**
+     * Controlla il passaggio Home -> Scadenzario tramite bottom navigation.
      */
     @Test
     fun shouldNavigateFromHomeToExpiry() {
         composeTestRule
-            .onNodeWithText(composeTestRule.activity.getString(R.string.navigation_action_open_expiry))
+            .onNodeWithContentDescription(
+                composeTestRule.activity.getString(
+                    R.string.bottom_navigation_expiry_content_description,
+                ),
+            )
             .performClick()
 
         composeTestRule
@@ -59,16 +98,34 @@ class NavigationSmokeTest {
     }
 
     /**
-     * Controlla il passaggio Home -> Impostazioni tramite azione placeholder.
+     * Controlla il passaggio Home -> Impostazioni tramite bottom navigation.
      */
     @Test
     fun shouldNavigateFromHomeToSettings() {
         composeTestRule
-            .onNodeWithText(composeTestRule.activity.getString(R.string.navigation_action_open_settings))
+            .onNodeWithContentDescription(
+                composeTestRule.activity.getString(
+                    R.string.bottom_navigation_settings_content_description,
+                ),
+            )
             .performClick()
 
         composeTestRule
             .onNodeWithText(composeTestRule.activity.getString(R.string.settings_screen_title))
+            .assertIsDisplayed()
+    }
+
+    /**
+     * Controlla il passaggio Home -> Inserimento tramite CTA principale.
+     */
+    @Test
+    fun shouldNavigateFromHomeToAddMedicine() {
+        composeTestRule
+            .onNodeWithText(composeTestRule.activity.getString(R.string.navigation_action_add_medicine))
+            .performClick()
+
+        composeTestRule
+            .onNodeWithText(composeTestRule.activity.getString(R.string.medicine_add_screen_title))
             .assertIsDisplayed()
     }
 }
