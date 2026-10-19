@@ -2,6 +2,8 @@ package it.hendorsoftware.medishelf
 
 import android.content.pm.PackageManager
 import android.Manifest
+import androidx.core.content.edit
+import it.hendorsoftware.medishelf.core.notification.NotificationPermissionHistory
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -41,14 +43,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         lifecycleScope.launch {
-            val preferences = getSharedPreferences("notification_permission", MODE_PRIVATE)
+            val preferences = getSharedPreferences(NotificationPermissionHistory.PREFERENCES_NAME, MODE_PRIVATE)
             // Il primo avvio richiede il permesso una sola volta; nuovi tentativi partono dalle Impostazioni.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
                 settingsRepository.observeSettings().first().notificationsEnabled &&
                 checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED &&
-                !preferences.getBoolean("requested", false)
+                !preferences.getBoolean(NotificationPermissionHistory.REQUESTED_KEY, false)
             ) {
-                preferences.edit().putBoolean("requested", true).apply()
+                preferences.edit { putBoolean(NotificationPermissionHistory.REQUESTED_KEY, true) }
                 notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
             }
         }

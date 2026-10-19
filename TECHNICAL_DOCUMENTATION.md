@@ -706,3 +706,30 @@ La documentazione tecnica deve restare allineata con:
   completati con successo; 76 test passati (4 nuovi), lint senza errori con
   95 avvisi complessivi. Verifica manuale completata dall'utente con esito
   positivo, come confermato prima della pubblicazione della pull request.
+
+### Correzione review PR #87 — recupero permesso notifiche
+
+- Il toggle distingue primo tentativo, rifiuto temporaneo e permesso bloccato
+  tramite una fotografia testabile `NotificationPermissionState`.
+- `NotificationPermissionFlow` mostra un dialogo con spiegazione e nuovo tentativo
+  oppure il pulsante per aprire `ACTION_APP_NOTIFICATION_SETTINGS`.
+- La richiesta iniziale e quella delle Impostazioni condividono lo storico locale.
+  Lo stato di attesa del ritorno dalle impostazioni Android sopravvive alla
+  ricreazione della schermata. Il resultCode non è interpretato come permesso:
+  al ritorno si rileggono permesso runtime e blocco globale delle notifiche.
+- La preferenza viene abilitata solo se entrambi i controlli lo consentono;
+  altrimenti resta disattivata e viene spiegato come recuperare.
+- Otto test unitari coprono prima richiesta, rifiuto temporaneo, blocco,
+  concessione o mancata concessione al ritorno e versioni precedenti ad Android 13.
+- Verifica manuale aggiuntiva: negare ripetutamente il permesso su Android 13+,
+  provare ad attivare il toggle, aprire le impostazioni dal dialogo e tornare
+  prima senza concessione, poi dopo averla concessa. Verificare rispettivamente
+  toggle disattivato e attivato. Verificare anche Annulla e rotazione mentre le
+  impostazioni di sistema sono aperte. Il precedente test manuale positivo
+  riguarda la versione prima di questa correzione.
+- Verifiche della correzione: build debug, 84 test unitari e due test Compose
+  mirati sul dispositivo Android 16 collegato completati con successo.
+  Lint: zero errori, 94 avvisi. Il flusso completo nelle impostazioni di sistema
+  resta da verificare manualmente; i test UI esercitano i dialoghi dell'app.
+- Android 7 usa la pagina dettagli dell'app come alternativa alla pagina notifiche,
+  disponibile tramite intent pubblico da Android 8.
