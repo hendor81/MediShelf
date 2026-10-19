@@ -80,6 +80,8 @@ fun SettingsRoute(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    val onNotificationsEnabledChanged = rememberNotificationEnableAction(viewModel::onNotificationsEnabledChanged)
+
     SettingsScreen(
         uiState = uiState,
         onThemeClick = viewModel::onThemeClick,
@@ -89,7 +91,7 @@ fun SettingsRoute(
         onThresholdInputChanged = viewModel::onThresholdInputChanged,
         onThresholdSaveClick = viewModel::onThresholdSaveClick,
         onThresholdDialogDismissed = viewModel::onThresholdDialogDismissed,
-        onNotificationsEnabledChanged = viewModel::onNotificationsEnabledChanged,
+        onNotificationsEnabledChanged = onNotificationsEnabledChanged,
         onRemovalPreferenceClick = viewModel::onRemovalPreferenceClick,
         onRemovalPreferenceSelected = viewModel::onRemovalPreferenceSelected,
         onRemovalPreferenceDialogDismissed = viewModel::onRemovalPreferenceDialogDismissed,

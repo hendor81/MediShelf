@@ -675,3 +675,61 @@ La documentazione tecnica deve restare allineata con:
 - `ARCHITECTURES_RULES.md`, per struttura e responsabilità;
 - `TESTING_STRATEGY.md`, per test implementati e lacune note;
 - `SCREEN_CATALOG.md` e `NAVIGATION_MAP.md`, per schermate e flussi effettivamente realizzati.
+
+## Issue #27 — Notifiche locali di scadenza
+
+- `ExpiryNotificationSelector` riusa la classificazione di dominio e la soglia
+  corrente: include scaduti e in scadenza, anche senza quantità; esclude
+  archiviate, esaurite e voci senza data. Preferenza disattivata: lista vuota.
+- `ExpiryNotificationScheduler` usa JobScheduler Android senza nuove dipendenze:
+  un job periodico giornaliero persistente dopo il riavvio, senza rete né allarmi
+  esatti. Android decide la finestra effettiva; il primo controllo avviene nella
+  prima finestra periodica, non immediatamente dopo il salvataggio.
+- `MediShelfApplication` osserva preferenze e inventario: disattivare annulla il
+  job e la notifica; cambiare dati o soglia aggiorna un riepilogo già visibile.
+- `ExpiryNotificationJobService` rilegge repository e impostazioni a ogni
+  esecuzione e gestisce cancellazione Android ed errori con riprogrammazione.
+- Canale `medicine_expiry`, icona monocromatica e unica notifica con conteggi
+  aggregati, senza nomi di medicinali. Il tap apre la Home, da cui si accede allo
+  Scadenzario. Nessun consiglio medico o reminder di terapia.
+- Android 13+: richiesta del permesso al primo avvio con preferenza attiva,
+  ulteriori tentativi espliciti tramite il toggle delle Impostazioni. Il rifiuto
+  di sistema impedisce la pubblicazione anche se la preferenza locale è attiva.
+- Nessuna modifica allo schema Room. Test unitari dedicati a selezione, soglia
+  inclusiva/modificata, preferenza disattivata ed esclusioni.
+- Verifica manuale: aggiungere voci scadute/in scadenza, concedere il permesso,
+  eseguire `adb shell cmd jobscheduler run -f it.hendorsoftware.medishelf 27`,
+  verificare il riepilogo e il tap. Cambiare soglia/archiviare e controllare il
+  riepilogo visibile; disattivare e verificare che il job sia rimosso. Ripetere
+  con permesso negato e dopo riavvio. Questa verifica richiede un dispositivo.
+- Verifica automatica eseguita: `testDebugUnitTest assembleDebug lintDebug`
+  completati con successo; 76 test passati (4 nuovi), lint senza errori con
+  95 avvisi complessivi. Verifica manuale completata dall'utente con esito
+  positivo, come confermato prima della pubblicazione della pull request.
+
+### Correzione review PR #87 — recupero permesso notifiche
+
+- Il toggle distingue primo tentativo, rifiuto temporaneo e permesso bloccato
+  tramite una fotografia testabile `NotificationPermissionState`.
+- `NotificationPermissionFlow` mostra un dialogo con spiegazione e nuovo tentativo
+  oppure il pulsante per aprire `ACTION_APP_NOTIFICATION_SETTINGS`.
+- La richiesta iniziale e quella delle Impostazioni condividono lo storico locale.
+  Lo stato di attesa del ritorno dalle impostazioni Android sopravvive alla
+  ricreazione della schermata. Il resultCode non è interpretato come permesso:
+  al ritorno si rileggono permesso runtime e blocco globale delle notifiche.
+- La preferenza viene abilitata solo se entrambi i controlli lo consentono;
+  altrimenti resta disattivata e viene spiegato come recuperare.
+- Otto test unitari coprono prima richiesta, rifiuto temporaneo, blocco,
+  concessione o mancata concessione al ritorno e versioni precedenti ad Android 13.
+- Verifica manuale aggiuntiva: negare ripetutamente il permesso su Android 13+,
+  provare ad attivare il toggle, aprire le impostazioni dal dialogo e tornare
+  prima senza concessione, poi dopo averla concessa. Verificare rispettivamente
+  toggle disattivato e attivato. Verificare anche Annulla e rotazione mentre le
+  impostazioni di sistema sono aperte. Il precedente test manuale positivo
+  riguarda la versione prima di questa correzione.
+- Verifiche della correzione: build debug, 84 test unitari e due test Compose
+  mirati sul dispositivo Android 16 collegato completati con successo.
+  Lint: zero errori, 94 avvisi. Il flusso completo nelle impostazioni di sistema
+  resta da verificare manualmente; i test UI esercitano i dialoghi dell'app.
+- Android 7 usa la pagina dettagli dell'app come alternativa alla pagina notifiche,
+  disponibile tramite intent pubblico da Android 8.

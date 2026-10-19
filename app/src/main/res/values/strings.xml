@@ -183,4 +183,14 @@
     <string name="designsystem_delete_dialog_confirm">Elimina</string>
     <string name="designsystem_delete_dialog_dismiss">Annulla</string>
     <string name="designsystem_top_app_bar_title">MediShelf</string>
+    <string name="expiry_notification_channel">Scadenze medicinali</string>
+    <string name="expiry_notification_channel_description">Riepilogo delle scadenze del tuo armadietto</string>
+    <string name="expiry_notification_title">Controlla le scadenze del tuo armadietto</string>
+    <string name="expiry_notification_summary">In scadenza: %1$d. Scaduti: %2$d. Apri MediShelf per consultarli.</string>
+    <string name="notification_permission_title">Consenti le notifiche</string>
+    <string name="notification_permission_rationale">Per ricevere il riepilogo delle scadenze, consenti a MediShelf di inviare notifiche. Puoi riprovare oppure lasciarle disattivate.</string>
+    <string name="notification_permission_blocked">Le notifiche sono bloccate nelle impostazioni Android. Apri le impostazioni delle notifiche di MediShelf per abilitarle, poi torna qui.</string>
+    <string name="notification_permission_open_settings">Apri impostazioni notifiche</string>
+    <string name="notification_permission_retry">Riprova</string>
+    <string name="notification_permission_cancel">Annulla</string>
 </resources>
