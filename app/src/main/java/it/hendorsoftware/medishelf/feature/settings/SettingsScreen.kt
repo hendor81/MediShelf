@@ -1,5 +1,9 @@
 package it.hendorsoftware.medishelf.feature.settings
 
+import android.Manifest
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
@@ -80,6 +84,10 @@ fun SettingsRoute(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
+    val permissionLauncher = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        viewModel.onNotificationsEnabledChanged(granted)
+    }
+
     SettingsScreen(
         uiState = uiState,
         onThemeClick = viewModel::onThemeClick,
@@ -89,7 +97,13 @@ fun SettingsRoute(
         onThresholdInputChanged = viewModel::onThresholdInputChanged,
         onThresholdSaveClick = viewModel::onThresholdSaveClick,
         onThresholdDialogDismissed = viewModel::onThresholdDialogDismissed,
-        onNotificationsEnabledChanged = viewModel::onNotificationsEnabledChanged,
+        onNotificationsEnabledChanged = { enabled ->
+            if (enabled && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                permissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+            } else {
+                viewModel.onNotificationsEnabledChanged(enabled)
+            }
+        },
         onRemovalPreferenceClick = viewModel::onRemovalPreferenceClick,
         onRemovalPreferenceSelected = viewModel::onRemovalPreferenceSelected,
         onRemovalPreferenceDialogDismissed = viewModel::onRemovalPreferenceDialogDismissed,

@@ -675,3 +675,34 @@ La documentazione tecnica deve restare allineata con:
 - `ARCHITECTURES_RULES.md`, per struttura e responsabilità;
 - `TESTING_STRATEGY.md`, per test implementati e lacune note;
 - `SCREEN_CATALOG.md` e `NAVIGATION_MAP.md`, per schermate e flussi effettivamente realizzati.
+
+## Issue #27 — Notifiche locali di scadenza
+
+- `ExpiryNotificationSelector` riusa la classificazione di dominio e la soglia
+  corrente: include scaduti e in scadenza, anche senza quantità; esclude
+  archiviate, esaurite e voci senza data. Preferenza disattivata: lista vuota.
+- `ExpiryNotificationScheduler` usa JobScheduler Android senza nuove dipendenze:
+  un job periodico giornaliero persistente dopo il riavvio, senza rete né allarmi
+  esatti. Android decide la finestra effettiva; il primo controllo avviene nella
+  prima finestra periodica, non immediatamente dopo il salvataggio.
+- `MediShelfApplication` osserva preferenze e inventario: disattivare annulla il
+  job e la notifica; cambiare dati o soglia aggiorna un riepilogo già visibile.
+- `ExpiryNotificationJobService` rilegge repository e impostazioni a ogni
+  esecuzione e gestisce cancellazione Android ed errori con riprogrammazione.
+- Canale `medicine_expiry`, icona monocromatica e unica notifica con conteggi
+  aggregati, senza nomi di medicinali. Il tap apre la Home, da cui si accede allo
+  Scadenzario. Nessun consiglio medico o reminder di terapia.
+- Android 13+: richiesta del permesso al primo avvio con preferenza attiva,
+  ulteriori tentativi espliciti tramite il toggle delle Impostazioni. Il rifiuto
+  di sistema impedisce la pubblicazione anche se la preferenza locale è attiva.
+- Nessuna modifica allo schema Room. Test unitari dedicati a selezione, soglia
+  inclusiva/modificata, preferenza disattivata ed esclusioni.
+- Verifica manuale: aggiungere voci scadute/in scadenza, concedere il permesso,
+  eseguire `adb shell cmd jobscheduler run -f it.hendorsoftware.medishelf 27`,
+  verificare il riepilogo e il tap. Cambiare soglia/archiviare e controllare il
+  riepilogo visibile; disattivare e verificare che il job sia rimosso. Ripetere
+  con permesso negato e dopo riavvio. Questa verifica richiede un dispositivo.
+- Verifica automatica eseguita: `testDebugUnitTest assembleDebug lintDebug`
+  completati con successo; 76 test passati (4 nuovi), lint senza errori con
+  95 avvisi complessivi. Verifica manuale completata dall'utente con esito
+  positivo, come confermato prima della pubblicazione della pull request.

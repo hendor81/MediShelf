@@ -183,4 +183,8 @@
     <string name="designsystem_delete_dialog_confirm">Elimina</string>
     <string name="designsystem_delete_dialog_dismiss">Annulla</string>
     <string name="designsystem_top_app_bar_title">MediShelf</string>
+    <string name="expiry_notification_channel">Scadenze medicinali</string>
+    <string name="expiry_notification_channel_description">Riepilogo delle scadenze del tuo armadietto</string>
+    <string name="expiry_notification_title">Controlla le scadenze del tuo armadietto</string>
+    <string name="expiry_notification_summary">In scadenza: %1$d. Scaduti: %2$d. Apri MediShelf per consultarli.</string>
 </resources>
