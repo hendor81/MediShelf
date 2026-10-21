@@ -53,7 +53,250 @@ Annotare compromessi, TODO rilevanti e decisioni da rivalutare.
 Ogni milestone del backlog deve prevedere una issue o sotto-issue di aggiornamento documentazione tecnica, da chiudere solo dopo aver allineato questo file allo stato reale del progetto.
 
 
-## Stato attuale - Milestone 1
+## Stato attuale — Milestone 3: scadenze e notifiche
+
+Questa sezione consolida il codice presente su `master` dopo la PR #88 e
+costituisce il riferimento per lo stato corrente. Le sezioni successive sulle
+Milestone 1 e 2 e sulle issue #27 e #28 conservano lo storico: le funzionalità
+indicate lì come mancanti vanno confrontate con questo riepilogo aggiornato.
+
+MediShelf Free è un inventario e scadenzario locale, offline-first, per un solo
+armadietto. Dashboard, Scadenzario e Impostazioni sono collegati ai dati reali.
+Le notifiche sono promemoria organizzativi sulle scadenze: non rappresentano
+prescrizioni, consigli medici, diagnosi o reminder di assunzione di una terapia.
+
+### Struttura e flusso dati
+
+Il progetto resta monomodulo (`app`), con Kotlin, Compose/Material 3,
+Navigation Compose, Hilt, Room e Coroutines/Flow. La toolchain usa JDK 21 e
+Gradle 9.4.1; compile SDK 36.1, target SDK 36 e min SDK 24. La compatibilità
+Java dei sorgenti resta 11, con desugaring per `java.time`.
+
+| Responsabilità | Implementazione effettiva |
+| --- | --- |
+| Medicinali persistenti | `MedicineDao` → `LocalMedicineRepository` → `MedicineRepository` |
+| Preferenze locali | `SharedPreferencesUserSettingsLocalDataSource` → `LocalUserSettingsRepository` → `UserSettingsRepository` |
+| Regole condivise | `MedicineStatusCalculator`, `DateProvider`, `ExpiryNotificationSelector` |
+| Riepilogo Home | `GetHomeSummaryUseCase`, `HomeSummary`, `HomeAttentionMedicine` |
+| Presentazione | ViewModel → `StateFlow<UiState>` → schermate Compose stateless e callback |
+| Tema globale | `MainViewModel` osserva le preferenze, `MainActivity` applica `MediShelfTheme` |
+| Notifiche Android | `ExpiryNotificationScheduler`, `ExpiryNotificationJobService`, osservazione avviata da `MediShelfApplication` |
+
+I package `feature.home`, `feature.expiry` e `feature.settings` contengono
+schermata, route, ViewModel e UiState effettivi. `data.local.preferences`
+gestisce le impostazioni senza aggiungere tabelle Room. Hilt collega i
+repository nei moduli DI; i use case usano constructor injection.
+
+### Regole di stato e soglia condivisa
+
+[`MedicineStatusCalculator`](app/src/main/java/it/hendorsoftware/medishelf/domain/rules/MedicineStatusCalculator.kt)
+usa `DateProvider.today()` e applica, nell'ordine:
+
+1. quantità nota pari a zero → `OUT_OF_STOCK`;
+2. scadenza assente → `NO_EXPIRATION_DATE`;
+3. scadenza precedente a oggi → `EXPIRED`;
+4. scadenza entro oggi più la soglia, estremi inclusi → `EXPIRING`;
+5. altrimenti → `VALID`.
+
+Quantità assente e quantità zero sono casi diversi: solo la seconda determina
+esaurito. Con soglia zero, la scadenza odierna è ancora `EXPIRING`. Le voci
+archiviate sono escluse dagli stream attivi del repository; il selettore delle
+notifiche le esclude anche esplicitamente. `ARCHIVED` non è un valore di
+`MedicineStatus`: l'archiviazione resta una proprietà persistita separata.
+
+Il default reale è **60 giorni**, definito in
+[`MediShelfDefaults`](app/src/main/java/it/hendorsoftware/medishelf/core/common/MediShelfDefaults.kt),
+con intervallo ammesso **0–365**. I 30 giorni citati come proposta nei documenti
+iniziali e usati nei fake dei test non sono il default applicativo attuale.
+Home, Inventario e Scadenzario osservano la soglia persistita e ricalcolano le
+viste quando cambiano dati o impostazioni.
+
+### Dashboard Home
+
+[`GetHomeSummaryUseCase`](app/src/main/java/it/hendorsoftware/medishelf/domain/usecase/GetHomeSummaryUseCase.kt)
+combina inventario attivo e impostazioni. `HomeViewModel` converte il riepilogo
+in `HomeUiState`, senza calcolare gli stati nelle Composable.
+
+- Conteggi: totale attivi, in scadenza, scaduti, scorta bassa o esaurita.
+- Scorta bassa: quantità nota a zero oppure minore o uguale alla soglia
+  individuale, se presente. Può sovrapporsi ai conteggi di scadenza; i quattro
+  indicatori non sono categorie da sommare tra loro.
+- La lista «Da tenere d'occhio» include criticità di stato o di quantità ed è
+  limitata a tre voci. L'ordine è scaduti, esauriti, in scadenza, senza data,
+  validi con scorta bassa; poi data e nome. I conteggi usano l'intero inventario,
+  senza essere troncati dal limite della lista.
+- Una voce `VALID` ma sotto soglia usa il badge Home `LowStock`; questo badge
+  non introduce un nuovo stato nel dominio o nello Scadenzario.
+- Ricerca dalla Home apre l'Inventario; «Vedi tutti» apre lo Scadenzario;
+  aggiunta e tap sulle voci aprono form e dettaglio con identificativi reali.
+
+### Scadenzario e Inventario
+
+[`ExpiryViewModel`](app/src/main/java/it/hendorsoftware/medishelf/feature/expiry/ExpiryViewModel.kt)
+combina `GetActiveMedicinesUseCase` e `ObserveUserSettingsUseCase` e produce tre
+sezioni: in scadenza, scaduti e senza data. Le prime due sono ordinate per data,
+poi nome; la terza per nome. I medicinali validi e quelli esauriti sono esclusi,
+anche se questi ultimi hanno una data passata o assente. Sono previsti stato di
+caricamento e liste vuote; il tap passa l'id reale al dettaglio.
+
+`InventoryViewModel` applica lo stesso classificatore e la stessa soglia,
+combinandoli con ricerca per nome e filtro di stato. I filtri disponibili restano
+tutti, valido, in scadenza, scaduto, esaurito e senza data; non esiste un filtro
+specifico per scorta bassa. Lo stato derivato non viene persistito.
+
+### Impostazioni e persistenza
+
+[`SettingsViewModel`](app/src/main/java/it/hendorsoftware/medishelf/feature/settings/SettingsViewModel.kt)
+usa `ObserveUserSettingsUseCase` e i use case `UpdateThemeModeUseCase`,
+`UpdateExpiringThresholdDaysUseCase`, `UpdateNotificationsEnabledUseCase` e
+`UpdatePreferArchiveOverDeleteUseCase`.
+
+| Preferenza | Default | Comportamento implementato |
+| --- | --- | --- |
+| Tema | `LIGHT` | Chiaro, scuro o sistema; applicato dalla root dell'app |
+| Soglia scadenza | 60 giorni | Intero 0–365; dialog con errori per vuoto, numero non valido o fuori intervallo |
+| Notifiche | `true` | Preferenza locale distinta dal permesso Android; recupero tramite il toggle |
+| Preferenza rimozione | Archiviazione | Salvata e visualizzata nelle Impostazioni; non cambia ancora le azioni del Dettaglio |
+
+Le preferenze sono salvate nel file SharedPreferences `medishelf_user_settings`
+con chiavi `theme_mode`, `expiring_threshold_days`, `notifications_enabled` e
+`prefer_archive_over_delete`. Il datasource espone un Flow tramite listener,
+limita i valori di soglia letti a 0–365 e ripiega su `LIGHT` per temi sconosciuti.
+Repository e modello `UserSettings` validano la soglia in scrittura/costruzione.
+
+Le Impostazioni includono privacy/disclaimer e lo svuotamento dell'Archivio
+previa conferma. `ClearArchiveUseCase` legge le voci archiviate e le elimina
+singolarmente tramite repository, restituendo il numero rimosso; non è una
+transazione atomica di cancellazione collettiva.
+
+Il database `medishelf.db` resta alla versione **1**, con sola tabella
+`medicines`, `exportSchema = false` e nessuna migrazione introdotta nella
+Milestone 3. Quantità, scadenza e gli altri campi opzionali restano nullable;
+`LocalDate` è salvato come stringa ISO e `Instant` come epoch millis.
+
+### Notifiche locali: selezione, esecuzione e permessi
+
+[`ExpiryNotificationSelector`](app/src/main/java/it/hendorsoftware/medishelf/domain/rules/ExpiryNotificationSelector.kt)
+riusa il classificatore e la soglia utente. Se la preferenza è disattivata non
+seleziona nulla; altrimenti include solo attivi `EXPIRING` o `EXPIRED`, anche
+senza quantità. Esclude archiviati, esauriti, validi e voci senza data.
+
+[`ExpiryNotificationScheduler`](app/src/main/java/it/hendorsoftware/medishelf/core/notification/ExpiryNotificationScheduler.kt)
+programma tramite `JobScheduler` un job periodico giornaliero persistente
+(`JOB_ID = 27`, `setPersisted(true)`). Il manifest dichiara
+`RECEIVE_BOOT_COMPLETED` e il servizio protetto da `BIND_JOB_SERVICE`.
+Non sono richiesti rete o allarmi esatti e non viene fissata un'ora del giorno:
+la finestra effettiva dipende da Android, Doze e risparmio energetico.
+Il primo controllo avviene nella finestra periodica, non immediatamente dopo il
+salvataggio di un medicinale. Arresto forzato dell'app e restrizioni del sistema
+possono ritardare o impedire l'esecuzione.
+
+`MediShelfApplication` osserva impostazioni e inventario per la durata del
+processo. Con notifiche attive programma il job solo se manca; le modifiche a
+dati o soglia aggiornano o rimuovono un riepilogo già visibile. Se non c'è una
+notifica visibile non ne generano subito una nuova. Disattivare la preferenza
+annulla job e riepilogo.
+
+`ExpiryNotificationJobService` rilegge medicinali e preferenze a ogni esecuzione,
+mostra i conteggi aggiornati e chiede la riprogrammazione in caso di errore;
+annulla la coroutine quando Android interrompe il job.
+
+La pubblicazione usa una sola notifica (`NOTIFICATION_ID = 27`) sul canale
+`medicine_expiry`, creato da Android 8 con importanza predefinita. Il contenuto
+mostra conteggi aggregati di in scadenza/scaduti, senza nomi di medicinali;
+il tap apre `MainActivity` e la Home, non una destinazione diretta allo
+Scadenzario. Il riepilogo vuoto viene rimosso. Il controllo globale delle
+notifiche e la gestione di `SecurityException` proteggono la pubblicazione,
+ma un canale disabilitato nel sistema può comunque impedirne la visualizzazione.
+
+Su Android 13+ `MainActivity` richiede `POST_NOTIFICATIONS` una sola volta se la
+preferenza è attiva. Lo storico è condiviso con il toggle nel file
+`notification_permission`, chiave `requested`. Il rifiuto iniziale non modifica
+automaticamente la preferenza locale e il job può restare programmato senza
+poter mostrare notifiche.
+
+[`NotificationPermissionFlow`](app/src/main/java/it/hendorsoftware/medishelf/feature/settings/NotificationPermissionFlow.kt)
+e `NotificationPermissionState` gestiscono l'abilitazione esplicita dal toggle:
+richiesta iniziale, spiegazione del rifiuto temporaneo o accesso alle impostazioni
+di sistema se il permesso è bloccato. Al ritorno rileggono permesso e blocco
+globale, senza interpretare il result code come concessione; la preferenza è
+abilitata solo quando entrambi consentono le notifiche. Lo stato di attesa
+sopravvive alla ricreazione della schermata. Da Android 8 si apre la pagina
+notifiche dell'app; su Android 7 si usa la pagina dettagli dell'app.
+
+### Navigazione e verifica dello stato implementato
+
+Le route restano `home`, `inventory`, `expiry`, `archive`, `settings`,
+`medicine/add`, `medicine/{medicineId}` e `medicine/{medicineId}/edit`.
+[`MediShelfNavHost`](app/src/main/java/it/hendorsoftware/medishelf/navigation/MediShelfNavHost.kt)
+collega Home, Inventario, Scadenzario e Archivio al dettaglio con id reali:
+il precedente limite `SAMPLE_MEDICINE_ID` è superato. Inserimento torna
+all'Inventario, modifica torna al Dettaglio, archiviazione apre Archivio e
+cancellazione torna indietro. Non sono state aggiunte schermate Pro o cloud.
+
+La copertura JVM comprende `HomeViewModelTest`, `ExpiryViewModelTest`,
+`InventoryViewModelTest`, `SettingsViewModelTest`,
+`LocalUserSettingsRepositoryTest`, `ExpiryNotificationSelectorTest` e
+`NotificationPermissionStateTest`, oltre ai test di dominio e dati esistenti.
+`DerivedViewsConsistencyTest` verifica insieme le tre viste con data fissa,
+fake condivisi e aspettative esplicite su conteggi, filtri e aggiornamenti.
+
+Verifica automatica di riferimento della issue #28, sul codice incorporato
+nella PR #88: **91 test JVM superati**, nessun fallimento o test saltato,
+`assembleDebug` riuscita, `lintDebug` senza errori e con **83 avvisi**. Questa
+issue documentale verifica manualmente la corrispondenza con sorgenti e
+struttura; non aggiunge test e non dichiara una nuova esecuzione della suite.
+
+```shell
+bash gradlew testDebugUnitTest assembleDebug lintDebug
+```
+
+I test strumentali presenti includono DAO, navigazione, Home, Inventario,
+form, Dettaglio e `NotificationPermissionDialogTest`. La presenza di questi test
+non equivale all'esecuzione su dispositivo. Le verifiche storiche della PR #87
+riguardano due dialoghi Compose su Android 16; il percorso completo attraverso
+le impostazioni di sistema dopo quella correzione resta da verificare manualmente.
+
+Su un dispositivo con dati di prova e permessi concessi, il job può essere
+forzato per controllare selezione, conteggi e apertura dalla notifica:
+
+```shell
+adb shell cmd jobscheduler run -f it.hendorsoftware.medishelf 27
+```
+
+Ripetere con permesso negato, rifiuto ripetuto e recupero dalle impostazioni,
+rotazione durante il passaggio al sistema, variazione della soglia,
+archiviazione, disattivazione notifiche e riavvio. Il comando forzato non
+dimostra il rispetto della cadenza naturale del job periodico.
+
+### Limiti e debito tecnico residuo
+
+- I Flow delle viste ricalcolano al cambiamento di dati o preferenze: non c'è
+  un segnale temporale a mezzanotte che aggiorni automaticamente gli stati di
+  una schermata rimasta aperta. Il job rilegge la data quando viene eseguito.
+- Il Dettaglio legge le impostazioni al caricamento e dopo azioni sulla quantità;
+  non osserva continuamente gli aggiornamenti come le tre viste principali.
+- L'Archivio è consultivo: manca il ripristino. La preferenza archivia/elimina è
+  persistita ma non modifica ancora il comportamento delle azioni del Dettaglio.
+- Il parametro visuale Home `hasNotificationUpdates` non è collegato allo scheduler;
+  l'indicatore nel suo header non certifica notifiche reali disponibili.
+- Gli errori nelle operazioni delle Impostazioni non hanno ancora una gestione
+  UI completa; lo svuotamento Archivio non è atomico e può interrompersi a metà.
+- Lo scheduler registra gli errori di programmazione, ma non li espone nella UI;
+  un errore nell'osservazione avviata dall'Application viene registrato senza
+  un ciclo automatico di riavvio dell'osservazione.
+- Restano la verifica manuale completa del recupero permessi e la copertura
+  automatizzata Android di scheduling, riavvio e pubblicazione effettiva.
+- La CI su `master` esegue `build` e `test` con JDK 21; non ha step dedicati a
+  `lintDebug` né un dispositivo/emulatore per i test strumentali.
+- Restano `exportSchema = false`, assenza di migrazioni evolutive, test template
+  dello scaffold e divergenze terminologiche dei documenti guida (`ARCHIVED`,
+  `EXPIRING_SOON`, `UNKNOWN_EXPIRATION`) rispetto al codice corrente.
+
+## Storico — Milestone 1
+
+Le descrizioni e i limiti che seguono si riferiscono alla conclusione della
+Milestone 1, non allo stato attuale consolidato sopra.
 
 La Milestone 1 ha prodotto le fondamenta tecniche dell'app Android, non le
 feature complete di inventario. Il codice e' organizzato per sostenere la
@@ -390,7 +633,11 @@ CI.
 - Rimuovere o sostituire i test template Android generati dallo scaffold.
 
 
-## Stato attuale - Milestone 2
+## Storico — Milestone 2
+
+Le descrizioni e i limiti di questa sezione si riferiscono alla conclusione
+della Milestone 2; dashboard, scadenzario, impostazioni e notifiche sono stati
+successivamente implementati nella Milestone 3.
 
 La Milestone 2 ha reso funzionale il nucleo di inventario base. Le aree
 Inventario, Inserimento/Modifica, Dettaglio medicinale e Archivio non sono piu
