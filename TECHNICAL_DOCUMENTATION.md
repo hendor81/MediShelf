@@ -733,3 +733,29 @@ La documentazione tecnica deve restare allineata con:
   resta da verificare manualmente; i test UI esercitano i dialoghi dell'app.
 - Android 7 usa la pagina dettagli dell'app come alternativa alla pagina notifiche,
   disponibile tramite intent pubblico da Android 8.
+
+## Issue #28 — Coerenza dei conteggi e delle viste derivate
+
+- `DerivedViewsConsistencyTest` esercita insieme Home, Inventario e Scadenzario
+  tramite i ViewModel e i use case reali, con repository fake condivisi e
+  `FakeDateProvider` fissato al 18 maggio 2026.
+- Gli identificativi attesi sono espliciti per ogni stato: i test confrontano
+  conteggi Home, sezioni dello Scadenzario e tutti i filtri dell'Inventario,
+  senza costruire le aspettative con il classificatore di produzione.
+- La copertura include soglia inclusiva e zero, aumento e riduzione della soglia
+  sui ViewModel già attivi, quantità e scadenza assenti, priorità di esaurito,
+  scorta bassa, inventario vuoto e sole voci archiviate. Aggiornamento quantità,
+  archiviazione e cancellazione verificano anche la propagazione dei dati.
+- I conteggi restano indipendenti dal limite di tre voci della lista attenzione.
+  La Home può evidenziare con `LowStock` una voce altrimenti `VALID`:
+  questa distinzione visuale non cambia le sezioni basate sulla scadenza.
+- Sono test JVM, senza Room, dispositivo, rete, attese reali o test end-to-end.
+  I 7 nuovi test passano; la suite completa conta 91 test superati, senza errori
+  o test saltati. Build debug e lint completati con successo; lint con zero
+  errori e 83 avvisi. Nessuna modifica al codice applicativo o allo schema Room.
+
+Esecuzione mirata:
+
+```shell
+bash gradlew testDebugUnitTest --tests it.hendorsoftware.medishelf.feature.DerivedViewsConsistencyTest
+```
