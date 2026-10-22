@@ -278,8 +278,7 @@ dimostra il rispetto della cadenza naturale del job periodico.
   non osserva continuamente gli aggiornamenti come le tre viste principali.
 - L'Archivio è consultivo: manca il ripristino. La preferenza archivia/elimina è
   persistita ma non modifica ancora il comportamento delle azioni del Dettaglio.
-- Il parametro visuale Home `hasNotificationUpdates` non è collegato allo scheduler;
-  l'indicatore nel suo header non certifica notifiche reali disponibili.
+- La campanella nella Home è nascosta finché non sarà disponibile una destinazione notifiche.
 - Gli errori nelle operazioni delle Impostazioni non hanno ancora una gestione
   UI completa; lo svuotamento Archivio non è atomico e può interrompersi a metà.
 - Lo scheduler registra gli errori di programmazione, ma non li espone nella UI;
@@ -1006,3 +1005,11 @@ Esecuzione mirata:
 ```shell
 bash gradlew testDebugUnitTest --tests it.hendorsoftware.medishelf.feature.DerivedViewsConsistencyTest
 ```
+
+### Uniformità delle schermate principali (issue #90)
+
+- Lo scaffold principale consuma gli inset applicati al NavHost, evitando spazi di sistema duplicati nelle schermate figlie; la barra di navigazione ha un divisore superiore.
+- Home, Inventario e Scadenzario condividono `AddMedicineActionBar` e `MedicineListCard`, con icona confezione, metadati e badge adattato alla larghezza disponibile.
+- Inventario e Scadenzario usano il titolo maggiorato del 50%, lo sfondo del tema e l'icona `archivio` già presente nelle Impostazioni. Lo Scadenzario espone anche aggiunta e archivio.
+- Ogni stato del badge ha un'icona; `scorta_bassa` distingue le scorte ridotte dall'esaurimento.
+- Il form di aggiunta e modifica espone una freccia indietro che chiude senza salvare.

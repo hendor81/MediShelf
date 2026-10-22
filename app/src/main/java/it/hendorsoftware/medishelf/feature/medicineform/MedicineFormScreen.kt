@@ -7,7 +7,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.ArrowBack
 import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -89,6 +93,7 @@ fun MedicineFormRoute(
         onNotesChanged = viewModel::onNotesChanged,
         onSaveClick = viewModel::onSaveClick,
         onNotFoundDoneClick = onCloseClick,
+        onBackClick = onCloseClick,
         snackbarHostState = snackbarHostState,
         modifier = modifier,
     )
@@ -108,6 +113,7 @@ fun MedicineFormRoute(
  * @param onNotesChanged callback per note libere.
  * @param onSaveClick callback di salvataggio.
  * @param onNotFoundDoneClick callback per chiudere lo stato medicinale non trovato.
+ * @param onBackClick torna alla schermata precedente senza salvare.
  * @param snackbarHostState host per mostrare feedback discreti della schermata.
  * @param modifier modificatore Compose applicato alla schermata.
  */
@@ -126,6 +132,7 @@ fun MedicineFormScreen(
     onNotFoundDoneClick: () -> Unit = {},
     snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
     modifier: Modifier = Modifier,
+    onBackClick: () -> Unit = onNotFoundDoneClick,
 ) {
     val isEditMode = uiState.mode == MedicineFormMode.Edit
 
@@ -133,6 +140,14 @@ fun MedicineFormScreen(
         modifier = modifier,
         topBar = {
             MediShelfTopAppBar(
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Outlined.ArrowBack,
+                            contentDescription = stringResource(R.string.navigation_action_go_back),
+                        )
+                    }
+                },
                 title = stringResource(
                     if (isEditMode) {
                         R.string.medicine_edit_screen_title

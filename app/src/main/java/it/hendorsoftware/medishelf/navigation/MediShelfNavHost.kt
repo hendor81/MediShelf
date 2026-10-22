@@ -73,7 +73,8 @@ fun MediShelfNavHost(
         }
         composable(MediShelfRoute.Expiry.route) {
             ExpiryRoute(
-                onMedicineClick = { medicineId ->
+                onAddMedicineClick = { navController.navigate(MediShelfRoute.AddMedicine.route) },
+                onArchiveClick = { navController.navigate(MediShelfRoute.Archive.route) },                onMedicineClick = { medicineId ->
                     navController.navigate(MediShelfRoute.MedicineDetail.createRoute(medicineId))
                 },
             )
@@ -90,6 +91,7 @@ fun MediShelfNavHost(
         }
         composable(MediShelfRoute.AddMedicine.route) {
             MedicineFormRoute(
+                onCloseClick = { navController.popBackStack() },
                 onSaved = {
                     navController.navigate(MediShelfRoute.Inventory.route) {
                         popUpTo(MediShelfRoute.Home.route)

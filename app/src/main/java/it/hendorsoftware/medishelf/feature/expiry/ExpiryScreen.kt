@@ -1,24 +1,21 @@
 package it.hendorsoftware.medishelf.feature.expiry
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.Inventory2
-import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -26,16 +23,17 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import it.hendorsoftware.medishelf.R
+import it.hendorsoftware.medishelf.core.designsystem.component.AddMedicineActionBar
 import it.hendorsoftware.medishelf.core.designsystem.component.EmptyState
 import it.hendorsoftware.medishelf.core.designsystem.component.MediShelfTopAppBar
-import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBadge
+import it.hendorsoftware.medishelf.core.designsystem.component.MedicineListCard
 import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBadgeStatus
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfDimens
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
@@ -44,12 +42,16 @@ import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
  * Route della schermata Scadenzario.
  *
  * @param onMedicineClick callback per aprire un dettaglio medicinale.
+ * @param onAddMedicineClick apre il form di inserimento.
+ * @param onArchiveClick apre l'archivio.
  * @param modifier modificatore Compose applicato alla schermata.
  * @param viewModel ViewModel Hilt della feature.
  */
 @Composable
 fun ExpiryRoute(
     onMedicineClick: (String) -> Unit,
+    onAddMedicineClick: () -> Unit = {},
+    onArchiveClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: ExpiryViewModel = hiltViewModel(),
 ) {
@@ -58,6 +60,8 @@ fun ExpiryRoute(
     ExpiryScreen(
         uiState = uiState,
         onMedicineClick = onMedicineClick,
+        onAddMedicineClick = onAddMedicineClick,
+        onArchiveClick = onArchiveClick,
         modifier = modifier,
     )
 }
@@ -67,19 +71,36 @@ fun ExpiryRoute(
  *
  * @param uiState stato completo delle sezioni di scadenza.
  * @param onMedicineClick callback per aprire il dettaglio della voce selezionata.
+ * @param onAddMedicineClick apre il form di inserimento.
+ * @param onArchiveClick apre l'archivio.
  * @param modifier modificatore Compose applicato alla schermata.
  */
 @Composable
 fun ExpiryScreen(
     uiState: ExpiryUiState,
     onMedicineClick: (String) -> Unit,
+    onAddMedicineClick: () -> Unit = {},
+    onArchiveClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
         modifier = modifier,
         topBar = {
-            MediShelfTopAppBar(title = stringResource(R.string.expiry_screen_title))
+            MediShelfTopAppBar(
+                title = stringResource(R.string.expiry_screen_title),
+                prominentTitle = true,
+                actions = {
+                    IconButton(onClick = onArchiveClick) {
+                        Image(
+                            painter = painterResource(R.drawable.archivio),
+                            contentDescription = stringResource(R.string.inventory_open_archive_content_description),
+                            modifier = Modifier.size(MediShelfDimens.BottomNavigationIconSize),
+                        )
+                    }
+                },
+            )
         },
+        bottomBar = { AddMedicineActionBar(onAddMedicineClick = onAddMedicineClick) },
     ) { innerPadding ->
         ExpiryContent(
             uiState = uiState,
@@ -224,109 +245,18 @@ fun ExpiryMedicineListItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .testTag(ExpiryTestTags.medicineItem(medicine.id))
-            .clickable(onClick = onClick),
-        shape = MaterialTheme.shapes.medium,
-    ) {
-        Column(
-            modifier = Modifier.padding(MediShelfDimens.SpacingMedium),
-            verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmall),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingMedium),
-                verticalAlignment = Alignment.Top,
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingExtraSmall),
-                ) {
-                    Text(
-                        text = medicine.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    medicine.packageForm?.let { packageForm ->
-                        Text(
-                            text = packageForm,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-
-                MedicineStatusBadge(status = medicine.status)
-            }
-
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingMedium),
-                verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmall),
-            ) {
-                medicine.expirationDate?.let { expirationDate ->
-                    ExpiryMedicineMetadata(
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Outlined.CalendarMonth,
-                                contentDescription = null,
-                            )
-                        },
-                        text = stringResource(
-                            R.string.inventory_item_expiration,
-                            expirationDate,
-                        ),
-                    )
-                }
-                medicine.quantity?.let { quantity ->
-                    ExpiryMedicineMetadata(
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Outlined.Inventory2,
-                                contentDescription = null,
-                            )
-                        },
-                        text = stringResource(R.string.inventory_item_quantity, quantity),
-                    )
-                }
-                medicine.storageLocation?.let { storageLocation ->
-                    ExpiryMedicineMetadata(
-                        icon = {
-                            Icon(
-                                imageVector = Icons.Outlined.LocationOn,
-                                contentDescription = null,
-                            )
-                        },
-                        text = stringResource(
-                            R.string.inventory_item_location,
-                            storageLocation,
-                        ),
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun ExpiryMedicineMetadata(
-    icon: @Composable () -> Unit,
-    text: String,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingExtraSmall),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        icon()
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
+    MedicineListCard(
+        name = medicine.name,
+        status = medicine.status,
+        metadata = listOfNotNull(
+            medicine.packageForm,
+            medicine.expirationDate?.let { stringResource(R.string.inventory_item_expiration, it) },
+            medicine.quantity?.let { stringResource(R.string.inventory_item_quantity, it) },
+            medicine.storageLocation?.let { stringResource(R.string.inventory_item_location, it) },
+        ),
+        onClick = onClick,
+        modifier = modifier.testTag(ExpiryTestTags.medicineItem(medicine.id)),
+    )
 }
 
 /**
@@ -406,26 +336,6 @@ private fun ExpiryMedicineListItemPreview() {
         ExpiryMedicineListItem(
             medicine = sampleExpiryMedicines.first(),
             onClick = {},
-            modifier = Modifier.padding(MediShelfDimens.ScreenPadding),
-        )
-    }
-}
-
-/**
- * Preview di un metadato dello Scadenzario.
- */
-@Preview(showBackground = true)
-@Composable
-private fun ExpiryMedicineMetadataPreview() {
-    MediShelfTheme {
-        ExpiryMedicineMetadata(
-            icon = {
-                Icon(
-                    imageVector = Icons.Outlined.CalendarMonth,
-                    contentDescription = null,
-                )
-            },
-            text = "Scadenza 05/06/2026",
             modifier = Modifier.padding(MediShelfDimens.ScreenPadding),
         )
     }
