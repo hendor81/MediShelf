@@ -66,3 +66,23 @@ Il prodotto è pensato a livelli:
 Questa documentazione rappresenta una base iniziale per guidare agenti IA e sviluppo umano.
 
 È un set di working documents: può evolvere, ma ogni aggiornamento deve preservare coerenza e semplicità.
+
+## Provare l'app su Android tramite GitHub Actions
+
+La pipeline **Android CI** verifica il progetto e conserva l'APK debug per 14
+giorni. Si avvia sui push a `master` e ai branch `codex/**`, sulle pull request
+verso `master` e manualmente tramite **Run workflow** (disponibile dopo che il
+workflow è presente nel branch predefinito).
+
+1. Aprire [Actions → Android CI](https://github.com/hendor81/MediShelf/actions/workflows/android-ci.yml)
+   nel browser, accedendo a GitHub.
+2. Selezionare l'esecuzione completata per il branch e il commit da provare.
+3. Nella sezione **Artifacts**, scaricare `MediShelf-debug-<numero>-<tentativo>`.
+   Da smartphone, se la sezione non appare, usare la modalità sito desktop.
+4. Estrarre lo ZIP e aprire `app-debug.apk` dal gestore file Android.
+5. Consentire, se richiesto, l'installazione di app dalla fonte utilizzata.
+
+L'APK è una build di test firmata con la chiave debug del runner. La firma può
+cambiare tra esecuzioni o differire da quella della versione già installata:
+in tal caso Android può rifiutare l'aggiornamento. La disinstallazione elimina
+l'inventario locale; non disinstallare una versione con dati da conservare.

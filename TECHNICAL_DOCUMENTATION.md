@@ -569,8 +569,9 @@ Restano presenti i test template `ExampleUnitTest` ed
 `ExampleInstrumentedTest`, non ancora rimossi.
 
 ### GitHub Actions
-La pipeline `.github/workflows/android-ci.yml` e' configurata su push e pull
-request verso `master`.
+La pipeline `.github/workflows/android-ci.yml` si avvia sui push a `master`
+e ai branch `codex/**`, sulle pull request verso `master` e tramite
+`workflow_dispatch`.
 
 Job attuale:
 - checkout repository;
@@ -578,7 +579,13 @@ Job attuale:
 - setup Gradle;
 - `chmod +x gradlew`;
 - `./gradlew build`;
-- `./gradlew test`.
+- `./gradlew test`;
+- caricamento degli APK debug con `actions/upload-artifact@v4`, conservati per
+  14 giorni; il job fallisce se il file atteso non è presente.
+
+Gli artefatti `MediShelf-debug-<run_number>-<run_attempt>` contengono un APK
+installabile dopo aver estratto lo ZIP. La firma debug del runner non è una
+chiave stabile di distribuzione. Le istruzioni per il dispositivo sono nel README.
 
 Limite noto: la pipeline non esegue ancora esplicitamente `lintDebug` o test
 strumentali. Il comando `build` copre la build locale prevista da Gradle, mentre
