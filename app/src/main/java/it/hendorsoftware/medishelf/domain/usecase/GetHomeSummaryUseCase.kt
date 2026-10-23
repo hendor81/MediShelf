@@ -5,9 +5,10 @@ import it.hendorsoftware.medishelf.domain.model.MedicineStatus
 import it.hendorsoftware.medishelf.domain.repository.MedicineRepository
 import it.hendorsoftware.medishelf.domain.repository.UserSettingsRepository
 import it.hendorsoftware.medishelf.domain.rules.MedicineStatusCalculator
+import it.hendorsoftware.medishelf.domain.rules.MedicineStockRules
 import javax.inject.Inject
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
 
 /**
  * Calcola il riepilogo della Home a partire dall'inventario attivo.
@@ -49,10 +50,10 @@ class GetHomeSummaryUseCase @Inject constructor(
             activeMedicineCount = size,
             expiringMedicineCount = medicinesWithStatus.countStatus(MedicineStatus.EXPIRING),
             expiredMedicineCount = medicinesWithStatus.countStatus(MedicineStatus.EXPIRED),
-            lowStockMedicineCount = count { medicine -> medicine.isLowStockOrOutOfStock() },
+            lowStockMedicineCount = count { medicine -> MedicineStockRules.isLowStock(medicine) },
             attentionMedicines = medicinesWithStatus
                 .filter { (medicine, status) ->
-                    status in AttentionStatuses || medicine.isLowStockOrOutOfStock()
+                    status in AttentionStatuses || MedicineStockRules.isLowStock(medicine)
                 }
                 .sortedWith(attentionComparator())
                 .take(ATTENTION_ITEM_LIMIT)
@@ -60,7 +61,7 @@ class GetHomeSummaryUseCase @Inject constructor(
                     HomeAttentionMedicine(
                         medicine = medicine,
                         status = status,
-                        isLowStock = medicine.isLowStockOrOutOfStock(),
+                        isLowStock = MedicineStockRules.isLowStock(medicine),
                     )
                 },
         )
@@ -68,14 +69,6 @@ class GetHomeSummaryUseCase @Inject constructor(
 
     private fun List<Pair<Medicine, MedicineStatus>>.countStatus(status: MedicineStatus): Int =
         count { (_, currentStatus) -> currentStatus == status }
-
-    private fun Medicine.isLowStockOrOutOfStock(): Boolean {
-        val quantity = quantity ?: return false
-        val lowStockThreshold = quantity.lowStockThreshold
-
-        return quantity.amount <= OUT_OF_STOCK_LIMIT ||
-            (lowStockThreshold != null && quantity.amount <= lowStockThreshold)
-    }
 
     private fun attentionComparator(): Comparator<Pair<Medicine, MedicineStatus>> =
         compareBy<Pair<Medicine, MedicineStatus>> { (_, status) ->

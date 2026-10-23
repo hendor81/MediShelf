@@ -32,6 +32,8 @@ import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
  * @param metadata dettagli già formattati, compresi i campi opzionali disponibili.
  * @param onClick apre il dettaglio del medicinale.
  * @param modifier modificatore della card, inclusi eventuali tag di test.
+ * @param packageForm formato salvato da associare all'icona.
+ * @param badgeBesideName affianca il badge al nome negli elementi della Home.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -41,6 +43,9 @@ fun MedicineListCard(
     metadata: List<String>,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
+    packageForm: String? = null,
+    badgeBesideName: Boolean = false,
+    isLowStock: Boolean = false,
 ) {
     Card(
         onClick = onClick,
@@ -55,7 +60,7 @@ fun MedicineListCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Image(
-                painter = painterResource(R.drawable.compressa),
+                painter = painterResource(MedicinePackageForms.iconFor(packageForm)),
                 contentDescription = null,
                 modifier = Modifier.size(MediShelfDimens.MedicineIconSize),
             )
@@ -63,14 +68,18 @@ fun MedicineListCard(
                 modifier = Modifier.weight(1f),
                 verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingExtraSmall),
             ) {
-                Text(
-                    text = name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = name,
+                        modifier = Modifier.weight(1f),
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                    if (badgeBesideName) MedicineStatusBadge(status = status)
+                }
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmall),
                     verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingExtraSmall),
@@ -84,7 +93,13 @@ fun MedicineListCard(
                     }
                 }
                 // Il badge va a capo con i dettagli per lasciare leggibile il nome anche su schermi piccoli.
-                MedicineStatusBadge(status = status)
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmall),
+                    verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingExtraSmall),
+                ) {
+                    if (!badgeBesideName) MedicineStatusBadge(status = status)
+                    if (isLowStock) MedicineStatusBadge(status = MedicineStatusBadgeStatus.LowStock)
+                }
             }
         }
     }

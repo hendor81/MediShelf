@@ -75,14 +75,9 @@ class HomeViewModel @Inject constructor(
                 listOfNotNull(info.amount.toDisplayText(), info.unit)
                     .joinToString(separator = " ")
             },
-            status = status.toBadgeStatus(isLowStock),
+            status = status.toBadgeStatus(),
+            isLowStock = isLowStock,
         )
-
-    private fun MedicineStatus.toBadgeStatus(isLowStock: Boolean): MedicineStatusBadgeStatus =
-        when {
-            isLowStock && this == MedicineStatus.VALID -> MedicineStatusBadgeStatus.LowStock
-            else -> toBadgeStatus()
-        }
 
     private fun MedicineStatus.toBadgeStatus(): MedicineStatusBadgeStatus = when (this) {
         MedicineStatus.VALID -> MedicineStatusBadgeStatus.Valid

@@ -15,8 +15,7 @@ Avvio app
 └── Home / Dashboard
     ├── Inserimento / Modifica medicinale
     │   └── Salvataggio
-    │       └── Inventario
-    │           └── Dettaglio medicinale
+    │       └── Schermata di origine (con conferma)
     ├── Inventario
     │   ├── Ricerca e filtri
     │   ├── Dettaglio medicinale
@@ -50,7 +49,7 @@ Avvio app
 
 ## Flussi principali
 ### Aggiunta medicinale
-`Home -> Inserimento / Modifica -> Salvataggio -> Inventario`
+`Schermata di origine -> Inserimento / Modifica -> Salvataggio -> Schermata di origine`
 
 ### Consultazione inventario
 `Home -> Inventario -> Dettaglio medicinale`
@@ -73,3 +72,12 @@ Avvio app
 - `Dettaglio medicinale` è raggiungibile da più punti ma deve restare unica come esperienza.
 - `Inserimento / Modifica` usa la stessa base schermata con due modalità.
 - `Archivio` è area secondaria, non primaria.
+
+
+## Rifiniture dei flussi (issue #92)
+
+- Salvataggio: ritorno immediato alla schermata chiamante, con snackbar di conferma.
+- Home → Vedi tutti: Inventario con filtro Da controllare, senza limite al numero di voci.
+- Archiviazione: sostituisce il Dettaglio con Archivio; BACK torna alla schermata precedente al Dettaglio.
+- Dettaglio archiviato → Ripristina: la voce torna attiva e il Dettaglio si aggiorna; BACK torna all'Archivio.
+- La preferenza Archivia/Elimina stabilisce l'azione principale del Dettaglio; l'altra resta nella barra. Elimina richiede sempre conferma.

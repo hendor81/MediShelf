@@ -1020,3 +1020,31 @@ bash gradlew testDebugUnitTest --tests it.hendorsoftware.medishelf.feature.Deriv
 - Inventario e Scadenzario usano il titolo maggiorato del 50%, lo sfondo del tema e l'icona `archivio` già presente nelle Impostazioni. Lo Scadenzario espone anche aggiunta e archivio.
 - Ogni stato del badge ha un'icona; `scorta_bassa` distingue le scorte ridotte dall'esaurimento.
 - Il form di aggiunta e modifica espone una freccia indietro che chiude senza salvare.
+
+### Rifiniture UI e navigazione (issue #92)
+
+- Il badge delle card di attenzione Home affianca il nome, allineato a destra.
+- `MedicineListCard` associa il formato salvato alla relativa icona tramite `MedicinePackageForms`; Archivio riusa la stessa card. Valori liberi preesistenti restano leggibili e quelli sconosciuti usano la compressa. Spray usa la risorsa spray orale disponibile.
+- Il form propone i 17 formati richiesti in un menu opzionale; la selezione può essere rimossa. Il calendario Material 3 sostituisce l'input manuale e permette di rimuovere la data. Le conversioni del calendario usano UTC, come previsto dall'API, mantenendo il formato ISO per il ViewModel.
+- Dopo un salvataggio riuscito il form chiude immediatamente con `popBackStack`, ripristinando la schermata chiamante anche in aggiunta.
+- Archivio, Scadenzario e Dettaglio espongono il ritorno alla schermata precedente. Nel Dettaglio le superfici e l'elevazione seguono le card Home e le icone usano le risorse richieste.
+- Nuovi test Compose verificano selezione del formato, rimozione della data e ritorno a Home/Scadenzario dopo il salvataggio. I test strumentali richiedono esecuzione su un dispositivo di test.
+- Nessuna modifica a dominio o schema Room.
+
+
+### Verifica di coerenza e correzioni approvate (issue #92)
+
+- `MedicineStockRules` centralizza la scorta bassa positiva entro soglia, distinta da esaurito. Home, Inventario, Scadenzario e Dettaglio condividono il flag e mantengono visibile lo stato di scadenza.
+- Inventario aggiunge Scorta bassa e Da controllare; Vedi tutti nella Home apre il secondo filtro tramite argomento opzionale, preservando le successive scelte dell'utente.
+- `RestoreArchivedMedicineUseCase` riusa il repository per ripristinare la voce e aggiornare il timestamp. Nessuna migrazione Room.
+- Il Dettaglio rispetta la preferenza di rimozione, espone il ripristino e consuma gli eventi di navigazione. Archiviazione rimuove il Dettaglio dallo stack prima di aprire Archivio.
+- Il form valida la dipendenza quantità/unità/soglia. Errori di salvataggio conservano gli input e riabilitano il tentativo; anche gli errori delle operazioni nel Dettaglio liberano lo stato occupato. Le cancellazioni delle coroutine restano propagate.
+- Lo scaffold applicativo ospita la conferma del salvataggio dopo il ritorno alla schermata chiamante.
+- Menu formati alfabetico con icone, compresse e spray distinti; titoli delle app bar uniformati; testi italiani e dicitura Senza data aggiornati.
+- `UiRefinementsTest` copre stock e filtri, ripristino, preferenza Elimina con conferma, consumo evento archivio, dipendenze del form ed errori recuperabili. Aggiornati i test di consistenza alla nuova semantica.
+- Restano intenzionalmente invariati il colore del titolo Home nel tema scuro, il troncamento dei nomi, il layout dei riepiloghi e il calendario con formato ISO nel form.
+
+Verifica delle correzioni: 101 test unitari superati; build debug, lint e compilazione dei test UI completati. Test strumentali non eseguiti su dispositivo.
+
+### Palette scura e titolo Dettaglio (issue #92)
+Titolo della schermata abbreviato in Dettaglio. Palette scura campionata dallo screenshot: aggiornati token Material, superfici dei menu/dialog/barre, accenti, testi, separatori e badge. La Home usa onBackground per il testo del marchio, evitando il nero fisso nel tema scuro. Layout e regole di dominio restano invariati.

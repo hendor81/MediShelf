@@ -2,7 +2,9 @@ package it.hendorsoftware.medishelf.feature.inventory
 
 import androidx.annotation.StringRes
 import it.hendorsoftware.medishelf.R
+import it.hendorsoftware.medishelf.domain.model.Medicine
 import it.hendorsoftware.medishelf.domain.model.MedicineStatus
+import it.hendorsoftware.medishelf.domain.rules.MedicineStockRules
 
 /**
  * Filtro UI applicabile alla lista dei medicinali attivi in base allo stato calcolato.
@@ -21,6 +23,12 @@ enum class InventoryStatusFilter(
         labelResId = R.string.inventory_status_filter_all,
         medicineStatus = null,
     ),
+
+    /** Tutte le condizioni che richiedono attenzione, senza il limite di tre voci della Home. */
+    Attention(R.string.inventory_status_filter_attention, null),
+
+    /** Quantità positiva entro la soglia configurata per il medicinale. */
+    LowStock(R.string.medicine_status_low_stock, null),
 
     /**
      * Mostra solo medicinali validi.
@@ -69,5 +77,12 @@ enum class InventoryStatusFilter(
      * @return true se il filtro include il medicinale.
      */
     fun includes(status: MedicineStatus): Boolean =
-        medicineStatus == null || medicineStatus == status
+        this == All || medicineStatus == status
+
+    /** Applica anche le condizioni di scorta, indipendenti dallo stato di scadenza. */
+    fun includes(medicine: Medicine, status: MedicineStatus): Boolean = when (this) {
+        Attention -> status != MedicineStatus.VALID || MedicineStockRules.isLowStock(medicine)
+        LowStock -> MedicineStockRules.isLowStock(medicine)
+        else -> includes(status)
+    }
 }

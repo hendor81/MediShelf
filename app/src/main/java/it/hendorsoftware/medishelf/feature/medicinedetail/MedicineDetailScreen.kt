@@ -1,26 +1,21 @@
 package it.hendorsoftware.medishelf.feature.medicinedetail
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.Notes
 import androidx.compose.material.icons.outlined.Add
-import androidx.compose.material.icons.outlined.Archive
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.Delete
-import androidx.compose.material.icons.outlined.Edit
-import androidx.compose.material.icons.outlined.Inventory2
-import androidx.compose.material.icons.outlined.LocationOn
 import androidx.compose.material.icons.outlined.Remove
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -31,18 +26,19 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import it.hendorsoftware.medishelf.R
+import it.hendorsoftware.medishelf.core.designsystem.component.BackNavigationButton
 import it.hendorsoftware.medishelf.core.designsystem.component.ConfirmDeleteDialog
 import it.hendorsoftware.medishelf.core.designsystem.component.MediShelfPlaceholderScreen
 import it.hendorsoftware.medishelf.core.designsystem.component.MediShelfTopAppBar
@@ -80,12 +76,14 @@ fun MedicineDetailRoute(
 
     LaunchedEffect(uiState.hasArchiveCompleted) {
         if (uiState.hasArchiveCompleted) {
+            viewModel.onNavigationHandled()
             onArchived()
         }
     }
 
     LaunchedEffect(uiState.hasDeleteCompleted) {
         if (uiState.hasDeleteCompleted) {
+            viewModel.onNavigationHandled()
             onDeleted()
         }
     }
@@ -97,11 +95,12 @@ fun MedicineDetailRoute(
         onQuantityIncrementClick = viewModel::onQuantityIncrementClick,
         onQuantityDecrementClick = viewModel::onQuantityDecrementClick,
         onQuantityFeedbackShown = viewModel::onQuantityFeedbackShown,
-        onArchiveClick = viewModel::onArchiveClick,
-        onDeleteClick = viewModel::onDeleteClick,
+        onArchiveClick = viewModel::onPrimaryActionClick,
+        onDeleteClick = viewModel::onSecondaryActionClick,
         onDeleteConfirm = viewModel::onDeleteConfirmed,
         onDeleteDismiss = viewModel::onDeleteDismissed,
         onNotFoundDoneClick = onCloseClick,
+        onRetryClick = { viewModel.loadMedicine(medicineId) },
         modifier = modifier,
     )
 }
@@ -136,6 +135,7 @@ fun MedicineDetailScreen(
     onDeleteDismiss: () -> Unit,
     onNotFoundDoneClick: () -> Unit,
     modifier: Modifier = Modifier,
+    onRetryClick: () -> Unit = {},
 ) {
     val hasMedicine = uiState.medicine != null
     val snackbarHostState = remember { SnackbarHostState() }
@@ -156,13 +156,15 @@ fun MedicineDetailScreen(
         topBar = {
             MediShelfTopAppBar(
                 title = stringResource(R.string.medicine_detail_screen_title),
+                navigationIcon = { BackNavigationButton(onNotFoundDoneClick) },
                 actions = {
                     IconButton(
                         onClick = onEditClick,
                         enabled = hasMedicine && !uiState.isActionInProgress,
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Edit,
+                        Image(
+                            painter = painterResource(R.drawable.matita),
+                            modifier = Modifier.size(MediShelfDimens.BottomNavigationIconSize),
                             contentDescription = stringResource(R.string.navigation_action_edit_medicine),
                         )
                     }
@@ -170,26 +172,39 @@ fun MedicineDetailScreen(
                         onClick = onDeleteClick,
                         enabled = hasMedicine && !uiState.isActionInProgress,
                     ) {
-                        Icon(
-                            imageVector = Icons.Outlined.Delete,
-                            contentDescription = stringResource(R.string.medicine_detail_delete_content_description),
+                        Image(
+                            painter = painterResource(if (!uiState.preferArchiveOverDelete && uiState.medicine?.isArchived == false) R.drawable.archivio else R.drawable.cestino),
+                            modifier = Modifier.size(MediShelfDimens.BottomNavigationIconSize),
+                            contentDescription = stringResource(if (!uiState.preferArchiveOverDelete && uiState.medicine?.isArchived == false) R.string.medicine_detail_archive_action else R.string.medicine_detail_delete_content_description),
                         )
                     }
                 },
             )
         },
     ) { innerPadding ->
-        MedicineDetailContent(
-            uiState = uiState,
-            onAddQuantityClick = onAddQuantityClick,
-            onQuantityIncrementClick = onQuantityIncrementClick,
-            onQuantityDecrementClick = onQuantityDecrementClick,
-            onArchiveClick = onArchiveClick,
-            onNotFoundDoneClick = onNotFoundDoneClick,
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
-        )
+        Column(Modifier.padding(innerPadding)) {
+            if (uiState.hasActionError) {
+                Text(
+                    text = stringResource(R.string.medicine_detail_action_error),
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(MediShelfDimens.SpacingMedium),
+                )
+                if (uiState.medicine == null) {
+                    OutlinedButton(onClick = onRetryClick) {
+                        Text(stringResource(R.string.action_retry))
+                    }
+                }
+            }
+            MedicineDetailContent(
+                uiState = uiState,
+                onAddQuantityClick = onAddQuantityClick,
+                onQuantityIncrementClick = onQuantityIncrementClick,
+                onQuantityDecrementClick = onQuantityDecrementClick,
+                onArchiveClick = onArchiveClick,
+                onNotFoundDoneClick = onNotFoundDoneClick,
+                modifier = Modifier.weight(1f).fillMaxWidth(),
+            )
+        }
     }
 
     if (uiState.isDeleteDialogVisible) {
@@ -227,6 +242,7 @@ private fun MedicineDetailContent(
             onQuantityIncrementClick = onQuantityIncrementClick,
             onQuantityDecrementClick = onQuantityDecrementClick,
             onArchiveClick = onArchiveClick,
+            preferArchiveOverDelete = uiState.preferArchiveOverDelete,
             modifier = modifier,
         )
     }
@@ -275,6 +291,7 @@ private fun MedicineDetailData(
     onQuantityDecrementClick: () -> Unit,
     onArchiveClick: () -> Unit,
     modifier: Modifier = Modifier,
+    preferArchiveOverDelete: Boolean = true,
 ) {
     Column(
         modifier = modifier
@@ -282,7 +299,11 @@ private fun MedicineDetailData(
             .padding(MediShelfDimens.ScreenPadding),
         verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingMedium),
     ) {
-        Card(shape = MaterialTheme.shapes.medium) {
+        Card(
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = MediShelfDimens.CardElevation),
+            shape = MaterialTheme.shapes.medium,
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -311,7 +332,10 @@ private fun MedicineDetailData(
                             )
                         }
                     }
-                    MedicineStatusBadge(status = medicine.status)
+                    Column(verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingExtraSmall)) {
+                        MedicineStatusBadge(status = medicine.status)
+                        if (medicine.isLowStock) MedicineStatusBadge(status = MedicineStatusBadgeStatus.LowStock)
+                    }
                 }
             }
         }
@@ -328,14 +352,14 @@ private fun MedicineDetailData(
                 onQuantityDecrementClick = onQuantityDecrementClick,
             )
             MedicineDetailInfoRow(
-                icon = Icons.Outlined.CalendarMonth,
+                icon = R.drawable.scadenzario,
                 label = stringResource(R.string.medicine_detail_expiration_label),
                 value = medicine.expirationDate ?: stringResource(
                     R.string.medicine_detail_expiration_not_set,
                 ),
             )
             MedicineDetailInfoRow(
-                icon = Icons.Outlined.LocationOn,
+                icon = R.drawable.segnaposto,
                 label = stringResource(R.string.medicine_detail_storage_location_label),
                 value = medicine.storageLocation ?: stringResource(
                     R.string.medicine_detail_storage_location_not_set,
@@ -346,30 +370,33 @@ private fun MedicineDetailData(
         MedicineDetailInfoCard(
             title = stringResource(R.string.medicine_detail_notes_title),
         ) {
-            MedicineDetailInfoRow(
-                icon = Icons.AutoMirrored.Outlined.Notes,
-                label = stringResource(R.string.medicine_detail_notes_label),
-                value = medicine.notes ?: stringResource(R.string.medicine_detail_notes_not_set),
+            Text(
+                text = medicine.notes ?: stringResource(R.string.medicine_detail_notes_not_set),
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
             )
         }
 
         Button(
             onClick = onArchiveClick,
-            enabled = !medicine.isArchived && !isActionInProgress,
+            enabled = !isActionInProgress,
             modifier = Modifier
                 .fillMaxWidth()
                 .testTag(MedicineDetailTestTags.ARCHIVE_BUTTON),
         ) {
-            Icon(
-                imageVector = Icons.Outlined.Archive,
+            Image(
+                painter = painterResource(if (medicine.isArchived || preferArchiveOverDelete) R.drawable.archivio else R.drawable.cestino),
                 contentDescription = null,
+                modifier = Modifier.size(MediShelfDimens.BottomNavigationIconSize),
             )
             Text(
                 text = stringResource(
                     if (medicine.isArchived) {
-                        R.string.medicine_detail_already_archived_action
-                    } else {
+                        R.string.medicine_detail_restore_action
+                    } else if (preferArchiveOverDelete) {
                         R.string.medicine_detail_archive_action
+                    } else {
+                        R.string.medicine_detail_delete_content_description
                     },
                 ),
                 modifier = Modifier.padding(start = MediShelfDimens.SpacingSmall),
@@ -393,10 +420,11 @@ private fun MedicineDetailQuantityRow(
         horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmall),
         verticalAlignment = Alignment.Top,
     ) {
-        Icon(
-            imageVector = Icons.Outlined.Inventory2,
+        Image(
+            painter = painterResource(R.drawable.archivio),
+            modifier = Modifier.size(MediShelfDimens.BottomNavigationIconSize),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+
         )
         Column(
             modifier = Modifier.weight(1f),
@@ -470,6 +498,8 @@ private fun MedicineDetailInfoCard(
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        elevation = CardDefaults.cardElevation(defaultElevation = MediShelfDimens.CardElevation),
     ) {
         Column(
             modifier = Modifier.padding(MediShelfDimens.SpacingMedium),
@@ -487,7 +517,7 @@ private fun MedicineDetailInfoCard(
 
 @Composable
 private fun MedicineDetailInfoRow(
-    icon: ImageVector,
+    icon: Int,
     label: String,
     value: String,
     modifier: Modifier = Modifier,
@@ -497,10 +527,11 @@ private fun MedicineDetailInfoRow(
         horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmall),
         verticalAlignment = Alignment.Top,
     ) {
-        Icon(
-            imageVector = icon,
+        Image(
+            painter = painterResource(icon),
+            modifier = Modifier.size(MediShelfDimens.BottomNavigationIconSize),
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+
         )
         Column(verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingExtraSmall)) {
             Text(
@@ -750,7 +781,7 @@ private fun MedicineDetailInfoCardPreview() {
             modifier = Modifier.padding(MediShelfDimens.ScreenPadding),
         ) {
             MedicineDetailInfoRow(
-                icon = Icons.Outlined.CalendarMonth,
+                icon = R.drawable.scadenzario,
                 label = "Scadenza",
                 value = "31/12/2026",
             )
@@ -766,7 +797,7 @@ private fun MedicineDetailInfoCardPreview() {
 private fun MedicineDetailInfoRowPreview() {
     MediShelfTheme {
         MedicineDetailInfoRow(
-            icon = Icons.Outlined.LocationOn,
+            icon = R.drawable.segnaposto,
             label = "Luogo",
             value = "Bagno",
             modifier = Modifier.padding(MediShelfDimens.ScreenPadding),

@@ -141,7 +141,7 @@ Nella versione italiana dell'app:
 - `In scadenza`;
 - `Scaduto`;
 - `Scorta bassa`;
-- `Senza scadenza`.
+- `Senza data`.
 
 ### Pulsanti
 Usare un solo pulsante primario per schermata quando possibile.
@@ -355,3 +355,6 @@ Quando esistono più alternative visuali, scegliere quella che:
 - evita toni clinici o ansiogeni;
 - rispetta la semplicità della versione Free;
 - può essere implementata con componenti Compose riusabili.
+
+### Palette scura da screenshot (issue #92)
+Sfondo #071F20, superfici #102B2C, accento #62C7BE, testo principale #F2F7F4, testo secondario #A7B8B5 e separatori #345151. Stati: verde #143C3A/#CFF8F1, ambra #3D3214/#FFE9A8, rosso #442020/#FFD0D0, viola #2D2647/#E4DBFF. Il titolo Home segue il colore del testo del tema.

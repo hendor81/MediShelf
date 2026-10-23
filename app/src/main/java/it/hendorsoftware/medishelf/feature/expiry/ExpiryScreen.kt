@@ -12,17 +12,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -31,6 +28,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import it.hendorsoftware.medishelf.R
 import it.hendorsoftware.medishelf.core.designsystem.component.AddMedicineActionBar
+import it.hendorsoftware.medishelf.core.designsystem.component.BackNavigationButton
 import it.hendorsoftware.medishelf.core.designsystem.component.EmptyState
 import it.hendorsoftware.medishelf.core.designsystem.component.MediShelfTopAppBar
 import it.hendorsoftware.medishelf.core.designsystem.component.MedicineListCard
@@ -50,6 +48,7 @@ import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 @Composable
 fun ExpiryRoute(
     onMedicineClick: (String) -> Unit,
+    onBackClick: () -> Unit = {},
     onAddMedicineClick: () -> Unit = {},
     onArchiveClick: () -> Unit = {},
     modifier: Modifier = Modifier,
@@ -60,6 +59,7 @@ fun ExpiryRoute(
     ExpiryScreen(
         uiState = uiState,
         onMedicineClick = onMedicineClick,
+        onBackClick = onBackClick,
         onAddMedicineClick = onAddMedicineClick,
         onArchiveClick = onArchiveClick,
         modifier = modifier,
@@ -79,6 +79,7 @@ fun ExpiryRoute(
 fun ExpiryScreen(
     uiState: ExpiryUiState,
     onMedicineClick: (String) -> Unit,
+    onBackClick: () -> Unit = {},
     onAddMedicineClick: () -> Unit = {},
     onArchiveClick: () -> Unit = {},
     modifier: Modifier = Modifier,
@@ -89,6 +90,7 @@ fun ExpiryScreen(
             MediShelfTopAppBar(
                 title = stringResource(R.string.expiry_screen_title),
                 prominentTitle = true,
+                navigationIcon = { BackNavigationButton(onBackClick) },
                 actions = {
                     IconButton(onClick = onArchiveClick) {
                         Image(
@@ -105,6 +107,7 @@ fun ExpiryScreen(
         ExpiryContent(
             uiState = uiState,
             onMedicineClick = onMedicineClick,
+
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
@@ -132,8 +135,8 @@ private fun ExpiryContent(
                     .fillMaxWidth()
                     .padding(MediShelfDimens.ScreenPadding),
                 icon = {
-                    Icon(
-                        imageVector = Icons.Outlined.CalendarMonth,
+                    Image(
+                        painter = painterResource(R.drawable.scadenzario),
                         contentDescription = null,
                     )
                 },
@@ -247,7 +250,9 @@ fun ExpiryMedicineListItem(
 ) {
     MedicineListCard(
         name = medicine.name,
+        packageForm = medicine.packageForm,
         status = medicine.status,
+        isLowStock = medicine.isLowStock,
         metadata = listOfNotNull(
             medicine.packageForm,
             medicine.expirationDate?.let { stringResource(R.string.inventory_item_expiration, it) },

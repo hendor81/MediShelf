@@ -46,7 +46,7 @@ class DerivedViewsConsistencyTest {
     fun shouldKeepDashboardCountsAndExpirySectionsConsistentWithInventory() = runTest {
         val views = Views(mixedMedicines())
 
-        assertViews(views, defaultGroups, lowStockCount = 3)
+        assertViews(views, defaultGroups, lowStockCount = 1)
 
         // Il limite della lista attenzione non deve troncare i conteggi della Home.
         assertEquals(3, views.home.uiState.value.attentionItems.size)
@@ -57,24 +57,24 @@ class DerivedViewsConsistencyTest {
     @Test
     fun shouldRecalculateAllViewsWhenThresholdIncreasesAndDecreases() = runTest {
         val views = Views(mixedMedicines())
-        assertViews(views, defaultGroups, lowStockCount = 3)
+        assertViews(views, defaultGroups, lowStockCount = 1)
 
         views.settings.updateExpiringThresholdDays(31)
         assertViews(
             views,
             defaultGroups.copy(valid = listOf("1", "10"), expiring = listOf("2", "7", "8")),
-            lowStockCount = 3,
+            lowStockCount = 1,
         )
 
         views.settings.updateExpiringThresholdDays(0)
         assertViews(
             views,
             defaultGroups.copy(valid = listOf("1", "2", "8", "10"), expiring = listOf("7")),
-            lowStockCount = 3,
+            lowStockCount = 1,
         )
 
         views.settings.updateExpiringThresholdDays(30)
-        assertViews(views, defaultGroups, lowStockCount = 3)
+        assertViews(views, defaultGroups, lowStockCount = 1)
     }
 
     /** Verifica che la quantita assente conservi la classificazione basata sulla scadenza. */
@@ -112,7 +112,7 @@ class DerivedViewsConsistencyTest {
             ),
         )
 
-        assertViews(views, Groups(outOfStock = listOf("1", "2", "3")), lowStockCount = 3)
+        assertViews(views, Groups(outOfStock = listOf("1", "2", "3")), lowStockCount = 0)
         assertTrue(views.expiry.uiState.value.isEmpty)
         assertFalse(views.home.uiState.value.isEmpty)
     }
@@ -121,21 +121,21 @@ class DerivedViewsConsistencyTest {
     @Test
     fun shouldKeepViewsConsistentAfterRepositoryUpdates() = runTest {
         val views = Views(mixedMedicines())
-        assertViews(views, defaultGroups, lowStockCount = 3)
+        assertViews(views, defaultGroups, lowStockCount = 1)
 
         views.medicines.saveMedicine(medicine(2, daysUntilExpiry = 30, amount = 0.0))
         val afterQuantityChange = defaultGroups.copy(
             expiring = listOf("7"),
             outOfStock = listOf("2", "5", "6"),
         )
-        assertViews(views, afterQuantityChange, lowStockCount = 4)
+        assertViews(views, afterQuantityChange, lowStockCount = 1)
 
         views.medicines.archiveMedicine(MedicineId(3))
         val afterArchive = afterQuantityChange.copy(expired = emptyList())
-        assertViews(views, afterArchive, lowStockCount = 4)
+        assertViews(views, afterArchive, lowStockCount = 1)
 
         views.medicines.deleteMedicine(MedicineId(4))
-        assertViews(views, afterArchive.copy(noDate = emptyList()), lowStockCount = 4)
+        assertViews(views, afterArchive.copy(noDate = emptyList()), lowStockCount = 1)
     }
 
     /** Verifica conteggi e sezioni vuoti senza confondere il risultato con il caricamento. */
@@ -208,13 +208,8 @@ class DerivedViewsConsistencyTest {
         expiry.noExpirationMedicines.forEach { assertNull(it.expirationDate) }
         home.attentionItems.forEach { item ->
             val inventoryItem = inventory.medicines.single { it.id == item.id }
-            // La Home puo evidenziare la scorta bassa di una voce altrimenti valida.
-            val expectedStatus = if (item.status == MedicineStatusBadgeStatus.LowStock) {
-                MedicineStatusBadgeStatus.Valid
-            } else {
-                item.status
-            }
-            assertEquals(expectedStatus, inventoryItem.status)
+            assertEquals(item.status, inventoryItem.status)
+            assertEquals(item.isLowStock, inventoryItem.isLowStock)
         }
 
         val filters = mapOf(

@@ -167,3 +167,12 @@ Quando ci sono più alternative grafiche, scegliere quella che:
 - Dimensioni, spaziature, radius e misure ricorrenti devono essere centralizzate in `Dimens.kt` o in token equivalenti del design system.
 - Colori e palette devono essere centralizzati in `colors.xml` e nel tema Compose, non hardcoded nelle schermate.
 - Shape e tipografia devono essere centralizzate nei file del tema.
+
+
+## Uniformità approvata nella issue #92
+
+- Tutte le top app bar usano la dimensione del titolo Inventario; la Home conserva l'intestazione con logo.
+- La dicitura per scadenza non indicata è Senza data.
+- Scorta bassa affianca lo stato di scadenza senza sostituirlo; quantità zero usa Esaurito.
+- Il menu dei formati è alfabetico, usa tipografia del tema e icone delle confezioni.
+- Unità e soglia spiegano la dipendenza dalla quantità; i valori incompleti non vengono scartati al salvataggio.

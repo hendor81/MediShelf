@@ -8,14 +8,17 @@ import it.hendorsoftware.medishelf.domain.model.Medicine
 import it.hendorsoftware.medishelf.domain.model.MedicineId
 import it.hendorsoftware.medishelf.domain.model.MedicineStatus
 import it.hendorsoftware.medishelf.domain.rules.MedicineStatusCalculator
+import it.hendorsoftware.medishelf.domain.rules.MedicineStockRules
 import it.hendorsoftware.medishelf.domain.usecase.ArchiveMedicineUseCase
 import it.hendorsoftware.medishelf.domain.usecase.DeleteMedicineUseCase
 import it.hendorsoftware.medishelf.domain.usecase.GetMedicineByIdUseCase
 import it.hendorsoftware.medishelf.domain.usecase.MedicineQuantityUpdateResult
 import it.hendorsoftware.medishelf.domain.usecase.ObserveUserSettingsUseCase
+import it.hendorsoftware.medishelf.domain.usecase.RestoreArchivedMedicineUseCase
 import it.hendorsoftware.medishelf.domain.usecase.UpdateMedicineQuantityUseCase
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -36,6 +39,7 @@ class MedicineDetailViewModel @Inject constructor(
     private val deleteMedicineUseCase: DeleteMedicineUseCase,
     private val updateMedicineQuantityUseCase: UpdateMedicineQuantityUseCase,
     private val observeUserSettingsUseCase: ObserveUserSettingsUseCase,
+    private val restoreArchivedMedicineUseCase: RestoreArchivedMedicineUseCase,
     private val statusCalculator: MedicineStatusCalculator,
 ) : ViewModel() {
 
@@ -68,7 +72,7 @@ class MedicineDetailViewModel @Inject constructor(
 
         currentMedicineId = id
 
-        viewModelScope.launch {
+        launchOperation {
             _uiState.update { state ->
                 state.copy(
                     isLoading = true,
@@ -92,6 +96,7 @@ class MedicineDetailViewModel @Inject constructor(
                 MedicineDetailUiState(
                     isLoading = false,
                     medicine = medicine.toUiModel(settings.expiringThresholdDays),
+                    preferArchiveOverDelete = settings.preferArchiveOverDelete,
                 )
             }
         }
@@ -116,6 +121,24 @@ class MedicineDetailViewModel @Inject constructor(
      */
     fun onQuantityFeedbackShown() {
         _uiState.update { state -> state.copy(quantityFeedback = null) }
+    }
+
+    /** Esegue l'azione principale rispettando archivio e preferenza di rimozione. */
+    fun onPrimaryActionClick() {
+        when {
+            _uiState.value.medicine?.isArchived == true -> onRestoreClick()
+            _uiState.value.preferArchiveOverDelete -> onArchiveClick()
+            else -> onDeleteClick()
+        }
+    }
+
+    /** Mantiene accessibile l'alternativa all'azione principale. */
+    fun onSecondaryActionClick() {
+        if (!_uiState.value.preferArchiveOverDelete && _uiState.value.medicine?.isArchived == false) {
+            onArchiveClick()
+        } else {
+            onDeleteClick()
+        }
     }
 
     /**
@@ -145,7 +168,7 @@ class MedicineDetailViewModel @Inject constructor(
     fun onArchiveClick() {
         val id = currentMedicineId ?: return
 
-        viewModelScope.launch {
+        launchOperation {
             _uiState.update { state -> state.copy(isActionInProgress = true) }
             archiveMedicineUseCase(id)
             _uiState.update { state ->
@@ -167,7 +190,7 @@ class MedicineDetailViewModel @Inject constructor(
     fun onDeleteConfirmed() {
         val id = currentMedicineId ?: return
 
-        viewModelScope.launch {
+        launchOperation {
             _uiState.update { state ->
                 state.copy(
                     isActionInProgress = true,
@@ -184,12 +207,47 @@ class MedicineDetailViewModel @Inject constructor(
         }
     }
 
+    /** Ripristina il medicinale archiviato e aggiorna il dettaglio senza cambiare schermata. */
+    fun onRestoreClick() {
+        val id = currentMedicineId ?: return
+        if (_uiState.value.isActionInProgress) return
+        launchOperation {
+            _uiState.update { it.copy(isActionInProgress = true) }
+            val medicine = restoreArchivedMedicineUseCase(id)
+            val settings = observeUserSettingsUseCase().first()
+            _uiState.update { it.copy(
+                isActionInProgress = false,
+                isNotFound = medicine == null,
+                medicine = medicine?.toUiModel(settings.expiringThresholdDays),
+            ) }
+        }
+    }
+
+    /** Consuma gli eventi prima della navigazione, evitando riaperture al ritorno. */
+    fun onNavigationHandled() {
+        _uiState.update { it.copy(hasArchiveCompleted = false, hasDeleteCompleted = false) }
+    }
+
+    /** Espone l'errore senza perdere i dati; l'utente può ripetere l'azione. */
+    private fun launchOperation(block: suspend () -> Unit) {
+        viewModelScope.launch {
+            _uiState.update { it.copy(hasActionError = false) }
+            try {
+                block()
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                _uiState.update { it.copy(isLoading = false, isActionInProgress = false, hasActionError = true) }
+            }
+        }
+    }
+
     private fun updateQuantity(
         action: suspend (MedicineId) -> MedicineQuantityUpdateResult,
     ) {
         val id = currentMedicineId ?: return
 
-        viewModelScope.launch {
+        launchOperation {
             _uiState.update { state ->
                 state.copy(isActionInProgress = true, quantityFeedback = null)
             }
@@ -258,6 +316,7 @@ class MedicineDetailViewModel @Inject constructor(
             id = id.value.toString(),
             name = name,
             packageForm = packageForm,
+            isLowStock = MedicineStockRules.isLowStock(this),
             status = status,
             quantity = quantity?.let { info ->
                 listOfNotNull(info.amount.toDisplayText(), info.unit)

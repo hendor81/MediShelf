@@ -20,7 +20,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
@@ -73,6 +72,7 @@ fun HomeRoute(
     onInventoryClick: () -> Unit,
     onExpiryClick: () -> Unit,
     onAttentionItemClick: (String) -> Unit,
+    onSeeAllAttentionClick: () -> Unit = onExpiryClick,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel(),
 ) {
@@ -83,6 +83,7 @@ fun HomeRoute(
         onAddMedicineClick = onAddMedicineClick,
         onInventoryClick = onInventoryClick,
         onExpiryClick = onExpiryClick,
+        onSeeAllAttentionClick = onSeeAllAttentionClick,
         onAttentionItemClick = onAttentionItemClick,
         modifier = modifier,
     )
@@ -106,6 +107,7 @@ fun HomeScreen(
     onExpiryClick: () -> Unit,
     onAttentionItemClick: (String) -> Unit,
     modifier: Modifier = Modifier,
+    onSeeAllAttentionClick: () -> Unit = onExpiryClick,
 ) {
     Scaffold(
         modifier = modifier,
@@ -137,7 +139,7 @@ fun HomeScreen(
                 HomeSearchShortcut(onClick = onInventoryClick)
                 HomeAttentionSection(
                     uiState = uiState,
-                    onSeeAllClick = onExpiryClick,
+                    onSeeAllClick = onSeeAllAttentionClick,
                     onAttentionItemClick = onAttentionItemClick,
                 )
             }
@@ -171,12 +173,12 @@ private fun HomeHeader(
                     text = medishelfTitleText(
                         appName = stringResource(R.string.app_name),
                         primaryColor = MaterialTheme.colorScheme.primary,
-                        defaultColor = Color.Black,
+                        defaultColor = MaterialTheme.colorScheme.onBackground,
                         fontWeight = FontWeight.SemiBold,
                     ),
-                    style = MaterialTheme.typography.headlineSmall.copy(
-                        fontSize = HomeLayoutTokens.TitleFontSize,
-                        lineHeight = HomeLayoutTokens.TitleLineHeight,
+                    style = MaterialTheme.typography.titleLarge.copy(
+                        fontSize = MaterialTheme.typography.titleLarge.fontSize * MediShelfDimens.PrimaryTitleScale,
+                        lineHeight = MaterialTheme.typography.titleLarge.lineHeight * MediShelfDimens.PrimaryTitleScale,
                         fontWeight = FontWeight.SemiBold,
                     ),
                     fontWeight = FontWeight.SemiBold,
@@ -253,7 +255,7 @@ private fun HomeSummaryCards(
         HomeSummaryCard(
             count = uiState.lowStockMedicineCount,
             label = R.string.home_summary_low_stock,
-            icon = R.drawable.esauriti,
+            icon = R.drawable.scorta_bassa,
             iconContentDescription = R.string.home_summary_low_stock_content_description,
             style = HomeSummaryCardStyle.LowStock,
             modifier = Modifier.weight(1f),
@@ -418,10 +420,10 @@ private fun HomeAttentionEmptyState(
             horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingMedium),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Icon(
-                imageVector = Icons.Outlined.Inventory2,
+            Image(
+                painter = painterResource(R.drawable.inventario),
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(MediShelfDimens.BottomNavigationIconSize),
             )
             Column(
                 verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingExtraSmall),
@@ -450,7 +452,10 @@ private fun HomeAttentionItem(
 ) {
     MedicineListCard(
         name = item.name,
+        packageForm = item.packageForm,
         status = item.status,
+        badgeBesideName = true,
+        isLowStock = item.isLowStock,
         metadata = listOfNotNull(
             item.quantity,
             item.expirationDate?.let { stringResource(R.string.home_attention_expiration, it) },
@@ -511,8 +516,6 @@ private data class HomeSummaryCardColors(
 
 private object HomeLayoutTokens {
     val LogoSize = 80.dp
-    val TitleFontSize = 36.sp
-    val TitleLineHeight = 42.sp
     val SummaryIconSize = 36.dp
     val SummaryLabelFontSize = 11.sp
     val SummaryLabelLineHeight = 14.sp

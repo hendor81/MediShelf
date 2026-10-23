@@ -42,6 +42,7 @@ data class ExpiryMedicineItemUiModel(
     val name: String,
     val packageForm: String?,
     val status: MedicineStatusBadgeStatus,
+    val isLowStock: Boolean = false,
     val expirationDate: String?,
     val quantity: String?,
     val storageLocation: String?,

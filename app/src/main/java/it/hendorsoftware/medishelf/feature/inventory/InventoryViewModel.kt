@@ -7,14 +7,15 @@ import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBad
 import it.hendorsoftware.medishelf.domain.model.Medicine
 import it.hendorsoftware.medishelf.domain.model.MedicineStatus
 import it.hendorsoftware.medishelf.domain.rules.MedicineStatusCalculator
+import it.hendorsoftware.medishelf.domain.rules.MedicineStockRules
 import it.hendorsoftware.medishelf.domain.usecase.GetActiveMedicinesUseCase
 import it.hendorsoftware.medishelf.domain.usecase.ObserveUserSettingsUseCase
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 /**
@@ -33,6 +34,7 @@ class InventoryViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(InventoryUiState())
     private val searchQuery = MutableStateFlow("")
     private val selectedStatusFilter = MutableStateFlow(InventoryStatusFilter.All)
+    private var hasAppliedInitialFilter = false
 
     /**
      * Stato osservabile dalla route Compose.
@@ -103,6 +105,13 @@ class InventoryViewModel @Inject constructor(
         selectedStatusFilter.value = filter
     }
 
+    /** Applica il filtro della navigazione una volta, preservando le scelte al ritorno dal dettaglio. */
+    fun applyInitialFilter(filter: InventoryStatusFilter) {
+        if (hasAppliedInitialFilter) return
+        hasAppliedInitialFilter = true
+        selectedStatusFilter.value = filter
+    }
+
     private fun List<Pair<Medicine, MedicineStatus>>.filterByNameAndStatus(
         query: String,
         statusFilter: InventoryStatusFilter,
@@ -113,7 +122,7 @@ class InventoryViewModel @Inject constructor(
             // Il filtro resta qui, fuori dalla Composable, cosi la UI riceve una lista gia coerente.
             val matchesName = normalizedQuery.isBlank() ||
                 medicine.name.contains(normalizedQuery, ignoreCase = true)
-            val matchesStatus = statusFilter.includes(status)
+            val matchesStatus = statusFilter.includes(medicine, status)
 
             matchesName && matchesStatus
         }
@@ -124,6 +133,7 @@ class InventoryViewModel @Inject constructor(
             id = id.value.toString(),
             name = name,
             packageForm = packageForm,
+            isLowStock = MedicineStockRules.isLowStock(this),
             status = status.toBadgeStatus(),
             expirationDate = expirationDate?.format(ExpirationDateFormatter),
             quantity = quantity?.let { info ->
