@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -22,15 +20,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Add
 import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Search
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -58,7 +50,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import it.hendorsoftware.medishelf.R
-import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBadge
+import it.hendorsoftware.medishelf.core.designsystem.component.AddMedicineActionBar
+import it.hendorsoftware.medishelf.core.designsystem.component.MedicineListCard
 import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBadgeStatus
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfDimens
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
@@ -112,7 +105,6 @@ fun HomeScreen(
     onInventoryClick: () -> Unit,
     onExpiryClick: () -> Unit,
     onAttentionItemClick: (String) -> Unit,
-    hasNotificationUpdates: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
@@ -140,7 +132,7 @@ fun HomeScreen(
                     ),
                 verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingLarge),
             ) {
-                HomeHeader(hasNotificationUpdates = hasNotificationUpdates)
+                HomeHeader()
                 HomeSummaryCards(uiState = uiState)
                 HomeSearchShortcut(onClick = onInventoryClick)
                 HomeAttentionSection(
@@ -155,7 +147,6 @@ fun HomeScreen(
 
 @Composable
 private fun HomeHeader(
-    hasNotificationUpdates: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
     Box(
@@ -163,8 +154,7 @@ private fun HomeHeader(
     ) {
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(end = HomeLayoutTokens.NotificationSlotSize),
+                .fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmall),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -201,22 +191,7 @@ private fun HomeHeader(
                 )
             }
         }
-        IconButton(
-            onClick = { },
-            modifier = Modifier.align(Alignment.TopEnd),
-        ) {
-            Image(
-                painter = painterResource(
-                    if (hasNotificationUpdates) {
-                        R.drawable.notifica_on
-                    } else {
-                        R.drawable.notifica_off
-                    },
-                ),
-                contentDescription = stringResource(R.string.home_notifications_content_description),
-                modifier = Modifier.size(HomeLayoutTokens.NotificationIconSize),
-            )
-        }
+
     }
 }
 
@@ -473,67 +448,19 @@ private fun HomeAttentionItem(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .testTag(HomeTestTags.attentionItem(item.id))
-            .clickable(onClick = onClick),
-        shape = MaterialTheme.shapes.medium,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = HomeLayoutTokens.CardElevation),
-    ) {
-        Row(
-            modifier = Modifier.padding(MediShelfDimens.SpacingMedium),
-            horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingMedium),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Image(
-                painter = painterResource(R.drawable.compressa),
-                contentDescription = null,
-                modifier = Modifier.size(HomeLayoutTokens.AttentionIconSize),
-            )
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingExtraSmall),
-            ) {
-                Text(
-                    text = item.name,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmall),
-                    verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingExtraSmall),
-                ) {
-                    item.quantity?.let { quantity ->
-                        Text(
-                            text = quantity,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    item.expirationDate?.let { expirationDate ->
-                        Text(
-                            text = stringResource(R.string.home_attention_expiration, expirationDate),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                    if (item.quantity == null && item.expirationDate == null) {
-                        Text(
-                            text = item.packageForm ?: stringResource(R.string.home_attention_missing_details),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-            }
-            MedicineStatusBadge(status = item.status)
-        }
-    }
+    MedicineListCard(
+        name = item.name,
+        status = item.status,
+        metadata = listOfNotNull(
+            item.quantity,
+            item.expirationDate?.let { stringResource(R.string.home_attention_expiration, it) },
+            if (item.quantity == null && item.expirationDate == null) {
+                item.packageForm ?: stringResource(R.string.home_attention_missing_details)
+            } else null,
+        ),
+        onClick = onClick,
+        modifier = modifier.testTag(HomeTestTags.attentionItem(item.id)),
+    )
 }
 
 @Composable
@@ -541,35 +468,10 @@ private fun HomePrimaryActionBar(
     onAddMedicineClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
-        modifier = modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.background,
-        tonalElevation = HomeLayoutTokens.BottomBarElevation,
-    ) {
-        Button(
-            onClick = onAddMedicineClick,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(MediShelfDimens.ScreenPadding)
-                .testTag(HomeTestTags.AddMedicineButton),
-            contentPadding = PaddingValues(MediShelfDimens.SpacingMedium),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            ),
-        ) {
-            Icon(
-                imageVector = Icons.Outlined.Add,
-                contentDescription = null,
-            )
-            Text(
-                text = stringResource(R.string.navigation_action_add_medicine),
-                modifier = Modifier.padding(start = MediShelfDimens.SpacingSmall),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-        }
-    }
+    AddMedicineActionBar(
+        onAddMedicineClick = onAddMedicineClick,
+        modifier = modifier.testTag(HomeTestTags.AddMedicineButton),
+    )
 }
 
 @Composable
@@ -615,11 +517,7 @@ private object HomeLayoutTokens {
     val SummaryLabelFontSize = 11.sp
     val SummaryLabelLineHeight = 14.sp
     val SummaryCardHeight = 112.dp
-    val AttentionIconSize = 40.dp
-    val NotificationIconSize = 32.dp
-    val NotificationSlotSize = 36.dp
     val CardElevation = 1.dp
-    val BottomBarElevation = 3.dp
     val Hairline = 1.dp
     const val BorderAlpha = 0.24f
 }

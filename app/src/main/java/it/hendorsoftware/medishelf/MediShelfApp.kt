@@ -1,12 +1,15 @@
 package it.hendorsoftware.medishelf
 
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -56,7 +59,8 @@ fun MediShelfApp() {
         MediShelfNavHost(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding),
             navController = navController,
         )
     }
@@ -98,25 +102,27 @@ private fun MediShelfBottomNavigationBar(
     onDestinationClick: (BottomNavigationDestination) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    NavigationBar(
-        modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.surface,
-    ) {
-        BottomNavigationDestination.entries.forEach { destination ->
-            NavigationBarItem(
-                selected = selectedRoute == destination.route,
-                onClick = { onDestinationClick(destination) },
-                icon = {
-                    Image(
-                        painter = painterResource(destination.iconResId),
-                        contentDescription = stringResource(destination.contentDescriptionResId),
-                        modifier = Modifier.size(MediShelfDimens.BottomNavigationIconSize),
-                    )
-                },
-                label = {
-                    Text(text = stringResource(destination.labelResId))
-                },
-            )
+    Column(modifier = modifier) {
+        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+        NavigationBar(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ) {
+            BottomNavigationDestination.entries.forEach { destination ->
+                NavigationBarItem(
+                    selected = selectedRoute == destination.route,
+                    onClick = { onDestinationClick(destination) },
+                    icon = {
+                        Image(
+                            painter = painterResource(destination.iconResId),
+                            contentDescription = stringResource(destination.contentDescriptionResId),
+                            modifier = Modifier.size(MediShelfDimens.BottomNavigationIconSize),
+                        )
+                    },
+                    label = {
+                        Text(text = stringResource(destination.labelResId))
+                    },
+                )
+            }
         }
     }
 }

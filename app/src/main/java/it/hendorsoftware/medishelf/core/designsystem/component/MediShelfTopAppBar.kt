@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfDimens
 import it.hendorsoftware.medishelf.R
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 
@@ -17,6 +18,7 @@ import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
  * Top app bar base per le schermate MediShelf.
  *
  * @param title titolo visibile della schermata.
+ * @param prominentTitle aumenta del 50% il titolo delle liste principali.
  * @param modifier modificatore Compose applicato alla barra.
  * @param navigationIcon slot opzionale per l'azione di navigazione.
  * @param actions slot opzionale per azioni contestuali.
@@ -25,6 +27,7 @@ import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 @Composable
 fun MediShelfTopAppBar(
     title: String,
+    prominentTitle: Boolean = false,
     modifier: Modifier = Modifier,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},
@@ -34,13 +37,18 @@ fun MediShelfTopAppBar(
         title = {
             Text(
                 text = title,
-                style = MaterialTheme.typography.titleLarge,
+                style = MaterialTheme.typography.titleLarge.let { style ->
+                    if (prominentTitle) style.copy(
+                        fontSize = style.fontSize * MediShelfDimens.PrimaryTitleScale,
+                        lineHeight = style.lineHeight * MediShelfDimens.PrimaryTitleScale,
+                    ) else style
+                },
             )
         },
         navigationIcon = navigationIcon,
         actions = actions,
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = MaterialTheme.colorScheme.background,
             titleContentColor = MaterialTheme.colorScheme.onSurface,
             navigationIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             actionIconContentColor = MaterialTheme.colorScheme.onSurfaceVariant,

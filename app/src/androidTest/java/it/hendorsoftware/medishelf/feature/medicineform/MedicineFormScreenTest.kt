@@ -6,9 +6,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 
@@ -52,7 +55,20 @@ class MedicineFormScreenTest {
             .assertIsDisplayed()
     }
 
-    private fun setMedicineFormContent() {
+    /** Verifica che la freccia del form di aggiunta richiami la chiusura senza salvare. */
+    @Test
+    fun shouldCloseAddFormFromBackArrow() {
+        var closed = false
+        setMedicineFormContent(onCloseClick = { closed = true })
+
+        composeTestRule.onNodeWithContentDescription("Torna indietro")
+            .assertIsDisplayed()
+            .performClick()
+
+        composeTestRule.runOnIdle { assertTrue(closed) }
+    }
+
+    private fun setMedicineFormContent(onCloseClick: () -> Unit = {}) {
         composeTestRule.setContent {
             var uiState by remember { mutableStateOf(MedicineFormUiState()) }
 
@@ -68,6 +84,7 @@ class MedicineFormScreenTest {
                     onStorageLocationChanged = {},
                     onNotesChanged = {},
                     onSaveClick = {},
+                    onNotFoundDoneClick = onCloseClick,
                 )
             }
         }

@@ -9,6 +9,11 @@ import androidx.compose.ui.unit.dp
  * schermate Compose.
  */
 object MediShelfDimens {
+    val MedicineIconSize = 40.dp
+    val StatusIconSize = 18.dp
+    val CardElevation = 1.dp
+    val ActionBarElevation = 3.dp
+    const val PrimaryTitleScale = 1.5f
     val SpacingExtraSmall = 4.dp
     val SpacingSmall = 8.dp
     val SpacingSmallMedium = 12.dp
