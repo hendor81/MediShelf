@@ -1,43 +1,32 @@
 package it.hendorsoftware.medishelf.feature.archive
 
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Archive
-import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.Inventory2
-import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material3.Card
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import it.hendorsoftware.medishelf.R
+import it.hendorsoftware.medishelf.core.designsystem.component.BackNavigationButton
 import it.hendorsoftware.medishelf.core.designsystem.component.EmptyState
 import it.hendorsoftware.medishelf.core.designsystem.component.MediShelfTopAppBar
-import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBadge
+import it.hendorsoftware.medishelf.core.designsystem.component.MedicineListCard
 import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBadgeStatus
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfDimens
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
@@ -52,6 +41,7 @@ import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 @Composable
 fun ArchiveRoute(
     onMedicineClick: (String) -> Unit,
+    onBackClick: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: ArchiveViewModel = hiltViewModel(),
 ) {
@@ -60,6 +50,7 @@ fun ArchiveRoute(
     ArchiveScreen(
         uiState = uiState,
         onMedicineClick = onMedicineClick,
+        onBackClick = onBackClick,
         modifier = modifier,
     )
 }
@@ -75,17 +66,22 @@ fun ArchiveRoute(
 fun ArchiveScreen(
     uiState: ArchiveUiState,
     onMedicineClick: (String) -> Unit,
+    onBackClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Scaffold(
         modifier = modifier,
         topBar = {
-            MediShelfTopAppBar(title = stringResource(R.string.archive_screen_title))
+            MediShelfTopAppBar(
+                title = stringResource(R.string.archive_screen_title),
+                navigationIcon = { BackNavigationButton(onBackClick) },
+            )
         },
     ) { innerPadding ->
         ArchiveContent(
             uiState = uiState,
             onMedicineClick = onMedicineClick,
+
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
@@ -112,8 +108,8 @@ private fun ArchiveContent(
                     .fillMaxSize()
                     .padding(MediShelfDimens.ScreenPadding),
                 icon = {
-                    Icon(
-                        imageVector = Icons.Outlined.Archive,
+                    Image(
+                        painter = painterResource(R.drawable.archivio),
                         contentDescription = null,
                     )
                 },
@@ -152,101 +148,26 @@ private fun ArchiveContent(
     }
 }
 
-@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
 private fun ArchiveMedicineListItem(
     medicine: ArchiveMedicineItemUiModel,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .testTag(ArchiveTestTags.medicineItem(medicine.id))
-            .clickable(onClick = onClick),
-        shape = MaterialTheme.shapes.medium,
-    ) {
-        Column(
-            modifier = Modifier.padding(MediShelfDimens.SpacingMedium),
-            verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmall),
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingMedium),
-                verticalAlignment = Alignment.Top,
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingExtraSmall),
-                ) {
-                    Text(
-                        text = medicine.name,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                    )
-                    medicine.packageForm?.let { packageForm ->
-                        Text(
-                            text = packageForm,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-
-                MedicineStatusBadge(status = MedicineStatusBadgeStatus.Archived)
-            }
-
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingMedium),
-                verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmall),
-            ) {
-                medicine.expirationDate?.let { expirationDate ->
-                    ArchiveMedicineMetadata(
-                        icon = Icons.Outlined.CalendarMonth,
-                        text = stringResource(R.string.inventory_item_expiration, expirationDate),
-                    )
-                }
-                medicine.quantity?.let { quantity ->
-                    ArchiveMedicineMetadata(
-                        icon = Icons.Outlined.Inventory2,
-                        text = stringResource(R.string.inventory_item_quantity, quantity),
-                    )
-                }
-                medicine.storageLocation?.let { storageLocation ->
-                    ArchiveMedicineMetadata(
-                        icon = Icons.Outlined.LocationOn,
-                        text = stringResource(R.string.inventory_item_location, storageLocation),
-                    )
-                }
-            }
-        }
-    }
+    MedicineListCard(
+        name = medicine.name,
+        packageForm = medicine.packageForm,
+        status = MedicineStatusBadgeStatus.Archived,
+        metadata = listOfNotNull(
+            medicine.packageForm,
+            medicine.expirationDate?.let { stringResource(R.string.inventory_item_expiration, it) },
+            medicine.quantity?.let { stringResource(R.string.inventory_item_quantity, it) },
+            medicine.storageLocation?.let { stringResource(R.string.inventory_item_location, it) },
+        ),
+        onClick = onClick,
+        modifier = modifier.testTag(ArchiveTestTags.medicineItem(medicine.id)),
+    )
 }
-
-@Composable
-private fun ArchiveMedicineMetadata(
-    icon: ImageVector,
-    text: String,
-    modifier: Modifier = Modifier,
-) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingExtraSmall),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-        Text(
-            text = text,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-        )
-    }
-}
-
 /**
  * Test tag stabili della schermata Archivio.
  */
@@ -332,21 +253,6 @@ private fun ArchiveMedicineListItemPreview() {
         ArchiveMedicineListItem(
             medicine = sampleArchiveMedicines.first(),
             onClick = {},
-            modifier = Modifier.padding(MediShelfDimens.ScreenPadding),
-        )
-    }
-}
-
-/**
- * Preview di un metadato dell'Archivio.
- */
-@Preview(showBackground = true)
-@Composable
-private fun ArchiveMedicineMetadataPreview() {
-    MediShelfTheme {
-        ArchiveMedicineMetadata(
-            icon = Icons.Outlined.CalendarMonth,
-            text = "Scadenza 05/06/2026",
             modifier = Modifier.padding(MediShelfDimens.ScreenPadding),
         )
     }

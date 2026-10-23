@@ -9,7 +9,7 @@ import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBad
  * @param activeMedicineCount totale dei medicinali attivi.
  * @param expiringMedicineCount medicinali in scadenza.
  * @param expiredMedicineCount medicinali scaduti.
- * @param lowStockMedicineCount medicinali con quantita nota a zero o sotto soglia.
+ * @param lowStockMedicineCount medicinali con quantità nota positiva entro soglia.
  * @param attentionItems voci prioritarie mostrate nella sezione "Da tenere d'occhio".
  */
 data class HomeUiState(
@@ -47,4 +47,5 @@ data class HomeAttentionItemUiModel(
     val expirationDate: String?,
     val quantity: String?,
     val status: MedicineStatusBadgeStatus,
+    val isLowStock: Boolean = false,
 )

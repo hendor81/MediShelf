@@ -40,24 +40,24 @@
     <string name="inventory_search_empty_body">Non ci sono medicinali che corrispondono ai filtri attuali. Prova a modificare ricerca o stato.</string>
     <string name="inventory_status_filter_all">Tutti</string>
     <string name="inventory_item_expiration">Scadenza %1$s</string>
-    <string name="inventory_item_quantity">Quantita %1$s</string>
+    <string name="inventory_item_quantity">Quantità %1$s</string>
     <string name="inventory_item_location">Luogo %1$s</string>
     <string name="inventory_open_archive_content_description">Apri archivio</string>
-    <string name="medicine_detail_screen_title">Dettaglio medicinale</string>
+    <string name="medicine_detail_screen_title">Dettaglio</string>
     <string name="medicine_detail_placeholder_title">Dettaglio medicinale</string>
-    <string name="medicine_detail_placeholder_body">Placeholder del dettaglio per il medicinale con ID %1$s. La schermata reale mostra stato, scadenza, quantita e azioni.</string>
+    <string name="medicine_detail_placeholder_body">Placeholder del dettaglio per il medicinale con ID %1$s. La schermata reale mostra stato, scadenza, quantità e azioni.</string>
     <string name="medicine_detail_loading">Caricamento del medicinale...</string>
     <string name="medicine_detail_not_found_title">Medicinale non trovato</string>
-    <string name="medicine_detail_not_found_body">La voce richiesta non e piu disponibile nell\'inventario locale.</string>
+    <string name="medicine_detail_not_found_body">La voce richiesta non è più disponibile nell\'inventario locale.</string>
     <string name="medicine_detail_main_data_title">Dati principali</string>
-    <string name="medicine_detail_quantity_label">Quantita</string>
-    <string name="medicine_detail_quantity_not_set">Quantita non indicata</string>
-    <string name="medicine_detail_quantity_add_action">Aggiungi quantita</string>
-    <string name="medicine_detail_quantity_increment_content_description">Aumenta quantita</string>
-    <string name="medicine_detail_quantity_decrement_content_description">Riduci quantita</string>
-    <string name="medicine_detail_quantity_updated">Quantita aggiornata.</string>
-    <string name="medicine_detail_quantity_missing_feedback">Aggiungi una quantita prima di usare le azioni rapide.</string>
-    <string name="medicine_detail_quantity_zero_feedback">La quantita e gia a zero.</string>
+    <string name="medicine_detail_quantity_label">Quantità</string>
+    <string name="medicine_detail_quantity_not_set">Quantità non indicata</string>
+    <string name="medicine_detail_quantity_add_action">Aggiungi quantità</string>
+    <string name="medicine_detail_quantity_increment_content_description">Aumenta quantità</string>
+    <string name="medicine_detail_quantity_decrement_content_description">Riduci quantità</string>
+    <string name="medicine_detail_quantity_updated">Quantità aggiornata.</string>
+    <string name="medicine_detail_quantity_missing_feedback">Aggiungi una quantità prima di usare le azioni rapide.</string>
+    <string name="medicine_detail_quantity_zero_feedback">La quantità è già a zero.</string>
     <string name="medicine_detail_expiration_label">Scadenza</string>
     <string name="medicine_detail_expiration_not_set">Scadenza non indicata</string>
     <string name="medicine_detail_storage_location_label">Luogo</string>
@@ -66,21 +66,21 @@
     <string name="medicine_detail_notes_label">Note</string>
     <string name="medicine_detail_notes_not_set">Nessuna nota</string>
     <string name="medicine_detail_archive_action">Archivia medicinale</string>
-    <string name="medicine_detail_already_archived_action">Gia archiviato</string>
+    <string name="medicine_detail_already_archived_action">Già archiviato</string>
     <string name="medicine_detail_delete_content_description">Elimina medicinale</string>
     <string name="medicine_detail_delete_dialog_title">Eliminare definitivamente il medicinale?</string>
-    <string name="medicine_detail_delete_dialog_body">La voce sara rimossa dall\'inventario locale. Se vuoi solo toglierla dagli elementi attivi, usa Archivia medicinale.</string>
+    <string name="medicine_detail_delete_dialog_body">La voce sarà rimossa dall\'inventario locale. Se vuoi solo toglierla dagli elementi attivi, usa Archivia medicinale.</string>
     <string name="medicine_add_screen_title">Aggiungi medicinale</string>
     <string name="medicine_add_placeholder_title">Nuovo medicinale</string>
-    <string name="medicine_add_placeholder_body">Placeholder del form di inserimento. La versione completa usa il nome obbligatorio e lascia quantita e scadenza opzionali.</string>
-    <string name="medicine_form_intro">Inserisci solo il nome per salvare subito. Quantita, scadenza e dettagli possono essere completati anche piu avanti.</string>
-    <string name="medicine_form_edit_intro">Correggi o completa i dati salvati. Nome obbligatorio, quantita e scadenza restano opzionali.</string>
+    <string name="medicine_add_placeholder_body">Placeholder del form di inserimento. La versione completa usa il nome obbligatorio e lascia quantità e scadenza opzionali.</string>
+    <string name="medicine_form_intro">Inserisci solo il nome per salvare subito. Quantità, scadenza e dettagli possono essere completati anche più avanti.</string>
+    <string name="medicine_form_edit_intro">Correggi o completa i dati salvati. Nome obbligatorio, quantità e scadenza restano opzionali.</string>
     <string name="medicine_form_loading">Caricamento del medicinale...</string>
     <string name="medicine_form_name_label">Nome medicinale</string>
     <string name="medicine_form_package_form_label">Formato o confezione</string>
     <string name="medicine_form_package_form_support">Esempio: compresse, sciroppo, pomata</string>
-    <string name="medicine_form_quantity_label">Quantita</string>
-    <string name="medicine_form_quantity_unit_label">Unita quantita</string>
+    <string name="medicine_form_quantity_label">Quantità</string>
+    <string name="medicine_form_quantity_unit_label">Unità quantità</string>
     <string name="medicine_form_quantity_unit_support">Esempio: compresse, ml, g, confezioni</string>
     <string name="medicine_form_low_stock_threshold_label">Soglia scorta bassa</string>
     <string name="medicine_form_expiration_date_label">Data scadenza</string>
@@ -90,7 +90,7 @@
     <string name="medicine_form_optional_support">Opzionale</string>
     <string name="medicine_form_name_required_error">Inserisci il nome del medicinale.</string>
     <string name="medicine_form_invalid_number_error">Inserisci un numero valido.</string>
-    <string name="medicine_form_negative_number_error">Il valore non puo essere negativo.</string>
+    <string name="medicine_form_negative_number_error">Il valore non può essere negativo.</string>
     <string name="medicine_form_invalid_date_error">Usa il formato AAAA-MM-GG oppure lascia il campo vuoto.</string>
     <string name="medicine_form_save_action">Salva medicinale</string>
     <string name="medicine_form_update_action">Salva modifiche</string>
@@ -100,7 +100,7 @@
     <string name="medicine_edit_placeholder_title">Modifica medicinale</string>
     <string name="medicine_edit_placeholder_body">Placeholder del form di modifica per il medicinale con ID %1$s.</string>
     <string name="medicine_edit_not_found_title">Medicinale non trovato</string>
-    <string name="medicine_edit_not_found_body">La voce richiesta non e piu disponibile nell\'inventario locale.</string>
+    <string name="medicine_edit_not_found_body">La voce richiesta non è più disponibile nell\'inventario locale.</string>
     <string name="expiry_screen_title">Scadenzario</string>
     <string name="expiry_placeholder_title">Scadenze sotto controllo</string>
     <string name="expiry_placeholder_body">Placeholder delle sezioni in scadenza, scaduti e senza data.</string>
@@ -109,15 +109,15 @@
     <string name="expiry_section_expiring_title">In scadenza</string>
     <string name="expiry_section_expiring_body">Medicinali con scadenza entro la soglia configurata.</string>
     <string name="expiry_section_expired_title">Scaduti</string>
-    <string name="expiry_section_expired_body">Voci con data gia superata, ordinate dalla scadenza piu vicina.</string>
+    <string name="expiry_section_expired_body">Voci con data già superata, ordinate dalla scadenza più vicina.</string>
     <string name="expiry_section_no_expiration_title">Senza data</string>
     <string name="expiry_section_no_expiration_body">Medicinali attivi per cui puoi completare la scadenza in seguito.</string>
     <string name="archive_screen_title">Archivio</string>
     <string name="archive_placeholder_title">Medicinali archiviati</string>
-    <string name="archive_placeholder_body">Placeholder per consultare elementi non piu attivi e ripristinarli in seguito.</string>
+    <string name="archive_placeholder_body">Placeholder per consultare elementi non più attivi e ripristinarli in seguito.</string>
     <string name="archive_empty_title">Archivio vuoto</string>
     <string name="archive_empty_body">I medicinali che togli dall\'inventario attivo appariranno qui, senza essere eliminati.</string>
-    <string name="archive_secondary_area_body">Area secondaria: qui puoi consultare i medicinali non piu attivi e aprirne il dettaglio quando serve.</string>
+    <string name="archive_secondary_area_body">Area secondaria: qui puoi consultare i medicinali non più attivi e aprirne il dettaglio quando serve.</string>
     <string name="settings_screen_title">Impostazioni</string>
     <string name="settings_placeholder_title">Preferenze essenziali</string>
     <string name="settings_placeholder_body">Placeholder per soglia scadenze, notifiche locali e preferenze di archiviazione.</string>
@@ -147,9 +147,9 @@
     <string name="settings_clear_archive_title">Svuota archivio</string>
     <string name="settings_clear_archive_description">Elimina definitivamente tutti i medicinali archiviati</string>
     <string name="settings_clear_archive_dialog_title">Svuotare l\'archivio?</string>
-    <string name="settings_clear_archive_dialog_body">I medicinali archiviati saranno eliminati definitivamente dal dispositivo. L\'azione richiede conferma e non puo essere annullata.</string>
+    <string name="settings_clear_archive_dialog_body">I medicinali archiviati saranno eliminati definitivamente dal dispositivo. L\'azione richiede conferma e non può essere annullata.</string>
     <string name="settings_clear_archive_confirm">Svuota archivio</string>
-    <string name="settings_archive_empty_feedback">L\'archivio e gia vuoto.</string>
+    <string name="settings_archive_empty_feedback">L\'archivio è già vuoto.</string>
     <string name="settings_archive_cleared_feedback">Archivio svuotato.</string>
     <string name="settings_info_section_title">INFORMAZIONI</string>
     <string name="settings_privacy_title">Privacy e Disclaimer</string>
@@ -173,7 +173,7 @@
     <string name="medicine_status_expired">Scaduto</string>
     <string name="medicine_status_low_stock">Scorta bassa</string>
     <string name="medicine_status_out_of_stock">Esaurito</string>
-    <string name="medicine_status_no_expiration">Senza scadenza</string>
+    <string name="medicine_status_no_expiration">Senza data</string>
     <string name="medicine_status_archived">Archiviato</string>
     <string name="designsystem_empty_state_title">Nessun elemento da mostrare</string>
     <string name="designsystem_empty_state_body">Quando aggiungerai contenuti, li vedrai qui in modo ordinato.</string>
@@ -193,4 +193,35 @@
     <string name="notification_permission_open_settings">Apri impostazioni notifiche</string>
     <string name="notification_permission_retry">Riprova</string>
     <string name="notification_permission_cancel">Annulla</string>
+    <string name="medicine_form_not_set">Non indicato</string>
+    <string name="medicine_form_calendar_support">Tocca per scegliere la data dal calendario</string>
+    <string name="medicine_form_date_confirm">Conferma</string>
+    <string name="medicine_form_date_clear">Rimuovi data</string>
+    <string-array name="medicine_package_forms">
+        <item>bendaggi</item>
+        <item>bottiglia</item>
+        <item>bustina</item>
+        <item>cerotti</item>
+        <item>collirio</item>
+        <item>compresse</item>
+        <item>fiale</item>
+        <item>flacone con dosatore</item>
+        <item>flacone contagocce</item>
+        <item>gocce auricolari</item>
+        <item>pomata</item>
+        <item>sciroppo</item>
+        <item>siringhe</item>
+        <item>spray</item>
+        <item>spray orale</item>
+        <item>supposte</item>
+        <item>test</item>
+        <item>vitamine</item>
+    </string-array>
+    <string name="medicine_form_quantity_dependency">Richiede una quantità. Se non la conosci, lascia vuoti anche unità e soglia.</string>
+    <string name="medicine_form_quantity_required_error">Indica la quantità oppure svuota unità e soglia.</string>
+    <string name="medicine_form_save_error">Salvataggio non riuscito. I dati inseriti sono conservati: premi Salva per riprovare.</string>
+    <string name="medicine_detail_restore_action">Ripristina medicinale</string>
+    <string name="medicine_detail_action_error">Operazione non riuscita. Riprova.</string>
+    <string name="inventory_status_filter_attention">Da controllare</string>
+    <string name="action_retry">Riprova</string>
 </resources>

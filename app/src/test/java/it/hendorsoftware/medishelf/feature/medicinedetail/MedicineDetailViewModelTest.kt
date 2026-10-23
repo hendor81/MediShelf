@@ -252,6 +252,7 @@ class MedicineDetailViewModelTest {
             getMedicineByIdUseCase = GetMedicineByIdUseCase(repository),
             archiveMedicineUseCase = ArchiveMedicineUseCase(repository),
             deleteMedicineUseCase = DeleteMedicineUseCase(repository),
+            restoreArchivedMedicineUseCase = it.hendorsoftware.medishelf.domain.usecase.RestoreArchivedMedicineUseCase(repository),
             updateMedicineQuantityUseCase = UpdateMedicineQuantityUseCase(repository),
             observeUserSettingsUseCase = ObserveUserSettingsUseCase(FakeUserSettingsRepository()),
             statusCalculator = MedicineStatusCalculator(

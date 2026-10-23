@@ -7,15 +7,16 @@ import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBad
 import it.hendorsoftware.medishelf.domain.model.Medicine
 import it.hendorsoftware.medishelf.domain.model.MedicineStatus
 import it.hendorsoftware.medishelf.domain.rules.MedicineStatusCalculator
+import it.hendorsoftware.medishelf.domain.rules.MedicineStockRules
 import it.hendorsoftware.medishelf.domain.usecase.GetActiveMedicinesUseCase
 import it.hendorsoftware.medishelf.domain.usecase.ObserveUserSettingsUseCase
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import javax.inject.Inject
-import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
 /**
@@ -101,6 +102,7 @@ class ExpiryViewModel @Inject constructor(
             id = id.value.toString(),
             name = name,
             packageForm = packageForm,
+            isLowStock = MedicineStockRules.isLowStock(this),
             status = status.toBadgeStatus(),
             expirationDate = expirationDate?.format(ExpirationDateFormatter),
             quantity = quantity?.let { info ->

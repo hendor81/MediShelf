@@ -61,7 +61,7 @@ class InventoryScreenTest {
             .assertIsDisplayed()
 
         composeTestRule
-            .onNodeWithText("Quantita 12 compresse")
+            .onNodeWithText("Quantità 12 compresse")
             .assertIsDisplayed()
 
         composeTestRule

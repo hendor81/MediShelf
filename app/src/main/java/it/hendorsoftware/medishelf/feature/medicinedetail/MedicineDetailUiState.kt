@@ -22,6 +22,8 @@ data class MedicineDetailUiState(
     val isActionInProgress: Boolean = false,
     val hasArchiveCompleted: Boolean = false,
     val hasDeleteCompleted: Boolean = false,
+    val preferArchiveOverDelete: Boolean = true,
+    val hasActionError: Boolean = false,
     val quantityFeedback: MedicineDetailQuantityFeedback? = null,
 )
 
@@ -44,6 +46,7 @@ data class MedicineDetailUiModel(
     val name: String,
     val packageForm: String?,
     val status: MedicineStatusBadgeStatus,
+    val isLowStock: Boolean = false,
     val quantity: String?,
     val isQuantityAtZero: Boolean,
     val expirationDate: String?,

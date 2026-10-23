@@ -157,7 +157,8 @@ class HomeViewModelTest {
         val item = viewModel.uiState.value.attentionItems.single()
 
         assertEquals("Scorta bassa", item.name)
-        assertEquals(MedicineStatusBadgeStatus.LowStock, item.status)
+        assertEquals(MedicineStatusBadgeStatus.Valid, item.status)
+        org.junit.Assert.assertTrue(item.isLowStock)
     }
 
     private fun createViewModel(repository: FakeMedicineRepository): HomeViewModel =

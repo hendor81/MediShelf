@@ -38,7 +38,7 @@ class MedicineDetailScreenTest {
 
         composeTestRule.onNodeWithText("Paracetamolo").assertIsDisplayed()
         composeTestRule.onNodeWithText("Compresse").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Quantita non indicata").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Quantità non indicata").assertIsDisplayed()
         composeTestRule.onNodeWithText("Scadenza non indicata").assertIsDisplayed()
         composeTestRule.onNodeWithText("Archivia medicinale").assertIsDisplayed()
     }

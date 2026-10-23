@@ -1,8 +1,12 @@
 package it.hendorsoftware.medishelf.navigation
 
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalInspectionMode
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.NavBackStackEntry
 import androidx.navigation.NavHostController
@@ -11,6 +15,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import it.hendorsoftware.medishelf.R
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 import it.hendorsoftware.medishelf.feature.archive.ArchiveRoute
 import it.hendorsoftware.medishelf.feature.expiry.ExpiryRoute
@@ -18,9 +23,11 @@ import it.hendorsoftware.medishelf.feature.home.HomeRoute
 import it.hendorsoftware.medishelf.feature.home.HomeScreen
 import it.hendorsoftware.medishelf.feature.home.HomeUiState
 import it.hendorsoftware.medishelf.feature.inventory.InventoryRoute
+import it.hendorsoftware.medishelf.feature.inventory.InventoryStatusFilter
 import it.hendorsoftware.medishelf.feature.medicinedetail.MedicineDetailRoute
 import it.hendorsoftware.medishelf.feature.medicineform.MedicineFormRoute
 import it.hendorsoftware.medishelf.feature.settings.SettingsRoute
+import kotlinx.coroutines.launch
 
 /**
  * NavHost principale della navigation shell MediShelf.
@@ -32,6 +39,7 @@ import it.hendorsoftware.medishelf.feature.settings.SettingsRoute
 fun MediShelfNavHost(
     modifier: Modifier = Modifier,
     navController: NavHostController = rememberNavController(),
+    snackbarHostState: SnackbarHostState = remember { SnackbarHostState() },
 ) {
     // Il controllo LocalInspectionMode.current permette di evitare il crash di hiltViewModel()
     // durante le preview di Android Studio, dove il contesto non è un'Activity Hilt.
@@ -47,6 +55,9 @@ fun MediShelfNavHost(
         return
     }
 
+    val scope = rememberCoroutineScope()
+    val savedMessage = stringResource(R.string.medicine_form_save_success)
+    val updatedMessage = stringResource(R.string.medicine_form_update_success)
     NavHost(
         navController = navController,
         startDestination = MediShelfRoute.Home.route,
@@ -57,13 +68,18 @@ fun MediShelfNavHost(
                 onAddMedicineClick = { navController.navigate(MediShelfRoute.AddMedicine.route) },
                 onInventoryClick = { navController.navigate(MediShelfRoute.Inventory.route) },
                 onExpiryClick = { navController.navigate(MediShelfRoute.Expiry.route) },
+                onSeeAllAttentionClick = { navController.navigate("inventory?filter=attention") },
                 onAttentionItemClick = { medicineId ->
                     navController.navigate(MediShelfRoute.MedicineDetail.createRoute(medicineId))
                 },
             )
         }
-        composable(MediShelfRoute.Inventory.route) {
+        composable(
+            "inventory?filter={filter}",
+            arguments = listOf(navArgument("filter") { type = NavType.StringType; defaultValue = "all" }),
+        ) { entry ->
             InventoryRoute(
+                initialFilter = if (entry.arguments?.getString("filter") == "attention") InventoryStatusFilter.Attention else InventoryStatusFilter.All,
                 onAddMedicineClick = { navController.navigate(MediShelfRoute.AddMedicine.route) },
                 onMedicineClick = { medicineId ->
                     navController.navigate(MediShelfRoute.MedicineDetail.createRoute(medicineId))
@@ -73,14 +89,17 @@ fun MediShelfNavHost(
         }
         composable(MediShelfRoute.Expiry.route) {
             ExpiryRoute(
+                onBackClick = { navController.popBackStack() },
                 onAddMedicineClick = { navController.navigate(MediShelfRoute.AddMedicine.route) },
-                onArchiveClick = { navController.navigate(MediShelfRoute.Archive.route) },                onMedicineClick = { medicineId ->
+                onArchiveClick = { navController.navigate(MediShelfRoute.Archive.route) },
+                onMedicineClick = { medicineId ->
                     navController.navigate(MediShelfRoute.MedicineDetail.createRoute(medicineId))
                 },
             )
         }
         composable(MediShelfRoute.Archive.route) {
             ArchiveRoute(
+                onBackClick = { navController.popBackStack() },
                 onMedicineClick = { medicineId ->
                     navController.navigate(MediShelfRoute.MedicineDetail.createRoute(medicineId))
                 },
@@ -93,9 +112,8 @@ fun MediShelfNavHost(
             MedicineFormRoute(
                 onCloseClick = { navController.popBackStack() },
                 onSaved = {
-                    navController.navigate(MediShelfRoute.Inventory.route) {
-                        popUpTo(MediShelfRoute.Home.route)
-                    }
+                    navController.popBackStack()
+                    scope.launch { snackbarHostState.showSnackbar(savedMessage) }
                 },
             )
         }
@@ -109,7 +127,12 @@ fun MediShelfNavHost(
                 onEditClick = {
                     navController.navigate(MediShelfRoute.EditMedicine.createRoute(medicineId))
                 },
-                onArchived = { navController.navigate(MediShelfRoute.Archive.route) },
+                onArchived = {
+                    navController.navigate(MediShelfRoute.Archive.route) {
+                        popUpTo(MediShelfRoute.MedicineDetail.route) { inclusive = true }
+                        launchSingleTop = true
+                    }
+                },
                 onDeleted = { navController.popBackStack() },
                 onCloseClick = { navController.popBackStack() },
             )
@@ -120,7 +143,10 @@ fun MediShelfNavHost(
         ) { backStackEntry ->
             MedicineFormRoute(
                 medicineId = backStackEntry.requireMedicineId(),
-                onSaved = { navController.popBackStack() },
+                onSaved = {
+                    navController.popBackStack()
+                    scope.launch { snackbarHostState.showSnackbar(updatedMessage) }
+                },
                 onCloseClick = { navController.popBackStack() },
             )
         }

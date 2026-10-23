@@ -16,14 +16,13 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -57,13 +56,6 @@ fun MedicineFormRoute(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
-    val saveSuccessMessage = stringResource(
-        if (uiState.mode == MedicineFormMode.Edit) {
-            R.string.medicine_form_update_success
-        } else {
-            R.string.medicine_form_save_success
-        },
-    )
 
     LaunchedEffect(medicineId) {
         if (medicineId != null) {
@@ -73,10 +65,6 @@ fun MedicineFormRoute(
 
     LaunchedEffect(uiState.isSaved) {
         if (uiState.isSaved) {
-            snackbarHostState.showSnackbar(
-                message = saveSuccessMessage,
-                duration = SnackbarDuration.Short,
-            )
             onSaved()
         }
     }
@@ -208,17 +196,14 @@ fun MedicineFormScreen(
                 onValueChange = onNameChanged,
                 label = stringResource(R.string.medicine_form_name_label),
                 error = uiState.nameError.toMessage(),
-                enabled = !uiState.isLoading,
+                enabled = !uiState.isLoading && !uiState.isSaving,
                 singleLine = true,
             )
 
-            MedicineFormTextField(
+            MedicinePackageFormSelector(
                 value = uiState.packageForm,
-                onValueChange = onPackageFormChanged,
-                label = stringResource(R.string.medicine_form_package_form_label),
-                supportingText = stringResource(R.string.medicine_form_package_form_support),
-                enabled = !uiState.isLoading,
-                singleLine = true,
+                enabled = !uiState.isLoading && !uiState.isSaving,
+                onChange = onPackageFormChanged,
             )
 
             MedicineFormTextField(
@@ -228,7 +213,7 @@ fun MedicineFormScreen(
                 supportingText = stringResource(R.string.medicine_form_optional_support),
                 error = uiState.quantityError.toMessage(),
                 keyboardType = KeyboardType.Decimal,
-                enabled = !uiState.isLoading,
+                enabled = !uiState.isLoading && !uiState.isSaving,
                 singleLine = true,
             )
 
@@ -236,8 +221,8 @@ fun MedicineFormScreen(
                 value = uiState.quantityUnit,
                 onValueChange = onQuantityUnitChanged,
                 label = stringResource(R.string.medicine_form_quantity_unit_label),
-                supportingText = stringResource(R.string.medicine_form_quantity_unit_support),
-                enabled = !uiState.isLoading,
+                supportingText = stringResource(R.string.medicine_form_quantity_dependency),
+                enabled = !uiState.isLoading && !uiState.isSaving,
                 singleLine = true,
             )
 
@@ -245,22 +230,17 @@ fun MedicineFormScreen(
                 value = uiState.lowStockThreshold,
                 onValueChange = onLowStockThresholdChanged,
                 label = stringResource(R.string.medicine_form_low_stock_threshold_label),
-                supportingText = stringResource(R.string.medicine_form_optional_support),
+                supportingText = stringResource(R.string.medicine_form_quantity_dependency),
                 error = uiState.lowStockThresholdError.toMessage(),
                 keyboardType = KeyboardType.Decimal,
-                enabled = !uiState.isLoading,
+                enabled = !uiState.isLoading && !uiState.isSaving,
                 singleLine = true,
             )
 
-            MedicineFormTextField(
+            MedicineExpirationSelector(
                 value = uiState.expirationDate,
-                onValueChange = onExpirationDateChanged,
-                label = stringResource(R.string.medicine_form_expiration_date_label),
-                supportingText = stringResource(R.string.medicine_form_expiration_date_support),
-                error = uiState.expirationDateError.toMessage(),
-                keyboardType = KeyboardType.Number,
-                enabled = !uiState.isLoading,
-                singleLine = true,
+                enabled = !uiState.isLoading && !uiState.isSaving,
+                onChange = onExpirationDateChanged,
             )
 
             MedicineFormTextField(
@@ -268,7 +248,7 @@ fun MedicineFormScreen(
                 onValueChange = onStorageLocationChanged,
                 label = stringResource(R.string.medicine_form_storage_location_label),
                 supportingText = stringResource(R.string.medicine_form_optional_support),
-                enabled = !uiState.isLoading,
+                enabled = !uiState.isLoading && !uiState.isSaving,
                 singleLine = true,
             )
 
@@ -277,10 +257,13 @@ fun MedicineFormScreen(
                 onValueChange = onNotesChanged,
                 label = stringResource(R.string.medicine_form_notes_label),
                 supportingText = stringResource(R.string.medicine_form_optional_support),
-                enabled = !uiState.isLoading,
+                enabled = !uiState.isLoading && !uiState.isSaving,
                 minLines = MedicineFormDefaults.NotesMinLines,
             )
 
+            if (uiState.hasSaveError) {
+                Text(stringResource(R.string.medicine_form_save_error), color = MaterialTheme.colorScheme.error)
+            }
             if (uiState.isSaving) {
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
@@ -344,6 +327,7 @@ private fun MedicineFormFieldError?.toMessage(): String? = when (this) {
     MedicineFormFieldError.REQUIRED -> stringResource(R.string.medicine_form_name_required_error)
     MedicineFormFieldError.INVALID_NUMBER -> stringResource(R.string.medicine_form_invalid_number_error)
     MedicineFormFieldError.NEGATIVE_NUMBER -> stringResource(R.string.medicine_form_negative_number_error)
+    MedicineFormFieldError.QUANTITY_REQUIRED -> stringResource(R.string.medicine_form_quantity_required_error)
     MedicineFormFieldError.INVALID_DATE -> stringResource(R.string.medicine_form_invalid_date_error)
     null -> null
 }

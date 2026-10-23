@@ -14,7 +14,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Close
-import androidx.compose.material.icons.outlined.Inventory2
 import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
@@ -25,6 +24,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -58,8 +58,10 @@ fun InventoryRoute(
     onArchiveClick: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: InventoryViewModel = hiltViewModel(),
+    initialFilter: InventoryStatusFilter = InventoryStatusFilter.All,
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    LaunchedEffect(initialFilter) { viewModel.applyInitialFilter(initialFilter) }
 
     InventoryScreen(
         uiState = uiState,
@@ -205,14 +207,11 @@ private fun InventoryContent(
                     .fillMaxWidth()
                     .padding(MediShelfDimens.ScreenPadding),
                 icon = {
-                    Icon(
-                        imageVector = if (isFilteredEmptyState) {
-                            Icons.Outlined.Search
-                        } else {
-                            Icons.Outlined.Inventory2
-                        },
-                        contentDescription = null,
-                    )
+                    if (isFilteredEmptyState) {
+                        Icon(imageVector = Icons.Outlined.Search, contentDescription = null)
+                    } else {
+                        Image(painterResource(R.drawable.inventario), contentDescription = null)
+                    }
                 },
             )
             return
@@ -321,7 +320,9 @@ fun InventoryMedicineListItem(
 ) {
     MedicineListCard(
         name = medicine.name,
+        packageForm = medicine.packageForm,
         status = medicine.status,
+        isLowStock = medicine.isLowStock,
         metadata = listOfNotNull(
             medicine.packageForm,
             medicine.expirationDate?.let { stringResource(R.string.inventory_item_expiration, it) },

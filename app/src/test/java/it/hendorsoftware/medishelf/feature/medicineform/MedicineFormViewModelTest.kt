@@ -1,9 +1,9 @@
 package it.hendorsoftware.medishelf.feature.medicineform
 
-import it.hendorsoftware.medishelf.domain.repository.FakeMedicineRepository
 import it.hendorsoftware.medishelf.domain.model.Medicine
 import it.hendorsoftware.medishelf.domain.model.MedicineId
 import it.hendorsoftware.medishelf.domain.model.QuantityInfo
+import it.hendorsoftware.medishelf.domain.repository.FakeMedicineRepository
 import it.hendorsoftware.medishelf.domain.usecase.AddMedicineUseCase
 import it.hendorsoftware.medishelf.domain.usecase.GetMedicineByIdUseCase
 import it.hendorsoftware.medishelf.domain.usecase.UpdateMedicineUseCase
@@ -135,6 +135,8 @@ class MedicineFormViewModelTest {
         viewModel.loadMedicineForEdit(medicine.id.value.toString())
         viewModel.onNameChanged("  Ibuprofene aggiornato  ")
         viewModel.onQuantityChanged("")
+        viewModel.onQuantityUnitChanged("")
+        viewModel.onLowStockThresholdChanged("")
         viewModel.onExpirationDateChanged("")
         viewModel.onSaveClick()
 

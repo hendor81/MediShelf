@@ -9,7 +9,7 @@ import it.hendorsoftware.medishelf.domain.model.MedicineStatus
  * @param activeMedicineCount numero totale di medicinali non archiviati.
  * @param expiringMedicineCount numero di medicinali attivi in scadenza.
  * @param expiredMedicineCount numero di medicinali attivi gia scaduti.
- * @param lowStockMedicineCount numero di medicinali con quantita nota a zero o sotto soglia.
+ * @param lowStockMedicineCount numero di medicinali con quantità nota positiva entro soglia.
  * @param attentionMedicines voci prioritarie da proporre nella sezione di attenzione.
  */
 data class HomeSummary(
@@ -25,7 +25,7 @@ data class HomeSummary(
  *
  * @param medicine voce di dominio selezionata.
  * @param status stato derivato usato per ordinamento e badge.
- * @param isLowStock indica se la voce ha quantita nota a zero o sotto soglia.
+ * @param isLowStock indica se la voce ha quantità nota positiva entro soglia.
  */
 data class HomeAttentionMedicine(
     val medicine: Medicine,

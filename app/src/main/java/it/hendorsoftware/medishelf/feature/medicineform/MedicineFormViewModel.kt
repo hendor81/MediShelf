@@ -12,6 +12,7 @@ import it.hendorsoftware.medishelf.domain.usecase.UpdateMedicineUseCase
 import java.time.LocalDate
 import java.time.format.DateTimeParseException
 import javax.inject.Inject
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -172,6 +173,7 @@ class MedicineFormViewModel @Inject constructor(
      */
     fun onSaveClick() {
         val currentState = _uiState.value
+        if (currentState.isSaving || currentState.isLoading) return
         val validationResult = currentState.validate()
 
         if (!validationResult.isValid) {
@@ -180,19 +182,22 @@ class MedicineFormViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            _uiState.update { state -> state.copy(isSaving = true, isSaved = false) }
-
-            val validatedState = _uiState.value
-            val wasSaved = when (validatedState.mode) {
-                MedicineFormMode.Add -> {
-                    addMedicine(validatedState)
-                    true
+            _uiState.update { it.copy(isSaving = true, isSaved = false, hasSaveError = false) }
+            try {
+                val wasSaved = when (currentState.mode) {
+                    MedicineFormMode.Add -> {
+                        addMedicine(currentState)
+                        true
+                    }
+                    MedicineFormMode.Edit -> updateMedicine(currentState)
                 }
-                MedicineFormMode.Edit -> updateMedicine(validatedState)
-            }
-
-            if (wasSaved) {
-                _uiState.update { state -> state.copy(isSaving = false, isSaved = true) }
+                _uiState.update { it.copy(isSaved = wasSaved) }
+            } catch (cancelled: CancellationException) {
+                throw cancelled
+            } catch (_: Exception) {
+                _uiState.update { it.copy(hasSaveError = true) }
+            } finally {
+                _uiState.update { it.copy(isSaving = false) }
             }
         }
     }
@@ -254,7 +259,10 @@ class MedicineFormViewModel @Inject constructor(
 
         val validatedState = copy(
             nameError = if (name.isBlank()) MedicineFormFieldError.REQUIRED else null,
-            quantityError = quantityValidation.error,
+            quantityError = if (quantity.isBlank() &&
+                (quantityUnit.isNotBlank() || lowStockThreshold.isNotBlank())) {
+                MedicineFormFieldError.QUANTITY_REQUIRED
+            } else quantityValidation.error,
             lowStockThresholdError = lowStockThresholdValidation.error,
             expirationDateError = expirationDateValidation,
             isSaved = false,

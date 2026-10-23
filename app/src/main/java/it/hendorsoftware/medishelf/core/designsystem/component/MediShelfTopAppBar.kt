@@ -10,8 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
-import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfDimens
 import it.hendorsoftware.medishelf.R
+import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfDimens
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 
 /**
@@ -27,7 +27,7 @@ import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 @Composable
 fun MediShelfTopAppBar(
     title: String,
-    prominentTitle: Boolean = false,
+    prominentTitle: Boolean = true,
     modifier: Modifier = Modifier,
     navigationIcon: @Composable () -> Unit = {},
     actions: @Composable RowScope.() -> Unit = {},

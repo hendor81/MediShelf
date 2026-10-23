@@ -305,3 +305,13 @@ Se una nuova funzionalità richiede di modificare il dominio, prima verificare c
 - non complichi il flusso Free oltre il necessario;
 - sia coerente con la roadmap Free / Pro / Subscription;
 - sia descrivibile con regole semplici e testabili.
+
+
+## Chiarimento scorta bassa (issue #92)
+
+- Scorta bassa: medicinale attivo con quantità nota positiva e minore o uguale alla propria soglia.
+- Quantità zero: esaurito, escluso dal conteggio e dal filtro Scorta bassa.
+- Quantità o soglia assenti: nessuna classificazione di scorta bassa.
+- Scadenza e scorta bassa sono informazioni indipendenti: i badge possono coesistere.
+- Da controllare include scaduti, in scadenza, senza data, esauriti e scorte basse.
+- Ripristinare una voce archiviata azzera archivedAt, aggiorna updatedAt e conserva gli altri dati.

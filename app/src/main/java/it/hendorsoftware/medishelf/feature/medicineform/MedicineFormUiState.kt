@@ -24,6 +24,7 @@ data class MedicineFormUiState(
     val isNotFound: Boolean = false,
     val isSaving: Boolean = false,
     val isSaved: Boolean = false,
+    val hasSaveError: Boolean = false,
 )
 
 /**
@@ -42,4 +43,5 @@ enum class MedicineFormFieldError {
     INVALID_NUMBER,
     NEGATIVE_NUMBER,
     INVALID_DATE,
+    QUANTITY_REQUIRED,
 }

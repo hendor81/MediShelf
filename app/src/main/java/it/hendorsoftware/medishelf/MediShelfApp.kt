@@ -11,9 +11,12 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -37,11 +40,13 @@ import it.hendorsoftware.medishelf.navigation.MediShelfRoute
 @Composable
 fun MediShelfApp() {
     val navController = rememberNavController()
+    val snackbarHostState = remember { SnackbarHostState() }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
             if (currentDestination.shouldShowBottomNavigation()) {
                 MediShelfBottomNavigationBar(
@@ -62,6 +67,7 @@ fun MediShelfApp() {
                 .padding(innerPadding)
                 .consumeWindowInsets(innerPadding),
             navController = navController,
+            snackbarHostState = snackbarHostState,
         )
     }
 }
@@ -144,7 +150,7 @@ private fun NavDestination?.selectedBottomNavigationRoute(): MediShelfRoute? =
     }
 
 private fun NavDestination?.isRouteSelected(route: MediShelfRoute): Boolean =
-    this?.hierarchy?.any { destination -> destination.route == route.route } == true
+    this?.hierarchy?.any { destination -> destination.route?.substringBefore("?") == route.route } == true
 
 private enum class BottomNavigationDestination(
     val route: MediShelfRoute,
