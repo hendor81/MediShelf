@@ -101,7 +101,8 @@ Contenuti principali:
 - valore dell'app: inventario e scadenzario;
 - chiarimento che non è un'app medica o di terapia;
 - CTA per aggiungere il primo medicinale;
-- possibilità di saltare o chiudere.
+- possibilità di saltare o chiudere;
+- Avanti apre la Home con una guida facoltativa di cinque tooltip; Salta e BACK aprono direttamente la Home.
 
 ## Schermate fuori scope nella versione Free
 Sono previste per fasi successive, ma non devono essere implementate nella Free iniziale:

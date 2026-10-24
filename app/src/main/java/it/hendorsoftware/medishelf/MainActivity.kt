@@ -11,17 +11,16 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
-import androidx.lifecycle.lifecycleScope
 import dagger.hilt.android.AndroidEntryPoint
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 import it.hendorsoftware.medishelf.domain.model.SettingsThemeMode
 import it.hendorsoftware.medishelf.domain.repository.UserSettingsRepository
 import javax.inject.Inject
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.launch
 
 /**
  * Activity principale dell'app.
@@ -42,22 +41,23 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        lifecycleScope.launch {
-            val preferences = getSharedPreferences(NotificationPermissionHistory.PREFERENCES_NAME, MODE_PRIVATE)
-            // Il primo avvio richiede il permesso una sola volta; nuovi tentativi partono dalle Impostazioni.
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                settingsRepository.observeSettings().first { it.hasSeenOnboarding }.notificationsEnabled &&
-                checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED &&
-                !preferences.getBoolean(NotificationPermissionHistory.REQUESTED_KEY, false)
-            ) {
-                preferences.edit { putBoolean(NotificationPermissionHistory.REQUESTED_KEY, true) }
-                notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
-        }
 
         setContent {
             val viewModel: MainViewModel = hiltViewModel()
             val uiState by viewModel.uiState.collectAsState()
+            LaunchedEffect(uiState.hasSeenOnboarding, uiState.tutorialStep) {
+                if (!uiState.hasSeenOnboarding || uiState.tutorialStep != null) return@LaunchedEffect
+                val preferences = getSharedPreferences(NotificationPermissionHistory.PREFERENCES_NAME, MODE_PRIVATE)
+                // Il primo avvio richiede il permesso una sola volta; nuovi tentativi partono dalle Impostazioni.
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                    settingsRepository.observeSettings().first { it.hasSeenOnboarding }.notificationsEnabled &&
+                    checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED &&
+                    !preferences.getBoolean(NotificationPermissionHistory.REQUESTED_KEY, false)
+                ) {
+                    preferences.edit { putBoolean(NotificationPermissionHistory.REQUESTED_KEY, true) }
+                    notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
             val systemDarkTheme = isSystemInDarkTheme()
             val darkTheme = when (uiState.themeMode) {
                 SettingsThemeMode.LIGHT -> false
@@ -66,7 +66,13 @@ class MainActivity : ComponentActivity() {
             }
 
             MediShelfTheme(darkTheme = darkTheme) {
-                MainContent(uiState, viewModel::onCompleteOnboarding)
+                MainContent(
+                    uiState,
+                    onCompleteOnboarding = { viewModel.onCompleteOnboarding(startTutorial = true) },
+                    onSkipOnboarding = { viewModel.onCompleteOnboarding() },
+                    onTutorialNext = viewModel::onTutorialNext,
+                    onTutorialDismiss = viewModel::onTutorialDismiss,
+                )
             }
         }
     }

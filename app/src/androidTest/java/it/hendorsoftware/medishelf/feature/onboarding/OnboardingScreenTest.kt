@@ -19,16 +19,18 @@ class OnboardingScreenTest {
     /** Inizia inoltra il completamento al chiamante. */
     @Test fun shouldCompleteOnStart() = checkAction(R.string.onboarding_start)
 
-    /** Salta inoltra lo stesso completamento, senza un tutorial obbligatorio. */
+    /** Salta invoca solo la callback che esclude il tutorial. */
     @Test fun shouldCompleteOnSkip() = checkAction(R.string.onboarding_skip)
 
     private fun checkAction(action: Int) {
-        var completions = 0
+        var starts = 0
+        var skips = 0
         composeRule.setContent {
-            MediShelfTheme { OnboardingScreen(MainUiState(isLoading = false)) { completions++ } }
+            MediShelfTheme { OnboardingScreen(MainUiState(isLoading = false), onComplete = { starts++ }, onSkip = { skips++ }) }
         }
         val text = InstrumentationRegistry.getInstrumentation().targetContext.getString(action)
         composeRule.onNodeWithText(text).performScrollTo().performClick()
-        composeRule.runOnIdle { assertEquals(1, completions) }
+        composeRule.runOnIdle { assertEquals(if (action == R.string.onboarding_start) 1 else 0, starts)
+            assertEquals(if (action == R.string.onboarding_skip) 1 else 0, skips) }
     }
 }

@@ -229,7 +229,19 @@
     <string name="onboarding_expiry">Tieni sotto controllo le scadenze e trova subito cosa richiede attenzione.</string>
     <string name="onboarding_notifications">Le notifiche locali ti aiutano a ricordare le scadenze. Puoi gestirle nelle Impostazioni.</string>
     <string name="onboarding_scope">MediShelf organizza il tuo armadietto: non offre consulenza medica e non gestisce terapie.</string>
-    <string name="onboarding_start">Inizia</string>
+    <string name="onboarding_start">Avanti</string>
     <string name="onboarding_skip">Salta</string>
     <string name="onboarding_save_error">Non è stato possibile salvare. Riprova.</string>
+    <string name="tutorial_progress">Passo %1$d di %2$d</string>
+    <string name="tutorial_finish">Fine</string>
+    <string name="tutorial_summary_title">Il tuo armadietto a colpo d’occhio</string>
+    <string name="tutorial_summary_body">Le quattro card mostrano i medicinali attivi, quelli in scadenza, quelli scaduti e quelli con scorta bassa.</string>
+    <string name="tutorial_search_title">Cerca un medicinale</string>
+    <string name="tutorial_search_body">Da qui apri la ricerca nell’Inventario per trovare un medicinale per nome.</string>
+    <string name="tutorial_medicines_title">I medicinali da controllare</string>
+    <string name="tutorial_medicines_body">Qui trovi le voci che richiedono attenzione. Tocca un medicinale per aprire il dettaglio o Vedi tutti per consultarle nell’Inventario. Se la lista è vuota, puoi iniziare aggiungendo un medicinale.</string>
+    <string name="tutorial_add_title">Aggiungi un medicinale</string>
+    <string name="tutorial_add_body">Usa questo pulsante per aggiungere una voce. Basta il nome: quantità e scadenza possono essere inserite anche in seguito.</string>
+    <string name="tutorial_navigation_title">Le quattro sezioni</string>
+    <string name="tutorial_navigation_body">Home riepiloga il tuo armadietto. Inventario raccoglie i medicinali. Scadenzario mostra le scadenze. Impostazioni permette di gestire preferenze e notifiche.</string>
 </resources>

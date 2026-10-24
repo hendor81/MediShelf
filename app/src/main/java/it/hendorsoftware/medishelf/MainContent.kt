@@ -13,13 +13,19 @@ import it.hendorsoftware.medishelf.feature.onboarding.OnboardingScreen
 
 /** Attende le preferenze prima di creare il grafo, evitando flash di Home e ritorni all'introduzione. */
 @Composable
-fun MainContent(uiState: MainUiState, onCompleteOnboarding: () -> Unit) {
+fun MainContent(
+    uiState: MainUiState,
+    onCompleteOnboarding: () -> Unit,
+    onSkipOnboarding: () -> Unit = onCompleteOnboarding,
+    onTutorialNext: () -> Unit = {},
+    onTutorialDismiss: () -> Unit = {},
+) {
     when {
         uiState.isLoading -> Surface(modifier = Modifier.fillMaxSize()) {
             Box(contentAlignment = Alignment.Center) { CircularProgressIndicator() }
         }
-        !uiState.hasSeenOnboarding -> OnboardingScreen(uiState, onCompleteOnboarding)
-        else -> MediShelfApp()
+        !uiState.hasSeenOnboarding -> OnboardingScreen(uiState, onCompleteOnboarding, onSkipOnboarding)
+        else -> MediShelfApp(uiState.tutorialStep, onTutorialNext, onTutorialDismiss)
     }
 }
 

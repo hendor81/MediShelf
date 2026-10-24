@@ -1,5 +1,6 @@
 package it.hendorsoftware.medishelf.feature.home
 
+import it.hendorsoftware.medishelf.feature.onboarding.*
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
@@ -114,7 +115,7 @@ fun HomeScreen(
     Scaffold(
         modifier = modifier,
         bottomBar = {
-            HomePrimaryActionBar(onAddMedicineClick = onAddMedicineClick)
+            HomePrimaryActionBar(onAddMedicineClick = onAddMedicineClick, modifier = Modifier.tutorialTarget(TutorialTarget.Add))
         },
     ) { innerPadding ->
         Column(
@@ -137,9 +138,10 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingLarge),
             ) {
                 HomeHeader()
-                HomeSummaryCards(uiState = uiState)
-                HomeSearchShortcut(onClick = onInventoryClick)
+                HomeSummaryCards(uiState = uiState, modifier = Modifier.tutorialTarget(TutorialTarget.Summary))
+                HomeSearchShortcut(onClick = onInventoryClick, modifier = Modifier.tutorialTarget(TutorialTarget.Search))
                 HomeAttentionSection(
+                    modifier = Modifier.tutorialTarget(TutorialTarget.Medicines),
                     uiState = uiState,
                     onSeeAllClick = onSeeAllAttentionClick,
                     onAttentionItemClick = onAttentionItemClick,

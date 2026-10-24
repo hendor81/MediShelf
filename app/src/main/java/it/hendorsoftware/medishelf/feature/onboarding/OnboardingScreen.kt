@@ -14,10 +14,10 @@ import it.hendorsoftware.medishelf.R
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfDimens
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 
-/** Introduzione SCH-08 in una sola pagina; entrambe le azioni persistono la chiusura. */
+/** Introduzione SCH-08 in una sola pagina; Avanti avvia la guida Home, Salta e BACK la escludono. */
 @Composable
-fun OnboardingScreen(uiState: MainUiState, onComplete: () -> Unit) {
-    BackHandler { if (!uiState.isSaving) onComplete() }
+fun OnboardingScreen(uiState: MainUiState, onComplete: () -> Unit, onSkip: () -> Unit = onComplete) {
+    BackHandler { if (!uiState.isSaving) onSkip() }
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier.safeDrawingPadding().verticalScroll(rememberScrollState())
@@ -35,7 +35,7 @@ fun OnboardingScreen(uiState: MainUiState, onComplete: () -> Unit) {
             Button(onClick = onComplete, enabled = !uiState.isSaving, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.onboarding_start))
             }
-            TextButton(onClick = onComplete, enabled = !uiState.isSaving, modifier = Modifier.fillMaxWidth()) {
+            TextButton(onClick = onSkip, enabled = !uiState.isSaving, modifier = Modifier.fillMaxWidth()) {
                 Text(stringResource(R.string.onboarding_skip))
             }
         }

@@ -1,5 +1,11 @@
 package it.hendorsoftware.medishelf
 
+import it.hendorsoftware.medishelf.feature.onboarding.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.consumeWindowInsets
@@ -38,37 +44,50 @@ import it.hendorsoftware.medishelf.navigation.MediShelfRoute
  * navigation bar delle destinazioni primarie.
  */
 @Composable
-fun MediShelfApp() {
+fun MediShelfApp(
+    tutorialStep: Int? = null,
+    onTutorialNext: () -> Unit = {},
+    onTutorialDismiss: () -> Unit = {},
+) {
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
 
-    Scaffold(
-        modifier = Modifier.fillMaxSize(),
-        snackbarHost = { SnackbarHost(snackbarHostState) },
-        bottomBar = {
-            if (currentDestination.shouldShowBottomNavigation()) {
-                MediShelfBottomNavigationBar(
-                    selectedRoute = currentDestination.selectedBottomNavigationRoute(),
-                    onDestinationClick = { destination ->
-                        navController.navigateToBottomNavigationDestination(
-                            destination = destination,
+    val targets = remember { mutableStateMapOf<TutorialTarget, Rect>() }
+    CompositionLocalProvider(LocalTutorialTargets provides targets, LocalTutorialStep provides tutorialStep) {
+        Box(Modifier.fillMaxSize()) {
+            Scaffold(
+                modifier = if (tutorialStep != null) Modifier.fillMaxSize().clearAndSetSemantics {} else Modifier.fillMaxSize(),
+                snackbarHost = { SnackbarHost(snackbarHostState) },
+                bottomBar = {
+                    if (currentDestination.shouldShowBottomNavigation()) {
+                        MediShelfBottomNavigationBar(
+                            modifier = Modifier.tutorialTarget(TutorialTarget.Navigation),
                             selectedRoute = currentDestination.selectedBottomNavigationRoute(),
+                            onDestinationClick = { destination ->
+                                navController.navigateToBottomNavigationDestination(
+                                    destination = destination,
+                                    selectedRoute = currentDestination.selectedBottomNavigationRoute(),
+                                )
+                            },
                         )
-                    },
+                    }
+                },
+            ) { innerPadding ->
+                MediShelfNavHost(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(innerPadding)
+                        .consumeWindowInsets(innerPadding),
+                    navController = navController,
+                    snackbarHostState = snackbarHostState,
                 )
             }
-        },
-    ) { innerPadding ->
-        MediShelfNavHost(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-                .consumeWindowInsets(innerPadding),
-            navController = navController,
-            snackbarHostState = snackbarHostState,
-        )
+            if (tutorialStep != null) {
+                HomeTutorialOverlay(tutorialStep, targets, onTutorialNext, onTutorialDismiss)
+            }
+        }
     }
 }
 
