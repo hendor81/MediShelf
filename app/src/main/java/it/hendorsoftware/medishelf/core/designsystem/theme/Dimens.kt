@@ -26,6 +26,8 @@ object MediShelfDimens {
     val EmptyStateIconSize = 48.dp
     val BadgeHorizontalPadding = 10.dp
     val BadgeVerticalPadding = 6.dp
+    val SearchBorderWidth = 1.dp
+    const val SearchBorderAlpha = 0.24f
     val CornerSmall = 8.dp
     val CornerMedium = 12.dp
     val CornerLarge = 16.dp

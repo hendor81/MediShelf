@@ -338,8 +338,8 @@ private fun HomeSearchShortcut(
             .clip(RoundedCornerShape(MediShelfDimens.CornerLarge))
             .background(MaterialTheme.colorScheme.surface)
             .border(
-                width = HomeLayoutTokens.Hairline,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = HomeLayoutTokens.BorderAlpha),
+                width = MediShelfDimens.SearchBorderWidth,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = MediShelfDimens.SearchBorderAlpha),
                 shape = RoundedCornerShape(MediShelfDimens.CornerLarge),
             )
             .clickable(onClick = onClick)
@@ -534,8 +534,6 @@ private object HomeLayoutTokens {
     val SummaryLabelLineHeight = 1.2.em
     val SummaryCardHeight = 123.2.dp
     val CardElevation = 1.dp
-    val Hairline = 1.dp
-    const val BorderAlpha = 0.24f
 }
 
 /**

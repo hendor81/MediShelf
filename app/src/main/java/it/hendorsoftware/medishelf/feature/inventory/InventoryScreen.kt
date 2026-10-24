@@ -1,5 +1,7 @@
 package it.hendorsoftware.medishelf.feature.inventory
 
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,6 +22,8 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -27,6 +31,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
@@ -250,8 +255,27 @@ private fun InventorySearchField(
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChanged,
-        modifier = modifier.testTag(InventoryTestTags.SearchField),
-        label = {
+        modifier = modifier
+            .testTag(InventoryTestTags.SearchField)
+            .border(
+                width = MediShelfDimens.SearchBorderWidth,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = MediShelfDimens.SearchBorderAlpha),
+                shape = RoundedCornerShape(MediShelfDimens.CornerLarge),
+            ),
+        shape = RoundedCornerShape(MediShelfDimens.CornerLarge),
+        textStyle = MaterialTheme.typography.bodyLarge,
+        // Il bordo condiviso resta sottile anche con il focus, come la ricerca Home.
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedContainerColor = MaterialTheme.colorScheme.surface,
+            unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+            focusedBorderColor = Color.Transparent,
+            unfocusedBorderColor = Color.Transparent,
+            focusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            unfocusedLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            focusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            unfocusedPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant,
+        ),
+        placeholder = {
             Text(text = stringResource(R.string.inventory_search_label))
         },
         singleLine = true,
