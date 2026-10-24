@@ -18,6 +18,10 @@ import kotlinx.coroutines.flow.Flow
 class LocalUserSettingsRepository @Inject constructor(
     private val dataSource: UserSettingsLocalDataSource,
 ) : UserSettingsRepository {
+    /** Persiste la chiusura dell'introduzione preservando le altre preferenze. */
+    override suspend fun completeOnboarding() {
+        updateSettings { it.copy(hasSeenOnboarding = true) }
+    }
 
     /**
      * Osserva le impostazioni locali.

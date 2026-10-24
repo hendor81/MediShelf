@@ -63,6 +63,7 @@ class SharedPreferencesUserSettingsLocalDataSource @Inject constructor(
      */
     override suspend fun saveSettings(settings: UserSettings) {
         preferences.edit()
+            .putBoolean(KEY_ONBOARDING_SEEN, settings.hasSeenOnboarding)
             .putString(KEY_THEME_MODE, settings.themeMode.name)
             .putInt(KEY_EXPIRING_THRESHOLD_DAYS, settings.expiringThresholdDays)
             .putBoolean(KEY_NOTIFICATIONS_ENABLED, settings.notificationsEnabled)
@@ -86,6 +87,7 @@ class SharedPreferencesUserSettingsLocalDataSource @Inject constructor(
             ?: SettingsThemeMode.LIGHT
 
         return UserSettings(
+            hasSeenOnboarding = preferences.getBoolean(KEY_ONBOARDING_SEEN, false),
             themeMode = themeMode,
             expiringThresholdDays = safeThreshold,
             notificationsEnabled = preferences.getBoolean(
@@ -100,6 +102,7 @@ class SharedPreferencesUserSettingsLocalDataSource @Inject constructor(
     }
 
     private companion object {
+        private const val KEY_ONBOARDING_SEEN = "onboarding_seen"
         private const val PREFERENCES_NAME = "medishelf_user_settings"
         private const val KEY_THEME_MODE = "theme_mode"
         private const val KEY_EXPIRING_THRESHOLD_DAYS = "expiring_threshold_days"

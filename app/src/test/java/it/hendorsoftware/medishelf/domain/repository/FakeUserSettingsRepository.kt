@@ -16,6 +16,11 @@ class FakeUserSettingsRepository(
 
     private val settings = MutableStateFlow(initialSettings)
 
+    /** Segna l'introduzione come vista in memoria. */
+    override suspend fun completeOnboarding() {
+        settings.value = settings.value.copy(hasSeenOnboarding = true)
+    }
+
     val updatedThresholds = mutableListOf<Int>()
     val updatedNotificationValues = mutableListOf<Boolean>()
 

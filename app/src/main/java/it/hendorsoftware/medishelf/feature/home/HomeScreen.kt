@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -46,6 +47,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import it.hendorsoftware.medishelf.R
@@ -281,7 +283,7 @@ private fun HomeSummaryCard(
             .height(HomeLayoutTokens.SummaryCardHeight)
             .padding(
                 horizontal = MediShelfDimens.SpacingSmall,
-                vertical = MediShelfDimens.SpacingSmallMedium,
+                vertical = MediShelfDimens.SpacingSmall,
             )
             .testTag(HomeTestTags.summaryCard(label)),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -306,6 +308,12 @@ private fun HomeSummaryCard(
             style = MaterialTheme.typography.labelSmall.copy(
                 fontSize = HomeLayoutTokens.SummaryLabelFontSize,
                 lineHeight = HomeLayoutTokens.SummaryLabelLineHeight,
+            ),
+            // Riduce solo l'etichetta, mantenendo invariata la geometria delle quattro card.
+            autoSize = TextAutoSize.StepBased(
+                minFontSize = HomeLayoutTokens.SummaryLabelMinFontSize,
+                maxFontSize = HomeLayoutTokens.SummaryLabelFontSize,
+                stepSize = HomeLayoutTokens.SummaryLabelFontStep,
             ),
             fontWeight = FontWeight.SemiBold,
             color = colors.content,
@@ -518,8 +526,10 @@ private object HomeLayoutTokens {
     val LogoSize = 80.dp
     val SummaryIconSize = 36.dp
     val SummaryLabelFontSize = 11.sp
-    val SummaryLabelLineHeight = 14.sp
-    val SummaryCardHeight = 112.dp
+    val SummaryLabelMinFontSize = 10.sp
+    val SummaryLabelFontStep = 0.5.sp
+    val SummaryLabelLineHeight = 1.2.em
+    val SummaryCardHeight = 123.2.dp
     val CardElevation = 1.dp
     val Hairline = 1.dp
     const val BorderAlpha = 0.24f
@@ -598,6 +608,7 @@ private fun HomeHeaderPreview() {
  * Preview delle card riepilogo della Home.
  */
 @Preview(showBackground = true)
+@Preview(name = "Riepilogo su schermo stretto", showBackground = true, widthDp = 320)
 @Composable
 private fun HomeSummaryCardsPreview() {
     MediShelfTheme {

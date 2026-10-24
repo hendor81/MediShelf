@@ -6,6 +6,7 @@ import it.hendorsoftware.medishelf.core.common.MediShelfDefaults
  * Preferenze locali minime della versione Free.
  *
  * @param themeMode modalita tema applicata all'app.
+ * @param hasSeenOnboarding indica che l'introduzione è stata completata o saltata.
  * @param expiringThresholdDays giorni entro cui una scadenza e considerata vicina.
  * @param notificationsEnabled indica se le notifiche locali sono abilitate.
  * @param preferArchiveOverDelete preferenza tra archiviazione reversibile e cancellazione definitiva.
@@ -14,6 +15,7 @@ import it.hendorsoftware.medishelf.core.common.MediShelfDefaults
  * per evitare che un valore persistito incoerente entri nei calcoli di dominio.
  */
 data class UserSettings(
+    val hasSeenOnboarding: Boolean = false,
     val themeMode: SettingsThemeMode = SettingsThemeMode.LIGHT,
     val expiringThresholdDays: Int = MediShelfDefaults.ExpiringThresholdDays,
     val notificationsEnabled: Boolean = MediShelfDefaults.NotificationsEnabled,

@@ -224,4 +224,12 @@
     <string name="medicine_detail_action_error">Operazione non riuscita. Riprova.</string>
     <string name="inventory_status_filter_attention">Da controllare</string>
     <string name="action_retry">Riprova</string>
+    <string name="onboarding_title">Benvenuto in MediShelf</string>
+    <string name="onboarding_inventory">Il tuo armadietto, in ordine: conserva un inventario dei medicinali che hai in casa, anche offline.</string>
+    <string name="onboarding_expiry">Tieni sotto controllo le scadenze e trova subito cosa richiede attenzione.</string>
+    <string name="onboarding_notifications">Le notifiche locali ti aiutano a ricordare le scadenze. Puoi gestirle nelle Impostazioni.</string>
+    <string name="onboarding_scope">MediShelf organizza il tuo armadietto: non offre consulenza medica e non gestisce terapie.</string>
+    <string name="onboarding_start">Inizia</string>
+    <string name="onboarding_skip">Salta</string>
+    <string name="onboarding_save_error">Non è stato possibile salvare. Riprova.</string>
 </resources>

@@ -15,6 +15,18 @@ import org.junit.Test
  * Test unitari per il repository locale delle impostazioni.
  */
 class LocalUserSettingsRepositoryTest {
+    /** La preferenza resta vera dopo la ricreazione del repository e altri aggiornamenti. */
+    @Test
+    fun shouldPersistOnboardingPreservingPreferences() = runTest {
+        val initial = UserSettings(themeMode = SettingsThemeMode.DARK, notificationsEnabled = false)
+        val source = FakeUserSettingsLocalDataSource(initial)
+        val repository = LocalUserSettingsRepository(source)
+        assertEquals(false, repository.observeSettings().first().hasSeenOnboarding)
+        repository.completeOnboarding()
+        assertEquals(initial.copy(hasSeenOnboarding = true), source.currentSettings())
+        repository.updateExpiringThresholdDays(60)
+        assertEquals(true, LocalUserSettingsRepository(source).observeSettings().first().hasSeenOnboarding)
+    }
 
     /**
      * Verifica che lo stream del datasource venga esposto senza trasformazioni inutili.
