@@ -291,7 +291,8 @@ private fun HomeSummaryCard(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(
             space = MediShelfDimens.SpacingExtraSmall,
-            alignment = Alignment.CenterVertically,
+            // Le etichette su due righe non devono spostare icona e conteggio.
+            alignment = Alignment.Top,
         ),
     ) {
         Image(
