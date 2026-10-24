@@ -72,10 +72,11 @@ class MedicineDetailViewModel @Inject constructor(
 
         currentMedicineId = id
 
-        launchOperation {
+        launchOperation(isLoadingOperation = true) {
             _uiState.update { state ->
                 state.copy(
                     isLoading = true,
+                    hasLoadError = false,
                     isNotFound = false,
                     medicine = null,
                     isDeleteDialogVisible = false,
@@ -229,7 +230,7 @@ class MedicineDetailViewModel @Inject constructor(
     }
 
     /** Espone l'errore senza perdere i dati; l'utente può ripetere l'azione. */
-    private fun launchOperation(block: suspend () -> Unit) {
+    private fun launchOperation(isLoadingOperation: Boolean = false, block: suspend () -> Unit) {
         viewModelScope.launch {
             _uiState.update { it.copy(hasActionError = false) }
             try {
@@ -237,7 +238,12 @@ class MedicineDetailViewModel @Inject constructor(
             } catch (cancelled: CancellationException) {
                 throw cancelled
             } catch (_: Exception) {
-                _uiState.update { it.copy(isLoading = false, isActionInProgress = false, hasActionError = true) }
+                _uiState.update { it.copy(
+                    isLoading = false,
+                    isActionInProgress = false,
+                    hasLoadError = isLoadingOperation,
+                    hasActionError = !isLoadingOperation,
+                ) }
             }
         }
     }

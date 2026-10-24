@@ -39,6 +39,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import it.hendorsoftware.medishelf.R
 import it.hendorsoftware.medishelf.core.designsystem.component.BackNavigationButton
+import it.hendorsoftware.medishelf.core.designsystem.component.EmptyState
 import it.hendorsoftware.medishelf.core.designsystem.component.ConfirmDeleteDialog
 import it.hendorsoftware.medishelf.core.designsystem.component.MediShelfPlaceholderScreen
 import it.hendorsoftware.medishelf.core.designsystem.component.MediShelfTopAppBar
@@ -119,6 +120,7 @@ fun MedicineDetailRoute(
  * @param onDeleteConfirm callback invocata dal dialog dopo conferma esplicita.
  * @param onDeleteDismiss callback invocata quando il dialog viene annullato.
  * @param onNotFoundDoneClick callback per uscire dallo stato non trovato.
+ * @param onRetryClick ripete il caricamento dopo un errore di lettura.
  * @param modifier modificatore Compose applicato alla schermata.
  */
 @Composable
@@ -189,11 +191,6 @@ fun MedicineDetailScreen(
                     color = MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(MediShelfDimens.SpacingMedium),
                 )
-                if (uiState.medicine == null) {
-                    OutlinedButton(onClick = onRetryClick) {
-                        Text(stringResource(R.string.action_retry))
-                    }
-                }
             }
             MedicineDetailContent(
                 uiState = uiState,
@@ -202,6 +199,7 @@ fun MedicineDetailScreen(
                 onQuantityDecrementClick = onQuantityDecrementClick,
                 onArchiveClick = onArchiveClick,
                 onNotFoundDoneClick = onNotFoundDoneClick,
+                onRetryClick = onRetryClick,
                 modifier = Modifier.weight(1f).fillMaxWidth(),
             )
         }
@@ -227,10 +225,18 @@ private fun MedicineDetailContent(
     onQuantityDecrementClick: () -> Unit,
     onArchiveClick: () -> Unit,
     onNotFoundDoneClick: () -> Unit,
+    onRetryClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     when {
         uiState.isLoading -> MedicineDetailLoading(modifier = modifier)
+        uiState.hasLoadError -> EmptyState(
+            title = stringResource(R.string.medicine_detail_load_error_title),
+            body = stringResource(R.string.medicine_detail_load_error_body),
+            actionLabel = stringResource(R.string.action_retry),
+            onActionClick = onRetryClick,
+            modifier = modifier.verticalScroll(rememberScrollState()),
+        )
         uiState.isNotFound -> MedicineDetailNotFound(
             onDoneClick = onNotFoundDoneClick,
             modifier = modifier,
@@ -817,3 +823,19 @@ private val sampleMedicineDetail = MedicineDetailUiModel(
     notes = "Confezione iniziata.",
     isArchived = false,
 )
+
+/** Preview del dettaglio quando il caricamento non riesce. */
+@Preview(showBackground = true)
+@Composable
+private fun MedicineDetailLoadErrorPreview() {
+    MediShelfTheme {
+        MedicineDetailContent(
+            uiState = MedicineDetailUiState(isLoading = false, hasLoadError = true),
+            onAddQuantityClick = {},
+            onQuantityIncrementClick = {},
+            onQuantityDecrementClick = {},
+            onArchiveClick = {},
+            onNotFoundDoneClick = {},
+        )
+    }
+}

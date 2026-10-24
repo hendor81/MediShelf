@@ -6,6 +6,7 @@ import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBad
  * Stato immutabile della schermata Dettaglio medicinale.
  *
  * @param isLoading indica se il dettaglio e in fase di caricamento.
+ * @param hasLoadError indica un caricamento fallito, distinto da una voce assente.
  * @param isNotFound indica che l'id richiesto non corrisponde a una voce locale.
  * @param medicine dati gia mappati per la visualizzazione, se disponibili.
  * @param isDeleteDialogVisible controlla la conferma obbligatoria di cancellazione.
@@ -17,6 +18,7 @@ import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBad
 data class MedicineDetailUiState(
     val isLoading: Boolean = true,
     val isNotFound: Boolean = false,
+    val hasLoadError: Boolean = false,
     val medicine: MedicineDetailUiModel? = null,
     val isDeleteDialogVisible: Boolean = false,
     val isActionInProgress: Boolean = false,
