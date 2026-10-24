@@ -22,6 +22,8 @@ object MediShelfDimens {
     val SpacingLarge = 24.dp
     val SpacingExtraLarge = 32.dp
     val MinInteractiveSize = 48.dp
+    val CompactLayoutWidth = 360.dp
+    const val LargeFontScale = 1.3f
     val BottomNavigationIconSize = 28.dp
     val EmptyStateIconSize = 48.dp
     val BadgeHorizontalPadding = 10.dp

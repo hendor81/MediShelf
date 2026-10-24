@@ -7,6 +7,9 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,7 +17,7 @@ import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
@@ -51,11 +54,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -368,7 +371,7 @@ private fun SettingsNavigationRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .clickable(role = Role.Button, onClick = onClick)
             .then(if (testTag != null) Modifier.testTag(testTag) else Modifier)
             .padding(SettingsLayoutTokens.RowPadding),
         horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingMedium),
@@ -388,26 +391,21 @@ private fun SettingsNavigationRow(
                 } else {
                     MaterialTheme.colorScheme.onSurface
                 },
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
             )
             descriptionResId?.let { description ->
                 Text(
                     text = stringResource(description),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
                 )
             }
-        }
-        value?.let { text ->
-            Text(
-                text = text,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 2,
-            )
+            value?.let { text ->
+                Text(
+                    text = text,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
         Icon(
             imageVector = Icons.Outlined.ChevronRight,
@@ -430,6 +428,7 @@ private fun SettingsSwitchRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
+            .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
             .then(if (testTag != null) Modifier.testTag(testTag) else Modifier)
             .padding(SettingsLayoutTokens.RowPadding),
         horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingMedium),
@@ -454,7 +453,7 @@ private fun SettingsSwitchRow(
         }
         Switch(
             checked = checked,
-            onCheckedChange = onCheckedChange,
+            onCheckedChange = null,
         )
     }
 }
@@ -528,6 +527,8 @@ private fun SettingsThemeDialog(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
+                .verticalScroll(rememberScrollState())
+                .selectableGroup()
                 .padding(
                     horizontal = MediShelfDimens.ScreenPadding,
                     vertical = SettingsLayoutTokens.ThemeSheetVerticalPadding,
@@ -555,7 +556,7 @@ private fun SettingsThemeDialog(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(top = SettingsLayoutTokens.ThemeCancelTopPadding)
-                    .height(SettingsLayoutTokens.ThemeCancelHeight),
+                    .heightIn(min = SettingsLayoutTokens.ThemeCancelHeight),
                 shape = RoundedCornerShape(SettingsLayoutTokens.ThemeOptionCornerRadius),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(
@@ -592,7 +593,7 @@ private fun SettingsThemeOptionRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .height(SettingsLayoutTokens.ThemeOptionHeight)
+            .heightIn(min = SettingsLayoutTokens.ThemeOptionHeight)
             .clip(shape)
             .background(containerColor)
             .border(
@@ -606,8 +607,8 @@ private fun SettingsThemeOptionRow(
                 ),
                 shape = shape,
             )
-            .clickable(onClick = onClick)
-            .padding(horizontal = SettingsLayoutTokens.ThemeOptionHorizontalPadding),
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
+            .padding(horizontal = SettingsLayoutTokens.ThemeOptionHorizontalPadding, vertical = MediShelfDimens.SpacingSmall),
         horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingMedium),
         verticalAlignment = Alignment.CenterVertically,
     ) {
@@ -705,7 +706,7 @@ private fun SettingsRemovalPreferenceDialog(
         onDismissRequest = onDismiss,
         title = { Text(text = stringResource(R.string.settings_default_action_dialog_title)) },
         text = {
-            Column {
+            Column(Modifier.selectableGroup()) {
                 SettingsRadioRow(
                     text = stringResource(R.string.settings_default_action_archive),
                     selected = preferArchiveOverDelete,
@@ -777,14 +778,15 @@ private fun SettingsRadioRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
+            .heightIn(min = MediShelfDimens.MinInteractiveSize)
             .padding(vertical = MediShelfDimens.SpacingSmall),
         horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmall),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         RadioButton(
             selected = selected,
-            onClick = onClick,
+            onClick = null,
         )
         Text(
             text = text,
@@ -842,6 +844,7 @@ private object SettingsLayoutTokens {
  * Preview delle Impostazioni con valori del mockup.
  */
 @Preview(showBackground = true)
+@Preview(showBackground = true, widthDp = 320, fontScale = 2f, name = "Caratteri grandi")
 @Composable
 private fun SettingsScreenPreview() {
     MediShelfTheme {

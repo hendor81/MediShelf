@@ -14,11 +14,13 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.TextAutoSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -29,6 +31,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -36,6 +39,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -48,8 +54,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.em
-import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import it.hendorsoftware.medishelf.R
 import it.hendorsoftware.medishelf.core.designsystem.component.AddMedicineActionBar
@@ -224,47 +228,50 @@ private fun medishelfTitleText(
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun HomeSummaryCards(
     uiState: HomeUiState,
     modifier: Modifier = Modifier,
 ) {
-    Row(
-        modifier = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmallMedium),
-    ) {
-        HomeSummaryCard(
-            count = uiState.activeMedicineCount,
-            label = R.string.home_summary_active,
-            icon = R.drawable.ok_icon,
-            iconContentDescription = R.string.home_summary_active_content_description,
-            style = HomeSummaryCardStyle.Active,
-            modifier = Modifier.weight(1f),
-        )
-        HomeSummaryCard(
-            count = uiState.expiringMedicineCount,
-            label = R.string.home_summary_expiring,
-            icon = R.drawable.in_scadenza_icon,
-            iconContentDescription = R.string.home_summary_expiring_content_description,
-            style = HomeSummaryCardStyle.Expiring,
-            modifier = Modifier.weight(1f),
-        )
-        HomeSummaryCard(
-            count = uiState.expiredMedicineCount,
-            label = R.string.home_summary_expired,
-            icon = R.drawable.scaduti,
-            iconContentDescription = R.string.home_summary_expired_content_description,
-            style = HomeSummaryCardStyle.Expired,
-            modifier = Modifier.weight(1f),
-        )
-        HomeSummaryCard(
-            count = uiState.lowStockMedicineCount,
-            label = R.string.home_summary_low_stock,
-            icon = R.drawable.scorta_bassa,
-            iconContentDescription = R.string.home_summary_low_stock_content_description,
-            style = HomeSummaryCardStyle.LowStock,
-            modifier = Modifier.weight(1f),
-        )
+    BoxWithConstraints(modifier = modifier.fillMaxWidth()) {
+        // Le etichette vanno a capo senza ridurre il font scelto dall'utente.
+        val columns = if (maxWidth < MediShelfDimens.CompactLayoutWidth ||
+            LocalDensity.current.fontScale >= MediShelfDimens.LargeFontScale) 2 else 4
+        FlowRow(
+            maxItemsInEachRow = columns,
+            horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmallMedium),
+            verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmallMedium),
+        ) {
+            HomeSummaryCard(
+                count = uiState.activeMedicineCount,
+                label = R.string.home_summary_active,
+                icon = R.drawable.ok_icon,
+                style = HomeSummaryCardStyle.Active,
+                modifier = Modifier.weight(1f),
+            )
+            HomeSummaryCard(
+                count = uiState.expiringMedicineCount,
+                label = R.string.home_summary_expiring,
+                icon = R.drawable.in_scadenza_icon,
+                style = HomeSummaryCardStyle.Expiring,
+                modifier = Modifier.weight(1f),
+            )
+            HomeSummaryCard(
+                count = uiState.expiredMedicineCount,
+                label = R.string.home_summary_expired,
+                icon = R.drawable.scaduti,
+                style = HomeSummaryCardStyle.Expired,
+                modifier = Modifier.weight(1f),
+            )
+            HomeSummaryCard(
+                count = uiState.lowStockMedicineCount,
+                label = R.string.home_summary_low_stock,
+                icon = R.drawable.scorta_bassa,
+                style = HomeSummaryCardStyle.LowStock,
+                modifier = Modifier.weight(1f),
+            )
+        }
     }
 }
 
@@ -273,7 +280,6 @@ private fun HomeSummaryCard(
     count: Int,
     @StringRes label: Int,
     @DrawableRes icon: Int,
-    @StringRes iconContentDescription: Int,
     style: HomeSummaryCardStyle,
     modifier: Modifier = Modifier,
 ) {
@@ -283,7 +289,8 @@ private fun HomeSummaryCard(
         modifier = modifier
             .clip(RoundedCornerShape(MediShelfDimens.CornerLarge))
             .background(colors.container)
-            .height(HomeLayoutTokens.SummaryCardHeight)
+            .heightIn(min = HomeLayoutTokens.SummaryCardHeight)
+            .semantics(mergeDescendants = true) {}
             .padding(
                 horizontal = MediShelfDimens.SpacingSmall,
                 vertical = MediShelfDimens.SpacingSmall,
@@ -298,7 +305,7 @@ private fun HomeSummaryCard(
     ) {
         Image(
             painter = painterResource(icon),
-            contentDescription = stringResource(iconContentDescription),
+            contentDescription = null,
             modifier = Modifier.size(HomeLayoutTokens.SummaryIconSize),
         )
         Text(
@@ -309,20 +316,9 @@ private fun HomeSummaryCard(
         )
         Text(
             text = stringResource(label),
-            style = MaterialTheme.typography.labelSmall.copy(
-                fontSize = HomeLayoutTokens.SummaryLabelFontSize,
-                lineHeight = HomeLayoutTokens.SummaryLabelLineHeight,
-            ),
-            // Riduce solo l'etichetta, mantenendo invariata la geometria delle quattro card.
-            autoSize = TextAutoSize.StepBased(
-                minFontSize = HomeLayoutTokens.SummaryLabelMinFontSize,
-                maxFontSize = HomeLayoutTokens.SummaryLabelFontSize,
-                stepSize = HomeLayoutTokens.SummaryLabelFontStep,
-            ),
+            style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.SemiBold,
             color = colors.content,
-            maxLines = 2,
-            overflow = TextOverflow.Clip,
             textAlign = TextAlign.Center,
         )
     }
@@ -343,7 +339,8 @@ private fun HomeSearchShortcut(
                 color = MaterialTheme.colorScheme.outline.copy(alpha = MediShelfDimens.SearchBorderAlpha),
                 shape = RoundedCornerShape(MediShelfDimens.CornerLarge),
             )
-            .clickable(onClick = onClick)
+            .clickable(role = Role.Button, onClick = onClick)
+            .sizeIn(minHeight = MediShelfDimens.MinInteractiveSize)
             .padding(
                 horizontal = MediShelfDimens.SpacingMedium,
                 vertical = MediShelfDimens.SpacingSmallMedium,
@@ -383,21 +380,19 @@ private fun HomeAttentionSection(
         ) {
             Text(
                 text = stringResource(R.string.home_attention_title),
+                modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface,
             )
-            Text(
-                text = stringResource(R.string.home_see_all),
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.primary,
+            TextButton(
+                onClick = onSeeAllClick,
                 modifier = Modifier
-                    .clip(RoundedCornerShape(MediShelfDimens.CornerSmall))
-                    .clickable(onClick = onSeeAllClick)
-                    .padding(MediShelfDimens.SpacingExtraSmall)
+                    .sizeIn(minWidth = MediShelfDimens.MinInteractiveSize, minHeight = MediShelfDimens.MinInteractiveSize)
                     .testTag(HomeTestTags.SeeAllAttention),
-            )
+            ) {
+                Text(text = stringResource(R.string.home_see_all))
+            }
         }
 
         if (uiState.attentionItems.isEmpty() && !uiState.isLoading) {
@@ -530,10 +525,6 @@ private data class HomeSummaryCardColors(
 private object HomeLayoutTokens {
     val LogoSize = 80.dp
     val SummaryIconSize = 36.dp
-    val SummaryLabelFontSize = 11.sp
-    val SummaryLabelMinFontSize = 10.sp
-    val SummaryLabelFontStep = 0.5.sp
-    val SummaryLabelLineHeight = 1.2.em
     val SummaryCardHeight = 123.2.dp
     val CardElevation = 1.dp
 }
@@ -639,7 +630,6 @@ private fun HomeSummaryCardPreview() {
             count = 3,
             label = R.string.home_summary_expiring,
             icon = R.drawable.in_scadenza_icon,
-            iconContentDescription = R.string.home_summary_expiring_content_description,
             style = HomeSummaryCardStyle.Expiring,
             modifier = Modifier.padding(MediShelfDimens.ScreenPadding),
         )
@@ -766,4 +756,16 @@ object HomeTestTags {
      * @return test tag stabile dell'item.
      */
     fun attentionItem(medicineId: String): String = "home_attention_item_$medicineId"
+}
+
+/** Preview della Home compatta con caratteri al 200%. */
+@Preview(showBackground = true, widthDp = 320, fontScale = 2f)
+@Composable
+private fun HomeLargeFontPreview() {
+    MediShelfTheme {
+        HomeScreen(
+            uiState = HomeUiState(isLoading = false, activeMedicineCount = 12),
+            onAddMedicineClick = {}, onInventoryClick = {}, onExpiryClick = {}, onAttentionItemClick = {},
+        )
+    }
 }
