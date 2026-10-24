@@ -8,6 +8,7 @@ import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
@@ -36,6 +37,7 @@ class MedicineFormScreenTest {
 
         composeTestRule
             .onNodeWithText("Salva medicinale")
+            .performScrollTo()
             .assertIsDisplayed()
     }
 

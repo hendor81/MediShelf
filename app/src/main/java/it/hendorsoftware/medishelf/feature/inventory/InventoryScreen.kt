@@ -33,6 +33,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -252,11 +254,13 @@ private fun InventorySearchField(
     onClearClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val searchLabel = stringResource(R.string.inventory_search_label)
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChanged,
         modifier = modifier
             .testTag(InventoryTestTags.SearchField)
+            .semantics { contentDescription = searchLabel }
             .border(
                 width = MediShelfDimens.SearchBorderWidth,
                 color = MaterialTheme.colorScheme.outline.copy(alpha = MediShelfDimens.SearchBorderAlpha),

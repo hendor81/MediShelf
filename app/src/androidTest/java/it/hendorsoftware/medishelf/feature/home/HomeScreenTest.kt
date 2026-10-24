@@ -1,6 +1,10 @@
 package it.hendorsoftware.medishelf.feature.home
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
+import it.hendorsoftware.medishelf.R
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -35,7 +39,10 @@ class HomeScreenTest {
             .assertIsDisplayed()
 
         composeTestRule
-            .onNodeWithText("In scadenza")
+            .onNode(
+                hasText("In scadenza") and hasAnyAncestor(hasTestTag(HomeTestTags.summaryCard(R.string.home_summary_expiring))),
+                useUnmergedTree = true,
+            )
             .assertIsDisplayed()
 
         composeTestRule
