@@ -1,5 +1,33 @@
 # TECHNICAL_DOCUMENTATION.md
 
+## Issue #30 — Onboarding essenziale
+
+- `MainContent` attende le preferenze prima di scegliere fra SCH-08 e il grafo
+  principale. Non viene creata una destinazione onboarding nello stack:
+  dopo la chiusura BACK non può riaprirla.
+- `OnboardingScreen` spiega inventario offline, scadenze, notifiche locali e
+  confini organizzativi in una pagina scorrevole, con Preview chiara e scura.
+  Inizia, Salta e BACK persistono la stessa chiusura e aprono Home, dove la CTA
+  esistente guida al primo inserimento.
+- `CompleteOnboardingUseCase` e `UserSettings.hasSeenOnboarding` riusano il
+  repository delle impostazioni e SharedPreferences (`onboarding_seen`, default
+  false). Nessuna migrazione Room. Una installazione preesistente senza chiave
+  vede l'introduzione una volta; cancellare i dati ripristina il primo avvio.
+- Il ViewModel root gestisce attesa, salvataggio e retry. Un errore conserva
+  l'introduzione con feedback; gli input sono disabilitati durante il salvataggio.
+- La richiesta iniziale del permesso notifiche attende la chiusura
+  dell'introduzione; lo storico di concessione/rifiuto resta quello esistente.
+- Test JVM: primo avvio, chiusura, ricreazione, attesa della prima emissione,
+  errore e retry, conservazione della preferenza negli aggiornamenti successivi.
+  Test Android: azioni Inizia/Salta e rilettura da SharedPreferences isolate.
+  Gli smoke test di navigazione chiudono l'introduzione quando presente.
+- Verifiche: 105 test JVM superati, build debug e compilazione dei test Android
+  riuscite. Esecuzione dei tre test Android tentata sul dispositivo collegato,
+  ma bloccata dall'installazione APK (`INSTALL_FAILED_USER_RESTRICTED`): nessun
+  test strumentale risulta eseguito, anche se Gradle riporta BUILD SUCCESSFUL.
+- Lint completato con zero errori e 127 avvisi complessivi, usando un processo
+  isolato con un worker dopo un blocco dell'analizzatore nel primo tentativo.
+
 ## Scopo
 Raccogliere la documentazione tecnica viva del progetto Android man mano che l'implementazione procede.
 

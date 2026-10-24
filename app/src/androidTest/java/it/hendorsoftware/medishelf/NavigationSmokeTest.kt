@@ -10,6 +10,7 @@ import androidx.compose.ui.test.performTextInput
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import org.junit.Rule
 import org.junit.Test
+import org.junit.Before
 import org.junit.runner.RunWith
 
 /**
@@ -22,6 +23,22 @@ class NavigationSmokeTest {
 
     @get:Rule
     val composeTestRule = createAndroidComposeRule<MainActivity>()
+
+    /** I test del grafo principale chiudono l'introduzione se presente. */
+    @Before
+    fun completeOnboardingIfNeeded() {
+        val title = composeTestRule.activity.getString(R.string.onboarding_title)
+        val home = composeTestRule.activity.getString(R.string.bottom_navigation_home_content_description)
+        composeTestRule.waitUntil(5_000) {
+            composeTestRule.onAllNodes(androidx.compose.ui.test.hasText(title)
+                .or(androidx.compose.ui.test.hasContentDescription(home))).fetchSemanticsNodes().isNotEmpty()
+        }
+        if (composeTestRule.onAllNodes(androidx.compose.ui.test.hasText(title)).fetchSemanticsNodes().isNotEmpty()) {
+            composeTestRule.onNodeWithText(composeTestRule.activity.getString(R.string.onboarding_skip))
+                .performScrollTo().performClick()
+            composeTestRule.waitForIdle()
+        }
+    }
 
     /**
      * Controlla che la destinazione iniziale del grafo sia la Home.

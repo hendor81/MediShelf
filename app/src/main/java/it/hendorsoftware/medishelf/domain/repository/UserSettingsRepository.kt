@@ -11,6 +11,8 @@ import kotlinx.coroutines.flow.Flow
  * concreto, cosi le impostazioni possono essere osservate da use case e ViewModel.
  */
 interface UserSettingsRepository {
+    /** Segna come vista l'introduzione, anche quando viene saltata. */
+    suspend fun completeOnboarding()
 
     /**
      * Osserva le preferenze locali correnti.

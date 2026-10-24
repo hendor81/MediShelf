@@ -46,7 +46,7 @@ class MainActivity : ComponentActivity() {
             val preferences = getSharedPreferences(NotificationPermissionHistory.PREFERENCES_NAME, MODE_PRIVATE)
             // Il primo avvio richiede il permesso una sola volta; nuovi tentativi partono dalle Impostazioni.
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                settingsRepository.observeSettings().first().notificationsEnabled &&
+                settingsRepository.observeSettings().first { it.hasSeenOnboarding }.notificationsEnabled &&
                 checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED &&
                 !preferences.getBoolean(NotificationPermissionHistory.REQUESTED_KEY, false)
             ) {
@@ -66,7 +66,7 @@ class MainActivity : ComponentActivity() {
             }
 
             MediShelfTheme(darkTheme = darkTheme) {
-                MediShelfApp()
+                MainContent(uiState, viewModel::onCompleteOnboarding)
             }
         }
     }
