@@ -16,9 +16,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import it.hendorsoftware.medishelf.R
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfDimens
@@ -47,6 +48,9 @@ fun MedicineListCard(
     badgeBesideName: Boolean = false,
     isLowStock: Boolean = false,
 ) {
+    val inlineBadge = badgeBesideName &&
+        LocalDensity.current.fontScale < MediShelfDimens.LargeFontScale &&
+        LocalConfiguration.current.screenWidthDp >= MediShelfDimens.CompactLayoutWidth.value
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
@@ -75,10 +79,8 @@ fun MedicineListCard(
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
                     )
-                    if (badgeBesideName) MedicineStatusBadge(status = status)
+                    if (inlineBadge) MedicineStatusBadge(status = status)
                 }
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmall),
@@ -97,7 +99,7 @@ fun MedicineListCard(
                     horizontalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmall),
                     verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingExtraSmall),
                 ) {
-                    if (!badgeBesideName) MedicineStatusBadge(status = status)
+                    if (!inlineBadge) MedicineStatusBadge(status = status)
                     if (isLowStock) MedicineStatusBadge(status = MedicineStatusBadgeStatus.LowStock)
                 }
             }
@@ -116,6 +118,20 @@ private fun MedicineListCardPreview() {
             metadata = listOf("12 compresse", "Scadenza 31/12/2026", "Bagno"),
             onClick = {},
             modifier = Modifier.padding(MediShelfDimens.SpacingMedium),
+        )
+    }
+}
+
+/** Preview della card compatta con nome completo e font al 200%. */
+@Preview(showBackground = true, widthDp = 320, fontScale = 2f)
+@Composable
+private fun MedicineListCardLargeFontPreview() {
+    MediShelfTheme {
+        MedicineListCard(
+            name = "Paracetamolo 500 mg compresse effervescenti",
+            status = MedicineStatusBadgeStatus.ExpiringSoon,
+            metadata = listOf("Scadenza 31/12/2026"),
+            onClick = {}, badgeBesideName = true, isLowStock = true,
         )
     }
 }
