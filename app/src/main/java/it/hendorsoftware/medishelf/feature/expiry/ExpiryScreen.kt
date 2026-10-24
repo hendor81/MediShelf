@@ -1,6 +1,8 @@
 package it.hendorsoftware.medishelf.feature.expiry
 
 import androidx.annotation.StringRes
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -107,7 +109,7 @@ fun ExpiryScreen(
         ExpiryContent(
             uiState = uiState,
             onMedicineClick = onMedicineClick,
-
+            onAddMedicineClick = onAddMedicineClick,
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
@@ -119,6 +121,7 @@ fun ExpiryScreen(
 private fun ExpiryContent(
     uiState: ExpiryUiState,
     onMedicineClick: (String) -> Unit,
+    onAddMedicineClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
@@ -130,9 +133,13 @@ private fun ExpiryContent(
             EmptyState(
                 title = stringResource(R.string.expiry_empty_title),
                 body = stringResource(R.string.expiry_empty_body),
+                actionLabel = stringResource(R.string.navigation_action_add_medicine),
+                onActionClick = onAddMedicineClick,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .testTag(ExpiryTestTags.EmptyState)
                     .padding(MediShelfDimens.ScreenPadding),
                 icon = {
                     Image(
@@ -380,6 +387,7 @@ private val sampleExpiryMedicines = listOf(
  * Test tag stabili della schermata Scadenzario.
  */
 object ExpiryTestTags {
+    const val EmptyState = "expiry_empty_state"
     const val ExpiringSection = "expiry_expiring_section"
     const val ExpiredSection = "expiry_expired_section"
     const val NoExpirationSection = "expiry_no_expiration_section"

@@ -1,5 +1,7 @@
 package it.hendorsoftware.medishelf.feature.archive
 
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -81,7 +83,7 @@ fun ArchiveScreen(
         ArchiveContent(
             uiState = uiState,
             onMedicineClick = onMedicineClick,
-
+            onBackClick = onBackClick,
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
@@ -93,6 +95,7 @@ fun ArchiveScreen(
 private fun ArchiveContent(
     uiState: ArchiveUiState,
     onMedicineClick: (String) -> Unit,
+    onBackClick: () -> Unit = {},
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
@@ -104,8 +107,12 @@ private fun ArchiveContent(
             EmptyState(
                 title = stringResource(R.string.archive_empty_title),
                 body = stringResource(R.string.archive_empty_body),
+                actionLabel = stringResource(R.string.navigation_action_go_back),
+                onActionClick = onBackClick,
                 modifier = Modifier
                     .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .testTag(ArchiveTestTags.EmptyState)
                     .padding(MediShelfDimens.ScreenPadding),
                 icon = {
                     Image(
@@ -172,6 +179,7 @@ private fun ArchiveMedicineListItem(
  * Test tag stabili della schermata Archivio.
  */
 object ArchiveTestTags {
+    const val EmptyState = "archive_empty_state"
     /**
      * Restituisce il tag della card associata al medicinale archiviato.
      *

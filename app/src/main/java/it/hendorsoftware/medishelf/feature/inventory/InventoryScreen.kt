@@ -2,6 +2,8 @@ package it.hendorsoftware.medishelf.feature.inventory
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -204,14 +206,21 @@ private fun InventoryContent(
                     },
                 ),
                 actionLabel = if (isFilteredEmptyState) {
-                    null
+                    stringResource(R.string.inventory_reset_filters)
                 } else {
                     stringResource(R.string.navigation_action_add_medicine)
                 },
-                onActionClick = if (isFilteredEmptyState) null else onAddMedicineClick,
+                onActionClick = if (isFilteredEmptyState) {
+                    {
+                        onSearchQueryCleared()
+                        onStatusFilterSelected(InventoryStatusFilter.All)
+                    }
+                } else onAddMedicineClick,
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth()
+                    .verticalScroll(rememberScrollState())
+                    .testTag(InventoryTestTags.EmptyState)
                     .padding(MediShelfDimens.ScreenPadding),
                 icon = {
                     if (isFilteredEmptyState) {
@@ -528,6 +537,7 @@ private val sampleInventoryMedicines = listOf(
  * Test tag stabili della schermata Inventario.
  */
 object InventoryTestTags {
+    const val EmptyState = "inventory_empty_state"
     const val SearchField = "inventory_search_field"
     const val ClearSearchButton = "inventory_clear_search_button"
 

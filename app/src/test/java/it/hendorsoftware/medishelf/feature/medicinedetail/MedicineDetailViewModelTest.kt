@@ -5,6 +5,7 @@ import it.hendorsoftware.medishelf.core.time.FakeDateProvider
 import it.hendorsoftware.medishelf.domain.model.Medicine
 import it.hendorsoftware.medishelf.domain.model.MedicineId
 import it.hendorsoftware.medishelf.domain.model.QuantityInfo
+import it.hendorsoftware.medishelf.domain.repository.MedicineRepository
 import it.hendorsoftware.medishelf.domain.repository.FakeMedicineRepository
 import it.hendorsoftware.medishelf.domain.repository.FakeUserSettingsRepository
 import it.hendorsoftware.medishelf.domain.rules.MedicineStatusCalculator
@@ -14,6 +15,7 @@ import it.hendorsoftware.medishelf.domain.usecase.GetMedicineByIdUseCase
 import it.hendorsoftware.medishelf.domain.usecase.ObserveUserSettingsUseCase
 import it.hendorsoftware.medishelf.domain.usecase.UpdateMedicineQuantityUseCase
 import it.hendorsoftware.medishelf.testing.MainDispatcherRule
+import java.io.IOException
 import java.time.Instant
 import java.time.LocalDate
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -247,7 +249,33 @@ class MedicineDetailViewModelTest {
         assertTrue(viewModel.uiState.value.hasDeleteCompleted)
     }
 
-    private fun createViewModel(repository: FakeMedicineRepository): MedicineDetailViewModel =
+    /** Un errore di lettura è recuperabile e non equivale a una voce assente. */
+    @Test
+    fun shouldRetryFailedDetailLoad() = runTest {
+        val storage = FakeMedicineRepository(listOf(sampleMedicine()))
+        var fail = true
+        val repository = object : MedicineRepository by storage {
+            override suspend fun getMedicineById(id: MedicineId): Medicine? {
+                if (fail) throw IOException("Read failed")
+                return storage.getMedicineById(id)
+            }
+        }
+        val viewModel = createViewModel(repository)
+        viewModel.loadMedicine("1")
+        advanceUntilIdle()
+        assertTrue(viewModel.uiState.value.hasLoadError)
+        assertFalse(viewModel.uiState.value.hasActionError)
+        assertFalse(viewModel.uiState.value.isNotFound)
+        assertFalse(viewModel.uiState.value.isLoading)
+
+        fail = false
+        viewModel.loadMedicine("1")
+        advanceUntilIdle()
+        assertFalse(viewModel.uiState.value.hasLoadError)
+        assertEquals("1", viewModel.uiState.value.medicine?.id)
+    }
+
+    private fun createViewModel(repository: MedicineRepository): MedicineDetailViewModel =
         MedicineDetailViewModel(
             getMedicineByIdUseCase = GetMedicineByIdUseCase(repository),
             archiveMedicineUseCase = ArchiveMedicineUseCase(repository),

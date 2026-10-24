@@ -400,8 +400,8 @@ private fun HomeAttentionSection(
             )
         }
 
-        if (uiState.attentionItems.isEmpty()) {
-            HomeAttentionEmptyState()
+        if (uiState.attentionItems.isEmpty() && !uiState.isLoading) {
+            HomeAttentionEmptyState(isCabinetEmpty = uiState.isEmpty)
         } else {
             Column(
                 verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmallMedium),
@@ -420,6 +420,7 @@ private fun HomeAttentionSection(
 @Composable
 private fun HomeAttentionEmptyState(
     modifier: Modifier = Modifier,
+    isCabinetEmpty: Boolean = false,
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -441,12 +442,12 @@ private fun HomeAttentionEmptyState(
                 verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingExtraSmall),
             ) {
                 Text(
-                    text = stringResource(R.string.home_attention_empty_title),
+                    text = stringResource(if (isCabinetEmpty) R.string.home_empty_title else R.string.home_attention_empty_title),
                     style = MaterialTheme.typography.titleSmall,
                     color = MaterialTheme.colorScheme.onSurface,
                 )
                 Text(
-                    text = stringResource(R.string.home_attention_empty_body),
+                    text = stringResource(if (isCabinetEmpty) R.string.home_empty_body else R.string.home_attention_empty_body),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
