@@ -1102,3 +1102,11 @@ Titolo della schermata abbreviato in Dettaglio. Palette scura campionata dallo s
 Verifica #94: build debug, 107 test JVM, lint (zero errori, 127 avvisi) e
 5 test strumentali del pacchetto onboarding sul dispositivo Android 16 collegato
 completati con successo (4 Compose e 1 sulle preferenze persistenti).
+
+### Rifiniture visuali della guida (#94)
+
+I messaggi cambiano con una breve dissolvenza e il ritaglio evidenziato si sposta
+con una transizione delle coordinate. Il ritaglio usa angoli arrotondati.
+Il riquadro descrittivo usa primaryContainer/onPrimaryContainer del tema, bordo
+primario e ombra per restare distinto dalle card, anche quando le sovrappone.
+Durata, bordo ed elevazione sono token locali; nessuna nuova dipendenza.

@@ -1,6 +1,13 @@
 package it.hendorsoftware.medishelf.feature.onboarding
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.animateRectAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.RoundRect
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -80,38 +87,62 @@ fun HomeTutorialOverlay(
             .clickable(remember { MutableInteractionSource() }, indication = null) { }
             .semantics { paneTitle = title },
     ) {
+        val maxMessageHeight = maxHeight * TutorialTokens.MaxHeightFraction
         val bounds = targets[target]
+        val animatedBounds by animateRectAsState(
+            targetValue = bounds ?: Rect.Zero,
+            animationSpec = tween(TutorialTokens.TransitionMillis),
+            label = "tutorialSpotlight",
+        )
+        val cornerRadius = with(androidx.compose.ui.platform.LocalDensity.current) {
+            MediShelfDimens.CornerMedium.toPx()
+        }
         Canvas(Modifier.fillMaxSize()) {
             val path = Path().apply {
                 fillType = PathFillType.EvenOdd
                 addRect(Rect(0f, 0f, size.width, size.height))
-                bounds?.let { addRect(it) }
+                if (bounds != null) {
+                    addRoundRect(RoundRect(animatedBounds, CornerRadius(cornerRadius)))
+                }
             }
             drawPath(path, scrim)
         }
         // I controlli inferiori sono spiegati dall’alto, gli altri dal basso.
         // Il contenuto scorre per mantenere disponibili le azioni con font grandi.
-        Surface(
-            modifier = Modifier.align(if (step >= TutorialTarget.Add.ordinal) Alignment.TopCenter else Alignment.BottomCenter)
-                .safeDrawingPadding().padding(MediShelfDimens.ScreenPadding)
-                .widthIn(max = TutorialTokens.MaxWidth)
-                .heightIn(max = maxHeight * TutorialTokens.MaxHeightFraction),
-            shape = MaterialTheme.shapes.large,
-            color = MaterialTheme.colorScheme.surface,
-        ) {
-            Column(
-                Modifier.verticalScroll(rememberScrollState()).padding(MediShelfDimens.SpacingMedium),
-                verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmallMedium),
-            ) {
-                Text(stringResource(R.string.tutorial_progress, step + 1, TutorialTarget.entries.size),
-                    style = MaterialTheme.typography.labelLarge)
-                Text(title, style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
-                Text(stringResource(target.body), style = MaterialTheme.typography.bodyMedium)
-                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                    TextButton(onClick = onDismiss) { Text(stringResource(R.string.onboarding_skip)) }
-                    Button(onClick = onNext) {
-                        Text(stringResource(if (step == TutorialTarget.entries.lastIndex) R.string.tutorial_finish else R.string.onboarding_start))
+        Crossfade(
+            targetState = step,
+            modifier = Modifier.fillMaxSize(),
+            animationSpec = tween(TutorialTokens.TransitionMillis),
+            label = "tutorialMessage",
+        ) { displayedStep ->
+            val displayedTarget = TutorialTarget.entries[displayedStep]
+            Box(Modifier.fillMaxSize()) {
+                Surface(
+                    modifier = Modifier.align(if (displayedStep >= TutorialTarget.Add.ordinal) Alignment.TopCenter else Alignment.BottomCenter)
+                        .safeDrawingPadding().padding(MediShelfDimens.ScreenPadding)
+                        .widthIn(max = TutorialTokens.MaxWidth)
+                        .heightIn(max = maxMessageHeight),
+                    shape = MaterialTheme.shapes.large,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    shadowElevation = TutorialTokens.MessageElevation,
+                    border = BorderStroke(TutorialTokens.MessageBorderWidth, MaterialTheme.colorScheme.primary),
+                ) {
+                    Column(
+                        Modifier.verticalScroll(rememberScrollState()).padding(MediShelfDimens.SpacingMedium),
+                        verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmallMedium),
+                    ) {
+                        Text(stringResource(R.string.tutorial_progress, displayedStep + 1, TutorialTarget.entries.size),
+                            style = MaterialTheme.typography.labelLarge)
+                        Text(stringResource(displayedTarget.title), style = MaterialTheme.typography.titleLarge,
+                            modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite })
+                        Text(stringResource(displayedTarget.body), style = MaterialTheme.typography.bodyMedium)
+                        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+                            TextButton(onClick = onDismiss) { Text(stringResource(R.string.onboarding_skip)) }
+                            Button(onClick = onNext) {
+                                Text(stringResource(if (displayedStep == TutorialTarget.entries.lastIndex) R.string.tutorial_finish else R.string.onboarding_start))
+                            }
+                        }
                     }
                 }
             }
@@ -121,6 +152,9 @@ fun HomeTutorialOverlay(
 
 /** Token visuali locali della guida. */
 private object TutorialTokens {
+    const val TransitionMillis = 240
+    val MessageElevation = 12.dp
+    val MessageBorderWidth = 1.dp
     const val ScrimAlpha = 0.72f
     const val MaxHeightFraction = 0.5f
     val MaxWidth = androidx.compose.ui.unit.Dp(480f)
