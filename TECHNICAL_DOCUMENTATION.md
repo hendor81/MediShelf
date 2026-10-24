@@ -1110,3 +1110,40 @@ con una transizione delle coordinate. Il ritaglio usa angoli arrotondati.
 Il riquadro descrittivo usa primaryContainer/onPrimaryContainer del tema, bordo
 primario e ombra per restare distinto dalle card, anche quando le sovrappone.
 Durata, bordo ed elevazione sono token locali; nessuna nuova dipendenza.
+
+### Correzioni della review Copilot sulla PR #96
+
+- La guida usa una finestra Popup focusable dimensionata e posizionata sul root:
+  isola tastiera e accessibilità dalla Home, conserva le coordinate dei bersagli
+  e assegna il focus iniziale al contenitore del messaggio. BACK e Salta chiudono la guida.
+- Il messaggio sceglie il lato con più spazio rispetto alla geometria del bersaglio.
+  La scelta resta stabile durante lo scroll per evitare oscillazioni. L’ingombro
+  misurato riserva spazio nel viewport Home, quindi bringIntoView considera anche
+  il tooltip. L’altezza del messaggio tiene conto del viewport e il testo scorre
+  quando lo spazio o i caratteri grandi lo richiedono.
+- Il campo Cerca per nome conserva un’etichetta semantica anche con query presente,
+  mantenendo il placeholder e lo stile visuale approvati.
+- Il test di Fine usa stato Compose e verifica la scomparsa del tooltip. Nuovi test
+  coprono focus da tastiera, assenza di sovrapposizioni in una finestra bassa con
+  lista vuota/popolata e font grandi, e l’etichetta accessibile con testo digitato.
+
+Verifica delle correzioni: 107 test JVM superati; build debug e lint completati
+con zero errori e 127 avvisi. Tutti i 31 test strumentali delle feature sono
+passati sul dispositivo Android 16, inclusi focus da tastiera, geometria con font
+grandi, chiusura della guida ed etichetta della ricerca con query presente.
+Adeguati anche due test preesistenti: selezione del riepilogo Home tramite tag
+per evitare testi duplicati e scroll esplicito al pulsante Salva del form.
+
+### Focus iniziale dei messaggi lunghi (review PR #97)
+
+Il focus iniziale appartiene al contenitore del messaggio, esterno allo scroll,
+anziché ad Avanti/Fine. Ogni passo azzera lo scroll: titolo e inizio della
+spiegazione restano visibili; Tab raggiunge poi le azioni, riportandole in vista
+solo quando richiesto dall’utente. Il Popup continua a isolare il focus dalla Home.
+Un test combinato esercita i cinque passi da tastiera, con font al 160% e finestra
+alta 420 dp: verifica overflow reale, scroll iniziale zero, titolo/spiegazione
+visibili, avanzamento con Tab/Invio e chiusura finale.
+
+Verifica del focus iniziale: build debug e lint superati (zero errori, 127 avvisi);
+9 test strumentali onboarding superati su Android 16, incluso il nuovo caso
+combinato di tastiera e messaggi con overflow.

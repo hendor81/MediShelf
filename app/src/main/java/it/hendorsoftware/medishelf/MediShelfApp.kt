@@ -3,6 +3,7 @@ package it.hendorsoftware.medishelf
 import it.hendorsoftware.medishelf.feature.onboarding.*
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -55,7 +56,14 @@ fun MediShelfApp(
     val currentDestination = navBackStackEntry?.destination
 
     val targets = remember { mutableStateMapOf<TutorialTarget, Rect>() }
-    CompositionLocalProvider(LocalTutorialTargets provides targets, LocalTutorialStep provides tutorialStep) {
+    val messageArea = remember { mutableStateOf<TutorialMessageArea?>(null) }
+    val viewportBounds = remember { mutableStateOf<Rect?>(null) }
+    CompositionLocalProvider(
+        LocalTutorialTargets provides targets,
+        LocalTutorialStep provides tutorialStep,
+        LocalTutorialMessageArea provides messageArea,
+        LocalTutorialViewportBounds provides viewportBounds,
+    ) {
         Box(Modifier.fillMaxSize()) {
             Scaffold(
                 modifier = if (tutorialStep != null) Modifier.fillMaxSize().clearAndSetSemantics {} else Modifier.fillMaxSize(),

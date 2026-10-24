@@ -1,5 +1,8 @@
 package it.hendorsoftware.medishelf.feature.inventory
 
+import androidx.compose.ui.test.assertContentDescriptionEquals
+import androidx.test.platform.app.InstrumentationRegistry
+import it.hendorsoftware.medishelf.R
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.hasAnyAncestor
@@ -162,6 +165,15 @@ class InventoryScreenTest {
             .performClick()
 
         assertEquals(InventoryStatusFilter.Expired, selectedFilter)
+    }
+
+    /** L’etichetta accessibile resta disponibile anche quando il placeholder scompare. */
+    @Test
+    fun shouldKeepAccessibleSearchLabelWithQuery() {
+        setInventoryContent(InventoryUiState(isLoading = false, searchQuery = "para"))
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        composeTestRule.onNodeWithTag(InventoryTestTags.SearchField)
+            .assertContentDescriptionEquals(context.getString(R.string.inventory_search_label))
     }
 
     private fun setInventoryContent(

@@ -130,6 +130,7 @@ fun HomeScreen(
             Column(
                 modifier = Modifier
                     .weight(1f)
+                    .tutorialViewport()
                     .verticalScroll(rememberScrollState())
                     .padding(
                         horizontal = MediShelfDimens.SpacingMedium,
