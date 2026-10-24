@@ -1076,3 +1076,37 @@ Verifica delle correzioni: 101 test unitari superati; build debug, lint e compil
 
 ### Palette scura e titolo Dettaglio (issue #92)
 Titolo della schermata abbreviato in Dettaglio. Palette scura campionata dallo screenshot: aggiornati token Material, superfici dei menu/dialog/barre, accenti, testi, separatori e badge. La Home usa onBackground per il testo del marchio, evitando il nero fisso nel tema scuro. Layout e regole di dominio restano invariati.
+
+## Issue #94 — Onboarding e guida della Home
+
+- SCH-08 distingue Avanti e Salta: entrambi persistono `hasSeenOnboarding`,
+  ma solo Avanti apre la Home con la guida. BACK equivale a Salta.
+- `MainViewModel` coordina cinque passi, uscita anticipata e completamento.
+  L’errore di persistenza mantiene l’introduzione e consente un nuovo tentativo.
+  Lo stato osservato non apre la Home prima che sia disponibile la scelta della guida.
+- `HomeTutorialOverlay` evidenzia gli elementi reali tramite coordinate Compose:
+  riepiloghi, ricerca, sezione medicinali da controllare (anche vuota), pulsante
+  aggiunta e barra delle quattro destinazioni. Il bersaglio viene portato in vista;
+  l’overlay intercetta i tap e nasconde la semantica della UI sottostante.
+- Ogni passo espone Avanti/Fine, Salta, progresso testuale e supporto BACK.
+  I testi scorrono con font grandi; risorse e token visuali sono centralizzati.
+  Preview disponibili anche a larghezza ridotta e font ingranditi.
+- Il passo corrente resta nel ViewModel durante la rotazione. Dopo la morte del
+  processo o un nuovo avvio la guida non viene riproposta: l’onboarding è già
+  persistito come concluso. Nessuna modifica Room e nessuna nuova dipendenza.
+- La richiesta iniziale del permesso notifiche attende la chiusura della guida.
+- Test JVM: percorso Salta, ordine e chiusura dei cinque passi, uscita anticipata,
+  riapertura ed errore recuperabile. Test Compose: callback distinte per Avanti e
+  Salta, ordine dei tooltip, Fine e uscita anticipata.
+
+Verifica #94: build debug, 107 test JVM, lint (zero errori, 127 avvisi) e
+5 test strumentali del pacchetto onboarding sul dispositivo Android 16 collegato
+completati con successo (4 Compose e 1 sulle preferenze persistenti).
+
+### Rifiniture visuali della guida (#94)
+
+I messaggi cambiano con una breve dissolvenza e il ritaglio evidenziato si sposta
+con una transizione delle coordinate. Il ritaglio usa angoli arrotondati.
+Il riquadro descrittivo usa primaryContainer/onPrimaryContainer del tema, bordo
+primario e ombra per restare distinto dalle card, anche quando le sovrappone.
+Durata, bordo ed elevazione sono token locali; nessuna nuova dipendenza.

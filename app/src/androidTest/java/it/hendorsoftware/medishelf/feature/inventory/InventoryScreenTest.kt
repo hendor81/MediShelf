@@ -1,6 +1,11 @@
 package it.hendorsoftware.medishelf.feature.inventory
 
 import androidx.compose.ui.test.assertIsDisplayed
+import androidx.compose.ui.test.assertCountEquals
+import androidx.compose.ui.test.hasAnyAncestor
+import androidx.compose.ui.test.hasTestTag
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -31,9 +36,11 @@ class InventoryScreenTest {
             .onNodeWithText("Inventario vuoto")
             .assertIsDisplayed()
 
-        composeTestRule
-            .onNodeWithText("Aggiungi medicinale")
-            .assertIsDisplayed()
+        // CTA nello stato vuoto e nella barra inferiore: entrambe devono essere visibili.
+        val addActions = composeTestRule.onAllNodesWithText("Aggiungi medicinale")
+        addActions.assertCountEquals(2)
+        addActions[0].assertIsDisplayed()
+        addActions[1].assertIsDisplayed()
     }
 
     /**
@@ -53,7 +60,10 @@ class InventoryScreenTest {
             .assertIsDisplayed()
 
         composeTestRule
-            .onNodeWithText("In scadenza")
+            .onNode(
+                hasText("In scadenza") and hasAnyAncestor(hasTestTag(InventoryTestTags.medicineItem("1"))),
+                useUnmergedTree = true,
+            )
             .assertIsDisplayed()
 
         composeTestRule

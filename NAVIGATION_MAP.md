@@ -81,3 +81,11 @@ Avvio app
 - Archiviazione: sostituisce il Dettaglio con Archivio; BACK torna alla schermata precedente al Dettaglio.
 - Dettaglio archiviato → Ripristina: la voce torna attiva e il Dettaglio si aggiorna; BACK torna all'Archivio.
 - La preferenza Archivia/Elimina stabilisce l'azione principale del Dettaglio; l'altra resta nella barra. Elimina richiede sempre conferma.
+
+## Onboarding e guida Home (issue #94)
+
+- SCH-08 → Salta o BACK: Home senza guida.
+- SCH-08 → Avanti: Home con cinque tooltip in ordine: riepiloghi, ricerca,
+  medicinali da controllare, aggiunta, barra di navigazione.
+- Avanti avanza; Fine, Salta e BACK chiudono la guida restando sulla Home.
+- L’onboarding concluso o saltato non ricompare ai successivi avvii.

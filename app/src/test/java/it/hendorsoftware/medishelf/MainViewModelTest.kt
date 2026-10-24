@@ -35,7 +35,7 @@ class MainViewModelTest {
         assertTrue(model(repository).uiState.value.isLoading)
     }
 
-    /** Un errore conserva la schermata e un nuovo tentativo può completare. */
+    /** Un errore conserva la schermata e un nuovo tentativo puÃ² completare. */
     @Test fun shouldAllowRetryAfterSaveFailure() = runTest {
         val values = MutableStateFlow(UserSettings())
         var fail = true
@@ -47,7 +47,8 @@ class MainViewModelTest {
             }
         }
         val model = model(repository)
-        model.onCompleteOnboarding()
+        model.onCompleteOnboarding(startTutorial = true)
+        assertNull(model.uiState.value.tutorialStep)
         assertTrue(model.uiState.value.hasSaveError)
         assertFalse(model.uiState.value.isSaving)
         assertFalse(model.uiState.value.hasSeenOnboarding)
@@ -55,6 +56,37 @@ class MainViewModelTest {
         model.onCompleteOnboarding()
         assertTrue(model.uiState.value.hasSeenOnboarding)
         assertFalse(model.uiState.value.hasSaveError)
+    }
+
+    /** Avanti avvia cinque passi; alla fine resta la Home e la riapertura non ripete la guida. */
+    @Test fun shouldGuideThroughFiveStepsOnlyAfterStart() = runTest {
+        val repository = FakeUserSettingsRepository()
+        val model = model(repository)
+        model.onCompleteOnboarding(startTutorial = true)
+        for (step in 0..4) {
+            assertEquals(step, model.uiState.value.tutorialStep)
+            model.onTutorialNext()
+        }
+        assertNull(model.uiState.value.tutorialStep)
+        assertTrue(model.uiState.value.hasSeenOnboarding)
+        assertNull(model(repository).uiState.value.tutorialStep)
+    }
+
+    /** Salta apre subito la Home; la guida avviata può essere interrotta in ogni passo. */
+    @Test fun shouldSkipOrDismissWithoutRestartingTutorial() = runTest {
+        val skipped = model(FakeUserSettingsRepository())
+        skipped.onCompleteOnboarding()
+        assertTrue(skipped.uiState.value.hasSeenOnboarding)
+        assertNull(skipped.uiState.value.tutorialStep)
+        for (step in 0..4) {
+            val model = model(FakeUserSettingsRepository())
+            model.onCompleteOnboarding(startTutorial = true)
+            repeat(step) { model.onTutorialNext() }
+            model.onTutorialDismiss()
+            assertNull(model.uiState.value.tutorialStep)
+            model.onCompleteOnboarding(startTutorial = true)
+            assertNull(model.uiState.value.tutorialStep)
+        }
     }
 
     private fun model(repository: UserSettingsRepository) = MainViewModel(

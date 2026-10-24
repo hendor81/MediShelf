@@ -1,5 +1,6 @@
 package it.hendorsoftware.medishelf.feature.home
 
+import it.hendorsoftware.medishelf.feature.onboarding.*
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import androidx.compose.foundation.Image
@@ -114,7 +115,7 @@ fun HomeScreen(
     Scaffold(
         modifier = modifier,
         bottomBar = {
-            HomePrimaryActionBar(onAddMedicineClick = onAddMedicineClick)
+            HomePrimaryActionBar(onAddMedicineClick = onAddMedicineClick, modifier = Modifier.tutorialTarget(TutorialTarget.Add))
         },
     ) { innerPadding ->
         Column(
@@ -137,9 +138,10 @@ fun HomeScreen(
                 verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingLarge),
             ) {
                 HomeHeader()
-                HomeSummaryCards(uiState = uiState)
-                HomeSearchShortcut(onClick = onInventoryClick)
+                HomeSummaryCards(uiState = uiState, modifier = Modifier.tutorialTarget(TutorialTarget.Summary))
+                HomeSearchShortcut(onClick = onInventoryClick, modifier = Modifier.tutorialTarget(TutorialTarget.Search))
                 HomeAttentionSection(
+                    modifier = Modifier.tutorialTarget(TutorialTarget.Medicines),
                     uiState = uiState,
                     onSeeAllClick = onSeeAllAttentionClick,
                     onAttentionItemClick = onAttentionItemClick,
@@ -289,7 +291,8 @@ private fun HomeSummaryCard(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(
             space = MediShelfDimens.SpacingExtraSmall,
-            alignment = Alignment.CenterVertically,
+            // Le etichette su due righe non devono spostare icona e conteggio.
+            alignment = Alignment.Top,
         ),
     ) {
         Image(
@@ -335,8 +338,8 @@ private fun HomeSearchShortcut(
             .clip(RoundedCornerShape(MediShelfDimens.CornerLarge))
             .background(MaterialTheme.colorScheme.surface)
             .border(
-                width = HomeLayoutTokens.Hairline,
-                color = MaterialTheme.colorScheme.outline.copy(alpha = HomeLayoutTokens.BorderAlpha),
+                width = MediShelfDimens.SearchBorderWidth,
+                color = MaterialTheme.colorScheme.outline.copy(alpha = MediShelfDimens.SearchBorderAlpha),
                 shape = RoundedCornerShape(MediShelfDimens.CornerLarge),
             )
             .clickable(onClick = onClick)
@@ -531,8 +534,6 @@ private object HomeLayoutTokens {
     val SummaryLabelLineHeight = 1.2.em
     val SummaryCardHeight = 123.2.dp
     val CardElevation = 1.dp
-    val Hairline = 1.dp
-    const val BorderAlpha = 0.24f
 }
 
 /**

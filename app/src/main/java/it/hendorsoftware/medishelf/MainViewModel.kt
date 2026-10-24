@@ -46,21 +46,25 @@ class MainViewModel @Inject constructor(
                     it.copy(
                         themeMode = settings.themeMode,
                         isLoading = false,
-                        hasSeenOnboarding = settings.hasSeenOnboarding,
+                        // La transizione alla Home deve includere anche la scelta della guida.
+                        hasSeenOnboarding = if (it.isSaving) it.hasSeenOnboarding else settings.hasSeenOnboarding,
                     )
                 }
             }
         }
     }
 
-    /** Chiude o salta l'introduzione solo dopo il salvataggio; un errore consente il retry. */
-    fun onCompleteOnboarding() {
+    /**
+     * Chiude l’introduzione solo dopo il salvataggio; un errore consente il retry.
+     * @param startTutorial true per Avanti, false per Salta o BACK.
+     */
+    fun onCompleteOnboarding(startTutorial: Boolean = false) {
         if (_uiState.value.isSaving || _uiState.value.hasSeenOnboarding) return
         _uiState.update { it.copy(isSaving = true, hasSaveError = false) }
         viewModelScope.launch {
             try {
                 completeOnboardingUseCase()
-                _uiState.update { it.copy(isSaving = false, hasSeenOnboarding = true) }
+                _uiState.update { it.copy(isSaving = false, hasSeenOnboarding = true, tutorialStep = if (startTutorial) 0 else null) }
             } catch (exception: CancellationException) {
                 throw exception
             } catch (exception: Exception) {
@@ -68,18 +72,32 @@ class MainViewModel @Inject constructor(
             }
         }
     }
+
+    /** Avanza nella guida e la chiude dopo il quinto passo. */
+    fun onTutorialNext() {
+        _uiState.update { state ->
+            state.copy(tutorialStep = state.tutorialStep?.let { if (it < 4) it + 1 else null })
+        }
+    }
+
+    /** Salta la guida lasciando l'onboarding completato. */
+    fun onTutorialDismiss() {
+        _uiState.update { it.copy(tutorialStep = null) }
+    }
 }
 
 /**
  * Stato globale minimo necessario prima del grafo di navigazione.
  *
  * @param themeMode modalita tema persistita.
+ * @param tutorialStep passo della guida Home; null quando assente o conclusa.
  * @param isLoading attesa della prima lettura delle preferenze.
  * @param hasSeenOnboarding introduzione già chiusa o saltata.
  * @param isSaving salvataggio della chiusura in corso.
  * @param hasSaveError errore recuperabile di salvataggio.
  */
 data class MainUiState(
+    val tutorialStep: Int? = null,
     val isLoading: Boolean = true,
     val hasSeenOnboarding: Boolean = false,
     val isSaving: Boolean = false,
