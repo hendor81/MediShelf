@@ -8,6 +8,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Text
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Rect
+import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.platform.LocalInputModeManager
 import androidx.compose.ui.input.InputMode
 import androidx.compose.ui.platform.LocalDensity
@@ -84,19 +85,70 @@ class HomeTutorialTest {
         // I veri eventi di tastiera attivano anche la modalità Keyboard del Popup.
         repeat(6) {
             message.performKeyInput { pressKey(Key.Tab) }
-            composeRule.onNode(isFocused() and hasAnyAncestor(hasTestTag(HomeTutorialTestTags.Message)))
+            composeRule.onNode(isFocused() and (hasTestTag(HomeTutorialTestTags.Message) or hasAnyAncestor(hasTestTag(HomeTutorialTestTags.Message))))
                 .assertExists()
         }
         message.performKeyInput {
             keyDown(Key.ShiftLeft)
             pressKey(Key.Tab)
             keyUp(Key.ShiftLeft)
-            pressKey(Key.Enter)
         }
+        focusNextActionWithTab()
+        message.performKeyInput { pressKey(Key.Enter) }
         composeRule.runOnIdle {
             assertEquals(0, backgroundActions)
             assertEquals(1, tutorialActions)
         }
+    }
+
+    /** Tastiera e overflow insieme: ogni nuovo passo parte dall’inizio, non dai pulsanti. */
+    @Test fun shouldShowMessageStartAfterKeyboardAdvanceWithOverflow() {
+        var step by mutableIntStateOf(0)
+        var completed by mutableStateOf(false)
+        composeRule.setContent {
+            val density = LocalDensity.current
+            val inputMode = LocalInputModeManager.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, 1.6f)) {
+                MediShelfTheme {
+                    Box(Modifier.fillMaxWidth().height(420.dp)) {
+                        if (!completed) HomeTutorialOverlay(step, emptyMap(), {
+                            if (step == TutorialTarget.entries.lastIndex) completed = true else step++
+                        }, {})
+                    }
+                }
+            }
+            LaunchedEffect(Unit) { inputMode.requestInputMode(InputMode.Keyboard) }
+        }
+        var overflowingSteps = 0
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        TutorialTarget.entries.forEach { target ->
+            composeRule.waitForIdle()
+            composeRule.onNodeWithText(context.getString(target.title)).assertIsDisplayed()
+            composeRule.onNodeWithText(context.getString(target.body)).assertIsDisplayed()
+            val scroll = composeRule.onNode(
+                hasScrollAction() and hasAnyAncestor(hasTestTag(HomeTutorialTestTags.Message)),
+                useUnmergedTree = true,
+            ).fetchSemanticsNode().config[SemanticsProperties.VerticalScrollAxisRange]
+            if (scroll.maxValue() > 0f) overflowingSteps++
+            assertEquals("Il nuovo messaggio deve iniziare dall’alto", 0f, scroll.value(), 0f)
+            focusNextActionWithTab()
+            composeRule.onNodeWithTag(HomeTutorialTestTags.Message).performKeyInput { pressKey(Key.Enter) }
+        }
+        assertTrue("Il test deve esercitare almeno un messaggio che richiede scroll", overflowingSteps > 0)
+        composeRule.runOnIdle { assertTrue(completed) }
+        composeRule.onNodeWithTag(HomeTutorialTestTags.Message).assertDoesNotExist()
+    }
+
+    private fun focusNextActionWithTab() {
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val action = hasText(context.getString(R.string.onboarding_start)) or
+            hasText(context.getString(R.string.tutorial_finish))
+        repeat(8) {
+            if (composeRule.onAllNodes(action and isFocused()).fetchSemanticsNodes().isNotEmpty()) return
+            composeRule.onNodeWithTag(HomeTutorialTestTags.Message).performKeyInput { pressKey(Key.Tab) }
+            composeRule.waitForIdle()
+        }
+        composeRule.onNode(action and isFocused()).assertExists()
     }
 
     /** I bersagli restano visibili fuori dal messaggio anche in una finestra bassa. */

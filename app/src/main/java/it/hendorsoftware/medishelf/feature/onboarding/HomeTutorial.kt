@@ -6,6 +6,7 @@ import androidx.compose.animation.core.animateRectAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.relocation.BringIntoViewRequester
@@ -188,8 +189,16 @@ fun HomeTutorialOverlay(
                     label = "tutorialMessage",
                 ) { displayedStep ->
                     val displayedTarget = TutorialTarget.entries[displayedStep]
-                    val nextFocus = remember { FocusRequester() }
-                    LaunchedEffect(displayedStep) { if (displayedStep == step) nextFocus.requestFocus() }
+                    val messageFocus = remember { FocusRequester() }
+                    val explanationScroll = rememberScrollState()
+                    LaunchedEffect(displayedStep) {
+                        if (displayedStep == step) {
+                            explanationScroll.scrollTo(0)
+                            // Il focus resta fuori dal contenuto scorrevole: non deve
+                            // portare Avanti in vista nascondendo la nuova spiegazione.
+                            messageFocus.requestFocus()
+                        }
+                    }
                     Box(Modifier.fillMaxSize()) {
                         Surface(
                             modifier = Modifier.align(if (atTop == true) Alignment.TopCenter else Alignment.BottomCenter)
@@ -197,6 +206,8 @@ fun HomeTutorialOverlay(
                                 .widthIn(max = TutorialTokens.MaxWidth)
                                 .heightIn(max = maxMessageHeight)
                                 .testTag(HomeTutorialTestTags.Message)
+                                .focusRequester(messageFocus)
+                                .focusable(enabled = displayedStep == step)
                                 .onGloballyPositioned {
                                     if (displayedStep == step) {
                                         messageArea?.value = TutorialMessageArea(it.boundsInRoot(), atTop == true)
@@ -209,7 +220,7 @@ fun HomeTutorialOverlay(
                             border = BorderStroke(TutorialTokens.MessageBorderWidth, MaterialTheme.colorScheme.primary),
                         ) {
                             Column(
-                                Modifier.verticalScroll(rememberScrollState()).padding(MediShelfDimens.SpacingMedium),
+                                Modifier.verticalScroll(explanationScroll).padding(MediShelfDimens.SpacingMedium),
                                 verticalArrangement = Arrangement.spacedBy(MediShelfDimens.SpacingSmallMedium),
                             ) {
                                 Text(stringResource(R.string.tutorial_progress, displayedStep + 1, TutorialTarget.entries.size),
@@ -221,7 +232,6 @@ fun HomeTutorialOverlay(
                                     TextButton(onClick = onDismiss) { Text(stringResource(R.string.onboarding_skip)) }
                                     Button(
                                         onClick = onNext,
-                                        modifier = Modifier.focusRequester(nextFocus),
                                         enabled = displayedStep == step,
                                     ) {
                                         Text(stringResource(if (displayedStep == TutorialTarget.entries.lastIndex) R.string.tutorial_finish else R.string.onboarding_start))
