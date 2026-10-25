@@ -215,7 +215,14 @@ su un'installazione con inventario personale. I test DAO/repository restano
 isolati in memoria.
 
 `Android CI` esegue i test JVM e un job separato con l'intera suite strumentale
-Room/Compose su un emulatore Android API 29 x86_64 isolato, con animazioni
+Room/Compose su un emulatore Android API 29 x86_64 isolato, con profilo
+`pixel_2` esplicito e animazioni
 disattivate. I report XML/HTML di entrambi i job sono conservati come artifact
 per 14 giorni anche in caso di fallimento. Il job strumentale ha un limite di
 30 minuti e non sostituisce le verifiche manuali su altre versioni Android.
+
+Le verifiche su contenuti scorrevoli portano in vista il bersaglio prima di
+controllarne la visibilità o inviare un tap. Le CTA fisse vengono distinte da
+quelle presenti nel contenuto tramite gli antenati semantici, senza dipendere
+dall'ordine dei nodi o richiedere che siano tutte visibili contemporaneamente.
+Anche il menu dei formati viene scorso prima di selezionare una voce fuori vista.

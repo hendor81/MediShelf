@@ -1186,3 +1186,18 @@ su emulatore Android 16/API 36.1, senza fallimenti, errori o test saltati.
 La modifica aggiunge 6 test JVM e 5 strumentali, oltre agli adeguamenti dei
 test esistenti. Il nuovo job GitHub Actions API 29 richiede la prima esecuzione
 remota dopo la pubblicazione del branch; non è stato eseguito da questa sessione.
+
+### Correzione dei primi job strumentali CI — PR #100
+
+Le esecuzioni push e pull request del commit `ed56d06` hanno entrambe superato
+build e test JVM, ma fallito gli stessi sette test UI. L'AVD senza profilo
+esplicito usava uno schermo da 320×640 px: diversi test verificavano o toccavano
+contenuti fuori vista senza scroll. I test di Inventario, Home, Dettaglio,
+empty state e menu formati portano ora in vista i bersagli prima di verificarli
+o attivarli, mantenendo le asserzioni su visibilità e callback. Le due CTA di
+Inventario sono distinte per collocazione semantica. La CI usa esplicitamente
+il profilo `pixel_2` su API 29 x86_64. Nessuna modifica al codice applicativo.
+
+Verifica della correzione: tutti i 65 test strumentali superati su emulatore
+Android 16/API 36.1 impostato a 320×640 px e densità 160 dpi, senza errori o test
+saltati; `connectedDebugAndroidTest lintDebug --offline` completato con successo.
