@@ -13,6 +13,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.performTextInput
 import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBadgeStatus
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
@@ -39,11 +40,13 @@ class InventoryScreenTest {
             .onNodeWithText("Inventario vuoto")
             .assertIsDisplayed()
 
-        // CTA nello stato vuoto e nella barra inferiore: entrambe devono essere visibili.
+        // La CTA fissa resta visibile; quella nel contenuto può richiedere scroll.
         val addActions = composeTestRule.onAllNodesWithText("Aggiungi medicinale")
         addActions.assertCountEquals(2)
-        addActions[0].assertIsDisplayed()
-        addActions[1].assertIsDisplayed()
+        val inEmptyState = hasAnyAncestor(hasTestTag(InventoryTestTags.EmptyState))
+        composeTestRule.onNode(hasText("Aggiungi medicinale") and !inEmptyState).assertIsDisplayed()
+        composeTestRule.onNode(hasText("Aggiungi medicinale") and inEmptyState)
+            .performScrollTo().assertIsDisplayed()
     }
 
     /**
@@ -60,6 +63,7 @@ class InventoryScreenTest {
 
         composeTestRule
             .onNodeWithText("Paracetamolo")
+            .performScrollTo()
             .assertIsDisplayed()
 
         composeTestRule
@@ -67,18 +71,22 @@ class InventoryScreenTest {
                 hasText("In scadenza") and hasAnyAncestor(hasTestTag(InventoryTestTags.medicineItem("1"))),
                 useUnmergedTree = true,
             )
+            .performScrollTo()
             .assertIsDisplayed()
 
         composeTestRule
             .onNodeWithText("Scadenza 31/05/2026")
+            .performScrollTo()
             .assertIsDisplayed()
 
         composeTestRule
             .onNodeWithText("Quantità 12 compresse")
+            .performScrollTo()
             .assertIsDisplayed()
 
         composeTestRule
             .onNodeWithText("Luogo Bagno")
+            .performScrollTo()
             .assertIsDisplayed()
     }
 
@@ -99,6 +107,8 @@ class InventoryScreenTest {
 
         composeTestRule
             .onNodeWithTag(InventoryTestTags.medicineItem("1"))
+            .performScrollTo()
+            .assertIsDisplayed()
             .performClick()
 
         assertEquals("1", openedMedicineId)

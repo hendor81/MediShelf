@@ -67,7 +67,8 @@ class EmptyStatesTest {
             }
         }
         compose.onNodeWithText("Inventario vuoto").assertIsDisplayed()
-        compose.onNode(hasText("Aggiungi medicinale") and hasAnyAncestor(hasTestTag(InventoryTestTags.EmptyState))).performClick()
+        compose.onNode(hasText("Aggiungi medicinale") and hasAnyAncestor(hasTestTag(InventoryTestTags.EmptyState)))
+            .performScrollTo().assertIsDisplayed().performClick()
         assertEquals(1, clicks)
     }
 
@@ -84,7 +85,7 @@ class EmptyStatesTest {
                 )
             }
         }
-        compose.onNodeWithText("Mostra tutti i medicinali").performClick()
+        compose.onNodeWithText("Mostra tutti i medicinali").performScrollTo().assertIsDisplayed().performClick()
         assertTrue(cleared)
         assertEquals(InventoryStatusFilter.All, selected)
     }
@@ -98,7 +99,8 @@ class EmptyStatesTest {
             }
         }
         compose.onNodeWithText("Nessuna scadenza da gestire").assertIsDisplayed()
-        compose.onNode(hasText("Aggiungi medicinale") and hasAnyAncestor(hasTestTag(ExpiryTestTags.EmptyState))).performClick()
+        compose.onNode(hasText("Aggiungi medicinale") and hasAnyAncestor(hasTestTag(ExpiryTestTags.EmptyState)))
+            .performScrollTo().assertIsDisplayed().performClick()
         assertEquals(1, clicks)
     }
 

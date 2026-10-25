@@ -316,6 +316,8 @@ private fun HomeSummaryCard(
         )
         Text(
             text = stringResource(label),
+            // Allinea nodo e paragrafo centrato anche nelle misure intrinseche di FlowRow.
+            modifier = Modifier.fillMaxWidth(),
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.SemiBold,
             color = colors.content,

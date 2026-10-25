@@ -8,6 +8,8 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
+import androidx.compose.ui.test.assertIsDisplayed
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 import org.junit.Assert.assertEquals
 import org.junit.Rule
@@ -29,7 +31,7 @@ class MedicineFormSelectorsTest {
             }
         }
         compose.onNodeWithText("Formato o confezione").performClick()
-        compose.onNodeWithText("pomata").performClick()
+        compose.onNodeWithText("pomata").performScrollTo().assertIsDisplayed().performClick()
         compose.runOnIdle { assertEquals("pomata", selected) }
     }
 

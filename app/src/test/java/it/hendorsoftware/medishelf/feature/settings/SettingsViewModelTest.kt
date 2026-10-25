@@ -87,6 +87,56 @@ class SettingsViewModelTest {
         assertFalse(viewModel.uiState.value.notificationsEnabled)
     }
 
+    /** Input fuori intervallo o incompleti non sovrascrivono la preferenza salvata. */
+    @Test
+    fun shouldKeepSavedThresholdUntilValidInputIsConfirmed() = runTest {
+        val repository = FakeUserSettingsRepository(UserSettings(expiringThresholdDays = 30))
+        val viewModel = createViewModel(settingsRepository = repository)
+        advanceUntilIdle()
+        val invalidInputs = mapOf(
+            "" to SettingsThresholdInputError.BLANK,
+            "-1" to SettingsThresholdInputError.OUT_OF_RANGE,
+            "366" to SettingsThresholdInputError.OUT_OF_RANGE,
+            "1.5" to SettingsThresholdInputError.INVALID_NUMBER,
+            "9999999999999" to SettingsThresholdInputError.INVALID_NUMBER,
+        )
+        invalidInputs.forEach { (input, expected) ->
+            viewModel.onThresholdClick()
+            viewModel.onThresholdInputChanged(input)
+            viewModel.onThresholdSaveClick()
+            advanceUntilIdle()
+            assertEquals("Input: $input", expected, viewModel.uiState.value.thresholdInputError)
+            assertEquals(30, viewModel.uiState.value.expiringThresholdDays)
+            assertTrue(viewModel.uiState.value.isThresholdDialogVisible)
+            assertTrue(repository.updatedThresholds.isEmpty())
+        }
+        viewModel.onThresholdInputChanged("60")
+        viewModel.onThresholdDialogDismissed()
+        assertTrue(repository.updatedThresholds.isEmpty())
+        viewModel.onThresholdClick()
+        assertEquals("30", viewModel.uiState.value.thresholdInput)
+    }
+
+    /** Entrambi gli estremi inclusivi sono accettati e riletti da un nuovo ViewModel. */
+    @Test
+    fun shouldAcceptThresholdBoundariesAndReloadSavedValue() = runTest {
+        val repository = FakeUserSettingsRepository()
+        val viewModel = createViewModel(settingsRepository = repository)
+        advanceUntilIdle()
+        listOf(0, 365).forEach { threshold ->
+            viewModel.onThresholdClick()
+            viewModel.onThresholdInputChanged(" $threshold ")
+            viewModel.onThresholdSaveClick()
+            advanceUntilIdle()
+            assertEquals(threshold, viewModel.uiState.value.expiringThresholdDays)
+            assertFalse(viewModel.uiState.value.isThresholdDialogVisible)
+        }
+        val reopened = createViewModel(settingsRepository = repository)
+        advanceUntilIdle()
+        assertEquals(listOf(0, 365), repository.updatedThresholds)
+        assertEquals(365, reopened.uiState.value.expiringThresholdDays)
+    }
+
     private fun createViewModel(
         settingsRepository: FakeUserSettingsRepository = FakeUserSettingsRepository(),
         medicineRepository: FakeMedicineRepository = FakeMedicineRepository(),

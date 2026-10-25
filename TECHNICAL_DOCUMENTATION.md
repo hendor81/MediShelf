@@ -1147,3 +1147,57 @@ visibili, avanzamento con Tab/Invio e chiusura finale.
 Verifica del focus iniziale: build debug e lint superati (zero errori, 127 avvisi);
 9 test strumentali onboarding superati su Android 16, incluso il nuovo caso
 combinato di tastiera e messaggi con overflow.
+
+## Issue #33 — Regressioni per la release Free
+
+- `FreeReleaseRegressionTest` collega form, dettaglio, inventario, Home,
+  Scadenzario, Archivio e Impostazioni agli stessi fake, con classificazione
+  reale e data fissa. Copre inserimento con solo nome, modifica senza cambio
+  identità, ricerca, soglia inclusiva, esaurimento senza quantità negative,
+  archivio/ripristino e conferme/annullamenti di eliminazione e svuotamento.
+- `SettingsViewModelTest` verifica input incompleti, overflow numerico, limiti
+  0/365, annullamento senza scrittura e rilettura della preferenza salvata.
+  `MedicineStatusCalculatorTest` aggiunge passaggi sul giorno bisestile e sul
+  cambio anno. Le aspettative non dipendono dalla data di esecuzione.
+- `LocalMedicineRepositoryRegressionTest` esercita repository concreto, mapper
+  e Room in memoria: id distinti per nuovi record, update senza duplicazione,
+  campi opzionali, archivio/ripristino/cancellazione e invalidazione di un
+  osservatore già attivo. `MedicineDaoTest` copre ordinamento senza distinzione
+  maiuscole, data archivio, fallback legacy e nome come criterio secondario.
+- I test di navigazione selezionano i tab interattivi per etichetta e distinguono
+  i titoli dai tab omonimi. Prima dell'avvio dell'Activity concedono il permesso
+  notifiche sui sistemi che lo richiedono, evitando dialoghi Android nei test.
+- Il controllo di accessibilità delle azioni Dettaglio misura l'area tattile
+  Material di 48 dp invece del solo contenitore visuale dell'icona. Gli errori
+  di overflow riportano testo e dimensioni per rendere la diagnosi riproducibile.
+- La regressione al 200% ha rilevato un paragrafo centrato più largo del nodo
+  dell'etichetta Home durante le misure di FlowRow. Le etichette occupano ora
+  tutta la larghezza disponibile della card, conservando font e centratura.
+- `Android CI` aggiunge un job strumentale su emulatore API 29 x86_64 separato
+  dal job JVM/build. Entrambi caricano report anche in caso di fallimento.
+  Comandi e matrice della copertura minima sono in `TESTING_STRATEGY.md`.
+- Nessuna modifica allo schema Room, ai repository applicativi o ai flussi
+  di prodotto; i test del grafo principale vanno eseguiti su installazioni
+  di test perché inseriscono voci reali nel database dell'app emulata.
+
+Verifica locale #33: `testDebugUnitTest assembleDebug connectedDebugAndroidTest
+lintDebug --offline` completati con successo. 116 test JVM e 65 test strumentali
+su emulatore Android 16/API 36.1, senza fallimenti, errori o test saltati.
+La modifica aggiunge 6 test JVM e 5 strumentali, oltre agli adeguamenti dei
+test esistenti. Il nuovo job GitHub Actions API 29 richiede la prima esecuzione
+remota dopo la pubblicazione del branch; non è stato eseguito da questa sessione.
+
+### Correzione dei primi job strumentali CI — PR #100
+
+Le esecuzioni push e pull request del commit `ed56d06` hanno entrambe superato
+build e test JVM, ma fallito gli stessi sette test UI. L'AVD senza profilo
+esplicito usava uno schermo da 320×640 px: diversi test verificavano o toccavano
+contenuti fuori vista senza scroll. I test di Inventario, Home, Dettaglio,
+empty state e menu formati portano ora in vista i bersagli prima di verificarli
+o attivarli, mantenendo le asserzioni su visibilità e callback. Le due CTA di
+Inventario sono distinte per collocazione semantica. La CI usa esplicitamente
+il profilo `pixel_2` su API 29 x86_64. Nessuna modifica al codice applicativo.
+
+Verifica della correzione: tutti i 65 test strumentali superati su emulatore
+Android 16/API 36.1 impostato a 320×640 px e densità 160 dpi, senza errori o test
+saltati; `connectedDebugAndroidTest lintDebug --offline` completato con successo.

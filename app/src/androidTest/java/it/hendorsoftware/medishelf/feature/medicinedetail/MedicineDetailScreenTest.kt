@@ -5,6 +5,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBadgeStatus
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 import org.junit.Assert.assertEquals
@@ -40,7 +41,7 @@ class MedicineDetailScreenTest {
         composeTestRule.onNodeWithText("Compresse").assertIsDisplayed()
         composeTestRule.onNodeWithText("Quantità non indicata").assertIsDisplayed()
         composeTestRule.onNodeWithText("Scadenza non indicata").assertIsDisplayed()
-        composeTestRule.onNodeWithText("Archivia medicinale").assertIsDisplayed()
+        composeTestRule.onNodeWithText("Archivia medicinale").performScrollTo().assertIsDisplayed()
     }
 
     /**
@@ -70,6 +71,8 @@ class MedicineDetailScreenTest {
 
         composeTestRule
             .onNodeWithText("Archivia medicinale")
+            .performScrollTo()
+            .assertIsDisplayed()
             .performClick()
 
         assertEquals(1, archiveClicks)

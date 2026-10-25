@@ -9,6 +9,7 @@ import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performScrollTo
 import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBadgeStatus
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 import org.junit.Assert.assertEquals
@@ -97,6 +98,8 @@ class HomeScreenTest {
 
         composeTestRule
             .onNodeWithTag(HomeTestTags.attentionItem("1"))
+            .performScrollTo()
+            .assertIsDisplayed()
             .performClick()
 
         assertEquals("1", openedMedicineId)
