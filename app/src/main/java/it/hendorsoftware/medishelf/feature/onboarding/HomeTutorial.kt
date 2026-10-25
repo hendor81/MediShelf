@@ -130,6 +130,27 @@ fun HomeTutorialOverlay(
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val overlayWidth = maxWidth
         val overlayHeight = maxHeight
+        val bounds = targets[target]
+        // La maschera usa lo stesso root dei bersagli: il Popup può avere inset
+        // e dimensioni diversi, soprattutto nell'area della navigazione di sistema.
+        val animatedBounds by animateRectAsState(
+            targetValue = bounds ?: Rect.Zero,
+            animationSpec = tween(TutorialTokens.TransitionMillis),
+            label = "tutorialSpotlight",
+        )
+        val cornerRadius = with(androidx.compose.ui.platform.LocalDensity.current) {
+            MediShelfDimens.CornerMedium.toPx()
+        }
+        Canvas(Modifier.fillMaxSize()) {
+            val path = Path().apply {
+                fillType = PathFillType.EvenOdd
+                addRect(Rect(0f, 0f, size.width, size.height))
+                if (bounds != null) {
+                    addRoundRect(RoundRect(animatedBounds, CornerRadius(cornerRadius)))
+                }
+            }
+            drawPath(path, scrim)
+        }
         // Una finestra focusable isola tastiera e accessibilità dalla Home sottostante.
         Popup(
             popupPositionProvider = TutorialPopupPosition,
@@ -152,7 +173,6 @@ fun HomeTutorialOverlay(
                     maxHeight * TutorialTokens.MaxHeightFraction,
                     viewportBudget.coerceAtLeast(MediShelfDimens.MinInteractiveSize),
                 )
-                val bounds = targets[target]
                 val heightPx = with(LocalDensity.current) { maxHeight.toPx() }
                 // La scelta usa la geometria effettiva e resta stabile durante lo scroll:
                 // ricalcolarla sul bersaglio già spostato farebbe oscillare il messaggio.
@@ -161,24 +181,6 @@ fun HomeTutorialOverlay(
                     if (atTop == null && bounds != null && bounds.height > 0f) {
                         atTop = bounds.top > heightPx - bounds.bottom
                     }
-                }
-                val animatedBounds by animateRectAsState(
-                    targetValue = bounds ?: Rect.Zero,
-                    animationSpec = tween(TutorialTokens.TransitionMillis),
-                    label = "tutorialSpotlight",
-                )
-                val cornerRadius = with(androidx.compose.ui.platform.LocalDensity.current) {
-                    MediShelfDimens.CornerMedium.toPx()
-                }
-                Canvas(Modifier.fillMaxSize()) {
-                    val path = Path().apply {
-                        fillType = PathFillType.EvenOdd
-                        addRect(Rect(0f, 0f, size.width, size.height))
-                        if (bounds != null) {
-                            addRoundRect(RoundRect(animatedBounds, CornerRadius(cornerRadius)))
-                        }
-                    }
-                    drawPath(path, scrim)
                 }
                 // Il messaggio occupa il lato con più spazio rispetto al bersaglio;
                 // il viewport della Home viene ridotto prima di riportarlo in vista.
