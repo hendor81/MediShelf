@@ -182,3 +182,40 @@ Nella prima fase evitare o rimandare:
 
 ## Regola finale
 Una feature non è completa se non è verificabile. Quando una issue introduce comportamento utente o regole di dominio, deve includere criteri di accettazione e almeno una forma di test o verifica esplicita.
+
+## Suite regressiva release Free — issue #33
+
+La copertura minima combina test mirati esistenti e percorsi tra più feature:
+
+| Area | Copertura automatica |
+| --- | --- |
+| Stati e quantità | `MedicineStatusCalculatorTest`, `MedicineUseCaseTest`, `UiRefinementsTest`: soglia inclusiva, zero/assenza quantità, scorta bassa; regressione sui cambi anno e febbraio bisestile. |
+| Inserimento/modifica | `MedicineFormViewModelTest`, `FreeReleaseRegressionTest`: solo nome, campi opzionali, modifica della stessa voce e propagazione alle viste. `MedicineFormScreenTest` e `MedicineFormSelectorsTest` verificano input e selettori. |
+| Inventario/dettaglio | `InventoryViewModelTest`, `MedicineDetailViewModelTest`, `FreeReleaseRegressionTest`: ricerca, filtri, quantità a zero, archiviazione/ripristino e cancellazione confermata o annullata. Test Compose dedicati verificano visualizzazione e callback. |
+| Scadenzario/dashboard | `ExpiryViewModelTest`, `HomeViewModelTest`, `DerivedViewsConsistencyTest`, `FreeReleaseRegressionTest`: conteggi e sezioni, inventario vuoto, esclusione archiviate/esaurite, cambi soglia attraverso Impostazioni. |
+| Impostazioni | `SettingsViewModelTest`: input invalidi senza scritture, soglie 0/365, annullamento e rilettura. `FreeReleaseRegressionTest`: preferenza di rimozione e svuotamento archivio senza rimuovere attivi. |
+| Persistenza | `MedicineDaoTest`, `LocalMedicineRepositoryRegressionTest`, `MedicineMapperTest`: id generati distinti, update senza duplicati, campi null, round trip, ordinamenti, archivio/ripristino/eliminazione e aggiornamenti a un osservatore già attivo. |
+
+I casi di dominio e ViewModel usano `FakeDateProvider` con date esplicite.
+I test Room usano un database in memoria ricreato per ogni test. I timestamp
+generati dalle operazioni sono verificati per coerenza, senza confronti con la
+data o l'ora reali. Non si usano sleep per attendere aggiornamenti Room.
+
+Comandi dalla radice del repository (su Windows usare `gradlew.bat`):
+
+```shell
+./gradlew testDebugUnitTest assembleDebug lintDebug
+./gradlew testDebugUnitTest --tests it.hendorsoftware.medishelf.feature.FreeReleaseRegressionTest
+./gradlew connectedDebugAndroidTest
+```
+
+L'ultimo comando richiede un emulatore o dispositivo di test: i test del grafo
+di navigazione inseriscono voci nel database dell'app installata. Non eseguirli
+su un'installazione con inventario personale. I test DAO/repository restano
+isolati in memoria.
+
+`Android CI` esegue i test JVM e un job separato con l'intera suite strumentale
+Room/Compose su un emulatore Android API 29 x86_64 isolato, con animazioni
+disattivate. I report XML/HTML di entrambi i job sono conservati come artifact
+per 14 giorni anche in caso di fallimento. Il job strumentale ha un limite di
+30 minuti e non sostituisce le verifiche manuali su altre versioni Android.

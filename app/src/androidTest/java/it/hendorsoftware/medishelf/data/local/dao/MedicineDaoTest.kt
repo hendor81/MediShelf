@@ -143,6 +143,30 @@ class MedicineDaoTest {
         assertNull(dao.getMedicineById(id))
     }
 
+    /** L'ordinamento degli attivi ignora maiuscole e non include voci archiviate. */
+    @Test
+    fun shouldSortActiveMedicinesWithoutCaseSensitivity() = runBlocking {
+        dao.insertMedicine(baseEntity(name = "Zinco"))
+        dao.insertMedicine(baseEntity(name = "aspirina"))
+        dao.insertMedicine(baseEntity(name = "Ibuprofene"))
+        dao.insertMedicine(baseEntity(name = "A escluso", isArchived = true))
+
+        assertEquals(listOf("aspirina", "Ibuprofene", "Zinco"), dao.observeActiveMedicines().first().map { it.name })
+    }
+
+    /** Archivio: data decrescente, fallback per record legacy e nome a parità di data. */
+    @Test
+    fun shouldSortArchiveByArchiveDateWithLegacyFallbackAndNameTieBreak() = runBlocking {
+        val older = Instant.parse("2026-05-01T10:00:00Z")
+        val newer = Instant.parse("2026-05-20T10:00:00Z")
+        dao.insertMedicine(baseEntity(name = "Vecchio", isArchived = true).copy(archivedAt = older, updatedAt = newer))
+        dao.insertMedicine(baseEntity(name = "Zinco legacy", isArchived = true).copy(archivedAt = null, updatedAt = newer))
+        dao.insertMedicine(baseEntity(name = "aspirina", isArchived = true).copy(archivedAt = newer, updatedAt = older))
+        dao.insertMedicine(baseEntity(name = "Attivo"))
+
+        assertEquals(listOf("aspirina", "Zinco legacy", "Vecchio"), dao.observeArchivedMedicines().first().map { it.name })
+    }
+
     private fun baseEntity(
         name: String = "Ibuprofene",
         quantity: Double? = 12.0,

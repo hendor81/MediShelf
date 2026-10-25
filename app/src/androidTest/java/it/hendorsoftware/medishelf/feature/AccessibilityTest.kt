@@ -44,7 +44,7 @@ class AccessibilityTest {
         }
         listOf("Modifica medicinale", "Elimina medicinale").forEach { description ->
             compose.onNodeWithContentDescription(description)
-                .assertHasClickAction().assertWidthIsAtLeast(48.dp).assertHeightIsAtLeast(48.dp)
+                .assertHasClickAction().assertTouchWidthIsEqualTo(48.dp).assertTouchHeightIsEqualTo(48.dp)
         }
     }
 
@@ -73,7 +73,8 @@ class AccessibilityTest {
         val expired = compose.onNodeWithTag(HomeTestTags.summaryCard(R.string.home_summary_expired)).fetchSemanticsNode().positionInRoot
         assertTrue(expired.y > active.y)
         listOf("Attivi", "In scadenza", "Scaduti", "Scorta bassa").forEach { label ->
-            assertTextNotClipped(compose.onNodeWithText(label, useUnmergedTree = true))
+            assertTextNotClipped(compose.onNodeWithText(label, useUnmergedTree = true)
+                .performScrollTo().assertIsDisplayed())
         }
         compose.onNodeWithTag(HomeTestTags.SeeAllAttention).performScrollTo()
             .assertHeightIsAtLeast(48.dp).assertWidthIsAtLeast(48.dp).assertHasClickAction()
@@ -119,7 +120,12 @@ class AccessibilityTest {
         val layouts = mutableListOf<TextLayoutResult>()
         node.performSemanticsAction(SemanticsActions.GetTextLayoutResult) { it(layouts) }
         assertTrue(layouts.isNotEmpty())
-        assertFalse(layouts.single().hasVisualOverflow)
+        val layout = layouts.single()
+        assertFalse("Testo '${layout.layoutInput.text}' con overflow: ${layout.size}, " +
+            "larghezza=${layout.didOverflowWidth}, altezza=${layout.didOverflowHeight}, " +
+            "paragrafo=${layout.multiParagraph.width}, " +
+            "righe=${(0 until layout.lineCount).map { layout.getLineLeft(it) to layout.getLineRight(it) }}",
+            layout.hasVisualOverflow)
     }
 
     /** Monta la schermata stateless per verificare i controlli senza Hilt. */

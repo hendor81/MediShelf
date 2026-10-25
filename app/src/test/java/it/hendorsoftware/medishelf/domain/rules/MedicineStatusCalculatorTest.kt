@@ -132,6 +132,24 @@ class MedicineStatusCalculatorTest {
         assertEquals(MedicineStatus.EXPIRING, status)
     }
 
+    /** I giorni della soglia attraversano correttamente febbraio bisestile e cambio anno. */
+    @Test
+    fun shouldUseCalendarDaysAcrossLeapDayAndYearBoundary() {
+        listOf(LocalDate.of(2028, 2, 28), LocalDate.of(2026, 12, 31)).forEach { referenceDate ->
+            val fixedCalculator = MedicineStatusCalculator(FakeDateProvider(referenceDate))
+            val cases = mapOf(
+                referenceDate.minusDays(1) to MedicineStatus.EXPIRED,
+                referenceDate to MedicineStatus.EXPIRING,
+                referenceDate.plusDays(1) to MedicineStatus.EXPIRING,
+                referenceDate.plusDays(2) to MedicineStatus.VALID,
+            )
+            cases.forEach { (expirationDate, expected) ->
+                assertEquals("$referenceDate / $expirationDate", expected,
+                    fixedCalculator.calculate(baseMedicine(expirationDate = expirationDate), expiringThresholdDays = 1))
+            }
+        }
+    }
+
     private fun baseMedicine(
         quantity: QuantityInfo? = QuantityInfo(
             amount = 12.0,
