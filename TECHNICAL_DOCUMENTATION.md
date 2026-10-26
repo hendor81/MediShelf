@@ -1201,3 +1201,77 @@ il profilo `pixel_2` su API 29 x86_64. Nessuna modifica al codice applicativo.
 Verifica della correzione: tutti i 65 test strumentali superati su emulatore
 Android 16/API 36.1 impostato a 320×640 px e densità 160 dpi, senza errori o test
 saltati; `connectedDebugAndroidTest lintDebug --offline` completato con successo.
+
+## Issue #34 — Preparazione alpha per installazione diretta
+
+- Identità invariata: MediShelf, `it.hendorsoftware.medishelf`. Versione iniziale
+  firmata `1.0.0-alpha01`, codice 2, superiore alle precedenti build debug.
+- La firma release è abilitata esplicitamente con `-PsignRelease=true` e legge
+  il solo file locale `keystore.properties`. Mancanza del file, di un campo o
+  del keystore provoca un errore di configurazione senza ripiego sulla firma
+  debug. Le build CI ordinarie non leggono password né usano la chiave privata.
+- `keystore.properties.example` contiene il modello senza password; `.gitignore`
+  esclude credenziali e formati keystore comuni. Nessuna chiave nel repository.
+- Manifest release: SDK minimo 24, target 36, package e versione confermati;
+  notifiche, riavvio e permesso interno AndroidX protetto da firma. La variante
+  release non è debuggable e mantiene la minificazione disattivata.
+- `ALPHA_RELEASE_CHECKLIST.md` descrive APK/AAB, conservazione della firma,
+  futuro passaggio a Play App Signing e prove manuali da registrare. Gli esiti
+  di firma e installazione sono riportati nella sezione successiva.
+
+### Verifica dell'alpha firmata #34
+
+APK e AAB release generati con `-PsignRelease=true`, usando credenziali locali
+ignorate da Git. `apksigner` conferma firma v2 valida e singolo firmatario;
+`jarsigner` verifica la firma dell'AAB. Il manifest APK conferma nome MediShelf,
+application ID definitivo, codice 2, versione `1.0.0-alpha01` e SDK 24/36.
+Installazione pulita e avvio completati su emulatore Android 16/API 36.1 isolato:
+flag `DEBUGGABLE` assente. La copia debug dell'emulatore era incompatibile con
+la nuova firma ed è stata rimossa esclusivamente nell'istanza temporanea.
+Nessuna modifica al telefono o all'AVD originale. Test JVM e lint release
+superati; prove funzionali manuali e aggiornamento fra alpha firmate ancora
+pendenti. Artifact nominati per versione in `app/build/distributions/` per
+evitare che build ordinarie sovrascrivano le copie destinate ai tester.
+
+### Verifiche manuali alpha01 e preparazione alpha02
+
+Il 26 ottobre 2026 l'utente ha confermato sull'emulatore dedicato i passi 5–11:
+onboarding completo, inserimento minimo, modifica, quantità, ricerca, scadenze
+e conteggi, archivio/ripristino, conferma e annullamento eliminazione,
+persistenza al nuovo avvio e funzionamento senza Wi-Fi/dati mobili.
+`ALPHA_RELEASE_CHECKLIST.md` distingue questi esiti dalle prove ancora pendenti.
+
+La versione corrente diventa `1.0.0-alpha02` (codice 3), con la stessa firma e
+application ID di alpha01 (codice 2), per provare un aggiornamento reale senza
+disinstallazione. Questa build cambia solo i metadati di versione. L'utente
+mantiene le due voci Test persistenza e Test offline (quantità 2), tema Scuro
+e soglia 60 giorni. L'utente ha confermato nel passo 12 la conservazione di
+questi dati e l'assenza di onboarding dopo l'aggiornamento. Nel passo 13 ha
+verificato blocco e recupero del permesso notifiche; ADB conferma alpha02 con
+codice 3, app non debuggable, Android 16, permesso concesso e job 27 pianificato
+sull'emulatore `Medium_Phone_API_36.1`.
+
+Il controllo immediato con `cmd jobscheduler run -f it.hendorsoftware.medishelf
+27` ha pubblicato la notifica sul canale `medicine_expiry` (id 27). Nel passo
+14 l'utente ne ha confermato la visibilità e il tap verso Home, con la voce
+di test presente nello Scadenzario tra quelle in scadenza.
+
+Verificata anche la persistenza al riavvio completo dell'emulatore: job 27
+giornaliero con flag `PERSISTED` prima del riavvio; al completamento del boot
+il job è nuovamente in stato `waiting`, senza avviare MediShelf tramite ADB.
+
+Confermati dall'utente anche i passi 15–16: filtri Inventario, persistenza della
+preferenza Elimina e annullamento della conferma, ripristino Archivia, nome e
+icona nel launcher, testi e azioni raggiungibili con caratteri al massimo.
+La checklist registra separatamente Salta, coperto dai test automatici ma non
+ripetuto manualmente sull'APK firmato. L'alpha corrente è `1.0.0-alpha02`, codice
+3; il passaggio a Play Store non è incluso nelle attività della issue #34.
+
+Verifica finale del 26 ottobre 2026: 116 test JVM superati senza errori o
+esclusioni; `lintRelease` con zero errori e 121 avvisi, APK e AAB firmati
+rigenerabili tramite `-PsignRelease=true`. Verificati nuovamente firma v2,
+package/versione dell'APK e checksum delle copie alpha02. Il file credenziali
+è ignorato da Git e nessun keystore risulta tracciato. La firma viene
+configurata solo localmente; la CI ordinaria conserva la build debug e non
+riceve la chiave privata. Esiti e limiti delle prove manuali sono riportati
+nella checklist dedicata.

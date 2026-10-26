@@ -1,8 +1,29 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
+}
+
+// La firma stabile è esplicita: build e test CI ordinari non leggono credenziali.
+val signRelease = providers.gradleProperty("signRelease").orNull == "true"
+val releaseKeyProperties = Properties()
+if (signRelease) {
+    val propertiesFile = rootProject.file("keystore.properties")
+    check(propertiesFile.isFile) {
+        "Firma richiesta: crea keystore.properties dal modello keystore.properties.example."
+    }
+    propertiesFile.reader(Charsets.UTF_8).use(releaseKeyProperties::load)
+    listOf("storeFile", "storePassword", "keyAlias", "keyPassword").forEach { name ->
+        check(!releaseKeyProperties.getProperty(name).isNullOrBlank()) {
+            "Firma richiesta: manca il campo $name in keystore.properties."
+        }
+    }
+    check(rootProject.file(releaseKeyProperties.getProperty("storeFile")).isFile) {
+        "Firma richiesta: il file keystore configurato non esiste."
+    }
 }
 
 android {
@@ -17,14 +38,29 @@ android {
         applicationId = "it.hendorsoftware.medishelf"
         minSdk = 24
         targetSdk = 36
-        versionCode = 1
-        versionName = "1.0.0"
+        versionCode = 3
+        versionName = "1.0.0-alpha02"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        if (signRelease) {
+            create("privateRelease") {
+                storeFile = rootProject.file(releaseKeyProperties.getProperty("storeFile"))
+                storePassword = releaseKeyProperties.getProperty("storePassword")
+                keyAlias = releaseKeyProperties.getProperty("keyAlias")
+                keyPassword = releaseKeyProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            isDebuggable = false
+            if (signRelease) {
+                signingConfig = signingConfigs.getByName("privateRelease")
+            }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

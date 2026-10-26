@@ -86,3 +86,20 @@ L'APK è una build di test firmata con la chiave debug del runner. La firma può
 cambiare tra esecuzioni o differire da quella della versione già installata:
 in tal caso Android può rifiutare l'aggiornamento. La disinstallazione elimina
 l'inventario locale; non disinstallare una versione con dati da conservare.
+
+## Preparare l'APK alpha firmato
+
+La versione alpha è `1.0.0-alpha02` (`versionCode = 3`). Per usare la chiave
+stabile locale, compilare `keystore.properties` dal modello
+`keystore.properties.example` e avviare:
+
+```powershell
+.\gradlew.bat :app:assembleRelease -PsignRelease=true
+```
+
+L'APK firmato è `app/build/outputs/apk/release/app-release.apk`. Il file delle
+credenziali e i keystore sono ignorati da Git. Gli artifact debug della CI
+continuano a usare la firma debug e sono distinti dall'alpha firmata.
+
+La procedura, la continuità verso Play Store e le verifiche manuali sono in
+[`ALPHA_RELEASE_CHECKLIST.md`](ALPHA_RELEASE_CHECKLIST.md).
