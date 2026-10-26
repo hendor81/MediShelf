@@ -1,6 +1,170 @@
 # TECHNICAL_DOCUMENTATION.md
 
-## Issue #30 — Onboarding essenziale
+## Stato attuale — Milestone 4: release Free (issue #35)
+
+Riferimento aggiornato al **26 ottobre 2026**, versione **1.0.0-alpha02**,
+`versionCode = 3`. La distribuzione resta alpha interna; questa issue non
+pubblica una release sullo store. Le sezioni successive conservano lo storico:
+i limiti e i risultati lì riportati valgono al momento della singola issue.
+Per lo stato corrente usare questa sezione, le
+[note interne Free](FREE_RELEASE_NOTES.md) e la
+[checklist alpha](ALPHA_RELEASE_CHECKLIST.md).
+
+### Architettura e componenti effettivi
+
+Un solo modulo `app`, root `it.hendorsoftware.medishelf`: Kotlin,
+Compose/Material 3, Navigation Compose, Hilt, Room e Coroutines/Flow.
+JDK 21, Gradle 9.6.0, compile SDK 36.1, target SDK 36, min SDK 24;
+compatibilità sorgenti Java 11 e desugaring per `java.time`.
+
+| Package | Responsabilità e componenti |
+| --- | --- |
+| root | `MediShelfApplication`, `MainActivity`, `MainViewModel`: avvio, tema, onboarding/guida |
+| `core.designsystem`, `core.common`, `core.time` | Componenti e token UI, `MediShelfDefaults`, `DateProvider` |
+| `core.notification` | `ExpiryNotificationScheduler`, `ExpiryNotificationJobService`, stato permesso |
+| `data.local`, `data.mapper`, `data.repository` | DAO/entity/database Room, preferenze, mapper e repository locali |
+| `domain.model`, `domain.repository`, `domain.rules`, `domain.usecase` | Modelli, contratti, validazioni, classificazione e operazioni |
+| `feature` | `home`, `inventory`, `medicineform`, `medicinedetail`, `expiry`, `archive`, `settings`, `onboarding` |
+| `navigation`, `di` | Grafo Compose e dipendenze Hilt |
+
+Flusso medicinali: DAO → `LocalMedicineRepository` → use case → ViewModel →
+`StateFlow<UiState>` → schermata stateless; eventi tramite callback.
+Le preferenze usano `LocalUserSettingsRepository` e
+`SharedPreferencesUserSettingsLocalDataSource`. Nessun accesso Room dalla UI.
+
+Use case effettivi: `AddMedicineUseCase`, `UpdateMedicineUseCase`,
+`GetMedicineByIdUseCase`, `GetActiveMedicinesUseCase`,
+`GetArchivedMedicinesUseCase`, `ArchiveMedicineUseCase`,
+`RestoreArchivedMedicineUseCase`, `DeleteMedicineUseCase`,
+`UpdateMedicineQuantityUseCase`, `GetHomeSummaryUseCase`,
+`ObserveUserSettingsUseCase`, `CompleteOnboardingUseCase`, `ClearArchiveUseCase`.
+`UpdateSettingsUseCases.kt` contiene gli aggiornamenti di tema, soglia,
+notifiche e preferenza di rimozione. Ricerca e sezioni scadenze sono
+trasformazioni nei ViewModel, senza use case dedicati.
+
+### Regole e funzionalità consolidate
+
+- Solo il nome è obbligatorio. Quantità e scadenza sono opzionali; unità e
+  soglia di scorta richiedono una quantità. Il form conserva gli input e
+  permette di riprovare dopo un errore di salvataggio.
+- `MedicineStatusCalculator` usa `DateProvider`: quantità zero →
+  `OUT_OF_STOCK`, data assente → `NO_EXPIRATION_DATE`, data prima di oggi →
+  `EXPIRED`, entro oggi più soglia inclusa → `EXPIRING`, altrimenti `VALID`.
+  Archiviate escluse dagli attivi; `ARCHIVED` è un badge UI, non uno stato
+  dell'enum di dominio.
+- `MedicineStockRules`: scorta bassa solo con quantità positiva entro la soglia
+  individuale; zero è esaurito. Quantità/soglia assenti non sono scorta bassa.
+  I badge scorta e scadenza possono coesistere.
+- Home conta attivi, in scadenza, scaduti e scorte basse, escludendo gli
+  esauriti dal conteggio scorte basse. I conteggi possono sovrapporsi.
+  Lista attenzione limitata a tre voci; «Vedi tutti» apre il filtro completo
+  Da controllare dell'Inventario.
+- Inventario: ricerca per nome senza distinzione maiuscole; filtri Tutti,
+  Da controllare, Scorta bassa, Valido, In scadenza, Scaduti, Esauriti e Senza
+  data. Scadenzario con in scadenza, scaduti e senza data; esclude esauriti e
+  archiviate.
+- Archivio con ripristino dal Dettaglio: conserva i dati, azzera `archivedAt`,
+  aggiorna `updatedAt`. La preferenza Archivia/Elimina determina l'azione
+  principale del Dettaglio. Eliminazione e svuotamento Archivio richiedono
+  conferma; il Dettaglio gestisce errori recuperabili ed eventi consumabili.
+
+### Schema e preferenze correnti
+
+`MediShelfDatabase`: file `medishelf.db`, versione **1**, sola tabella
+`medicines`, `exportSchema = false`; nessuna migrazione nella Milestone 4.
+
+| Campi `MedicineEntity` | Persistenza |
+| --- | --- |
+| `id` | `Long`, chiave primaria autogenerata |
+| `name` | Stringa obbligatoria |
+| `packageForm`, `quantityUnit`, `storageLocation`, `notes` | Stringhe nullable |
+| `quantity`, `lowStockThreshold` | `Double` nullable |
+| `expirationDate` | `LocalDate` nullable, stringa ISO |
+| `isArchived` | Boolean, default false |
+| `createdAt`, `updatedAt` | `Instant` obbligatori, epoch millis |
+| `archivedAt` | `Instant` nullable, epoch millis |
+
+Indici: `name`, `expirationDate`, `isArchived`, `storageLocation`. Stato
+derivato, non persistito. DAO: attivi ordinati per nome `COLLATE NOCASE`,
+archivio per `COALESCE(archivedAt, updatedAt)` decrescente e poi nome;
+lettura per id, inserimento, aggiornamento, archiviazione ed eliminazione.
+`MedicineMapper` collega entity e dominio (`Medicine`, `MedicineId`, `QuantityInfo`).
+
+SharedPreferences `medishelf_user_settings`: `theme_mode` (default `LIGHT`),
+`expiring_threshold_days` (**60**, intervallo 0–365), `notifications_enabled`
+(`true`), `prefer_archive_over_delete` (`true`), `onboarding_seen` (`false`).
+Lo storico richiesta permesso è separato: file `notification_permission`,
+chiave `requested`. Consenso Android e preferenza app sono condizioni distinte.
+
+### Navigazione, introduzione e notifiche
+
+Route: `home`, `inventory?filter={filter}` (default `all`, ingresso Home
+`attention`), `expiry`, `archive`, `settings`, `medicine/add`,
+`medicine/{medicineId}`, `medicine/{medicineId}/edit`. Il dettaglio riceve solo
+l'id locale. Tab principali: Home, Inventario, Scadenzario, Impostazioni.
+Archivio è accessibile anche da Inventario e Scadenzario. Salva torna alla
+schermata chiamante con snackbar; archiviare rimuove Dettaglio dallo stack e
+apre Archivio; eliminare torna indietro; ripristinare aggiorna lo stesso Dettaglio.
+
+La root attende le preferenze prima di scegliere introduzione o grafo.
+Avanti apre la guida Home in cinque passi; Salta/BACK la omettono. Il passo
+sopravvive alla rotazione, ma la guida non riparte dopo un nuovo processo.
+Popup con focus/accessibilità isolati e messaggi scorrevoli per font grandi.
+La richiesta iniziale del permesso notifiche attende la chiusura della guida.
+
+`JobScheduler`: job giornaliero persistente **27**, senza rete o ora fissa.
+Selezione di attivi in scadenza/scaduti, anche senza quantità; esclusi esauriti
+e senza data. Una notifica aggregata (id **27**, canale `medicine_expiry`),
+senza nomi di medicinali; tap verso Home. Modifiche dati/soglia aggiornano o
+rimuovono un riepilogo già visibile, senza crearne subito uno nuovo.
+Disattivare annulla job e riepilogo. Il toggle offre recupero del permesso
+tramite impostazioni Android; permesso, blocco globale e canale condizionano
+la visualizzazione. Le notifiche riguardano scadenze: **reminder di assunzione
+o terapia, posologie, diagnosi e consigli clinici sono esclusi**.
+
+### Verifiche disponibili e debito residuo
+
+La #35 confronta manualmente documenti, sorgenti e workflow; non modifica codice
+o schema e non dichiara nuove esecuzioni della suite. Risultati già registrati:
+
+- #33: **116 test JVM e 65 strumentali** superati su emulatore Android 16/API
+  36.1; ripetizione UI a 320×640 px. Copertura dominio, use case, ViewModel,
+  regressioni Free, DAO/repository Room, Compose e navigazione.
+- #34, 26 ottobre 2026: 116 test JVM, `lintRelease` con zero errori e **121
+  avvisi**, APK/AAB firmati e verificati; prove manuali funzionali, offline,
+  permessi, notifica forzata, riavvio e aggiornamento alpha01 → alpha02 con
+  conservazione dati. Salta non ripetuto manualmente sull'APK firmato, pur
+  coperto dai test automatici. Dettagli nella checklist alpha.
+- CI: job `build`/`test` con JDK 21 e `connectedDebugAndroidTest` su emulatore
+  API 29 x86_64, profilo `pixel_2`; report per 14 giorni. La configurazione
+  non certifica un nuovo esito remoto: consultare i report della singola run.
+
+Limiti ancora presenti:
+
+- Nessun segnale a mezzanotte per aggiornare le viste aperte: ricalcolo su
+  emissioni dati/preferenze. Il Dettaglio rilegge le preferenze durante
+  caricamento e operazioni, senza osservazione continua.
+- Notifiche differibili da Android/Doze, risparmio energetico e arresto forzato;
+  il job forzato non dimostra la cadenza naturale giornaliera.
+- Svuotamento Archivio per cancellazioni singole, non atomico; gestione UI
+  degli errori Impostazioni incompleta. Errori scheduler nei log, senza UI;
+  osservazione Application priva di riavvio automatico dopo un errore.
+  Campanella Home nascosta senza destinazione dedicata.
+- Schema Room non esportato e nessuna migrazione evolutiva; avvisi lint e test
+  template residui. Documenti iniziali usano nomi diversi dall'enum reale:
+  `EXPIRING_SOON`/`UNKNOWN_EXPIRATION` anziché `EXPIRING`/`NO_EXPIRATION_DATE`.
+- Nessun export/import o backup gestito dall'app. Manifest con `allowBackup=true`
+  e regole Android ancora di scaffold: nessuna garanzia di recupero o
+  trasferimento dati. Assenza di cloud applicativo non significa backup di
+  sistema disabilitato.
+- Prove manuali concentrate su emulatore API 36.1, non su tutti i dispositivi.
+  AAB non validato da Play Console; store e pubblicazione pubblica fuori scope.
+
+Firma release esplicita con `-PsignRelease=true`, credenziali locali ignorate
+da Git; la CI distribuisce debug con firma distinta. Procedura e continuità
+degli aggiornamenti sono documentate nella checklist alpha.
+
+## Storico — Issue #30: onboarding essenziale
 
 - `MainContent` attende le preferenze prima di scegliere fra SCH-08 e il grafo
   principale. Non viene creata una destinazione onboarding nello stack:
@@ -81,10 +245,10 @@ Annotare compromessi, TODO rilevanti e decisioni da rivalutare.
 Ogni milestone del backlog deve prevedere una issue o sotto-issue di aggiornamento documentazione tecnica, da chiudere solo dopo aver allineato questo file allo stato reale del progetto.
 
 
-## Stato attuale — Milestone 3: scadenze e notifiche
+## Storico — Milestone 3: scadenze e notifiche
 
 Questa sezione consolida il codice presente su `master` dopo la PR #88 e
-costituisce il riferimento per lo stato corrente. Le sezioni successive sulle
+costituiva il riferimento alla chiusura della Milestone 3. Le sezioni successive sulle
 Milestone 1 e 2 e sulle issue #27 e #28 conservano lo storico: le funzionalità
 indicate lì come mancanti vanno confrontate con questo riepilogo aggiornato.
 
