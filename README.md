@@ -63,9 +63,16 @@ Il prodotto è pensato a livelli:
 - `TECHNICAL_DOCUMENTATION.md` – documentazione tecnica viva del progetto
 
 ## Stato attuale
-Questa documentazione rappresenta una base iniziale per guidare agenti IA e sviluppo umano.
+Il nucleo Free è implementato come alpha interna **1.0.0-alpha02** (codice 3):
+inventario offline, quantità opzionali, scadenzario, dashboard, archivio con
+ripristino, impostazioni, onboarding e notifiche locali di scadenza.
+I reminder di assunzione/terapia sono esclusi.
 
-È un set di working documents: può evolvere, ma ogni aggiornamento deve preservare coerenza e semplicità.
+Le [note interne della release Free](FREE_RELEASE_NOTES.md) riportano funzioni,
+esclusioni, limiti e verifiche. La prima sezione della
+[documentazione tecnica](TECHNICAL_DOCUMENTATION.md) consolida lo stato corrente;
+le sezioni storiche descrivono le milestone precedenti.
+La pubblicazione su Play Store resta un'attività successiva.
 
 ## Provare l'app su Android tramite GitHub Actions
 
