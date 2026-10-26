@@ -17,3 +17,10 @@
 .cxx
 .kotlin
 local.properties
+
+# Credenziali e chiavi di firma locali: non devono entrare nel repository.
+/keystore.properties
+*.jks
+*.keystore
+*.p12
+*.pfx
