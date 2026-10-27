@@ -55,6 +55,7 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import it.hendorsoftware.medishelf.core.designsystem.component.MedicinePackageForms
 import it.hendorsoftware.medishelf.R
 import it.hendorsoftware.medishelf.core.designsystem.component.AddMedicineActionBar
 import it.hendorsoftware.medishelf.core.designsystem.component.MedicineListCard
@@ -470,7 +471,7 @@ private fun HomeAttentionItem(
             item.quantity,
             item.expirationDate?.let { stringResource(R.string.home_attention_expiration, it) },
             if (item.quantity == null && item.expirationDate == null) {
-                item.packageForm ?: stringResource(R.string.home_attention_missing_details)
+                MedicinePackageForms.labelFor(item.packageForm) ?: stringResource(R.string.home_attention_missing_details)
             } else null,
         ),
         onClick = onClick,

@@ -38,6 +38,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import it.hendorsoftware.medishelf.R
+import it.hendorsoftware.medishelf.core.designsystem.component.MedicinePackageForms
 import it.hendorsoftware.medishelf.core.designsystem.component.BackNavigationButton
 import it.hendorsoftware.medishelf.core.designsystem.component.EmptyState
 import it.hendorsoftware.medishelf.core.designsystem.component.ConfirmDeleteDialog
@@ -332,7 +333,7 @@ private fun MedicineDetailData(
                         )
                         medicine.packageForm?.let { packageForm ->
                             Text(
-                                text = packageForm,
+                                text = MedicinePackageForms.labelFor(packageForm).orEmpty(),
                                 style = MaterialTheme.typography.bodyLarge,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )

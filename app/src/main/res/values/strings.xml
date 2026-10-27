@@ -197,7 +197,27 @@
     <string name="medicine_form_calendar_support">Tocca per scegliere la data dal calendario</string>
     <string name="medicine_form_date_confirm">Conferma</string>
     <string name="medicine_form_date_clear">Rimuovi data</string>
-    <string-array name="medicine_package_forms">
+    <string-array name="medicine_package_forms" translatable="false">
+        <item>bendaggi</item>
+        <item>bottiglia</item>
+        <item>bustina</item>
+        <item>cerotti</item>
+        <item>collirio</item>
+        <item>compresse</item>
+        <item>fiale</item>
+        <item>flacone con dosatore</item>
+        <item>flacone contagocce</item>
+        <item>gocce auricolari</item>
+        <item>pomata</item>
+        <item>sciroppo</item>
+        <item>siringhe</item>
+        <item>spray</item>
+        <item>spray orale</item>
+        <item>supposte</item>
+        <item>test</item>
+        <item>vitamine</item>
+    </string-array>
+    <string-array name="medicine_package_form_labels">
         <item>bendaggi</item>
         <item>bottiglia</item>
         <item>bustina</item>

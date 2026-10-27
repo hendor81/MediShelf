@@ -11,6 +11,7 @@ import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import it.hendorsoftware.medishelf.setItalianContent
 import org.junit.Rule
 import org.junit.Test
 
@@ -136,7 +137,7 @@ class MedicineDetailScreenTest {
         onDeleteClick: () -> Unit = {},
         onDeleteConfirm: () -> Unit = {},
     ) {
-        composeTestRule.setContent {
+        composeTestRule.setItalianContent {
             MediShelfTheme {
                 MedicineDetailScreen(
                     uiState = uiState,

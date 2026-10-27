@@ -6,6 +6,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 import org.junit.Assert.assertEquals
+import it.hendorsoftware.medishelf.setItalianContent
 import org.junit.Rule
 import org.junit.Test
 
@@ -16,7 +17,7 @@ class NotificationPermissionDialogTest {
     /** Un blocco espone l'accesso alle impostazioni, senza richiedere nuovamente il permesso. */
     @Test fun shouldOfferSettingsForBlockedPermission() {
         var confirmations = 0
-        composeTestRule.setContent {
+        composeTestRule.setItalianContent {
             MediShelfTheme {
                 NotificationPermissionDialog(true, { confirmations++ }, {})
             }
@@ -29,7 +30,7 @@ class NotificationPermissionDialogTest {
     @Test fun shouldAllowCancellingTemporaryDenial() {
         var confirmations = 0
         var dismissals = 0
-        composeTestRule.setContent {
+        composeTestRule.setItalianContent {
             MediShelfTheme {
                 NotificationPermissionDialog(false, { confirmations++ }, { dismissals++ })
             }

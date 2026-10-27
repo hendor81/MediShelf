@@ -42,6 +42,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import it.hendorsoftware.medishelf.core.designsystem.component.MedicinePackageForms
 import it.hendorsoftware.medishelf.R
 import it.hendorsoftware.medishelf.core.designsystem.component.AddMedicineActionBar
 import it.hendorsoftware.medishelf.core.designsystem.component.EmptyState
@@ -361,7 +362,7 @@ fun InventoryMedicineListItem(
         status = medicine.status,
         isLowStock = medicine.isLowStock,
         metadata = listOfNotNull(
-            medicine.packageForm,
+            MedicinePackageForms.labelFor(medicine.packageForm),
             medicine.expirationDate?.let { stringResource(R.string.inventory_item_expiration, it) },
             medicine.quantity?.let { stringResource(R.string.inventory_item_quantity, it) },
             medicine.storageLocation?.let { stringResource(R.string.inventory_item_location, it) },

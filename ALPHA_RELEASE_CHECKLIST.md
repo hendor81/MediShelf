@@ -5,8 +5,10 @@
 - Nome applicazione: MediShelf.
 - Application ID e namespace: `it.hendorsoftware.medishelf`.
 - Prima alpha firmata: `versionName = 1.0.0-alpha01`, `versionCode = 2`.
-- Alpha corrente: `versionName = 1.0.0-alpha02`, `versionCode = 3`, verificata
-  anche come aggiornamento sopra alpha01 senza disinstallazione.
+- Alpha corrente: `versionName = 1.0.0-alpha03`, `versionCode = 4`, con
+  interfaccia italiano/inglese. Il precedente aggiornamento alpha01 → alpha02
+  è stato verificato senza disinstallazione; tale verifica non certifica
+  automaticamente l'aggiornamento alla nuova alpha03.
 - Min SDK 24, target SDK 36, compile SDK 36.1.
 - Aumentare `versionCode` a ogni nuova alpha distribuita e a ogni successiva
   release Play; il nome versione da solo non determina l'ordine di aggiornamento.
@@ -167,3 +169,16 @@ Firma v2, package e versione dell'APK e checksum SHA-256 delle copie APK/AAB
 verificati. Gli artifact correnti sono `MediShelf-1.0.0-alpha02-vc3.apk` e
 `MediShelf-1.0.0-alpha02-vc3.aab` in `app/build/distributions/`, con relativi
 file `.sha256`. Chiavi e credenziali non sono tracciate da Git.
+
+### AAB alpha03 del 27 ottobre 2026
+
+- Versione `1.0.0-alpha03`, codice 4, con supporto italiano/inglese provato
+  dall'utente su emulatore.
+- `:app:bundleRelease :app:lintRelease -PsignRelease=true --offline` riuscito;
+  lint release con 0 errori e 125 warning.
+- Firma AAB verificata; certificato SHA-256 identico a quello stabile sopra
+  riportato. Identità/versione del manifest release controllate, app non debuggable.
+- Copia disponibile: `app/build/distributions/MediShelf-1.0.0-alpha03-vc4.aab`
+  con checksum nel corrispondente file `.sha256`.
+- Non è stato generato un nuovo APK firmato, né ripetuta la prova di
+  aggiornamento tra APK firmati. Nessun caricamento su Play Console effettuato.
