@@ -1,5 +1,34 @@
 # TECHNICAL_DOCUMENTATION.md
 
+## Risorse italiane esplicite e regressioni multilingua — PR #104
+
+Aggiunto `res/values-it/strings.xml` con le 230 stringhe italiane e le 18
+etichette dei formati, identiche alle risorse base. `values/strings.xml` resta
+completo per il fallback; l'array non traducibile `medicine_package_forms`
+rimane solo nelle risorse base per conservare le chiavi persistenti.
+Quando si modifica il copy italiano, aggiornare sia `values` sia `values-it`.
+
+`LocaleSelectionTest` verifica liste `it-IT,en-US` e `en-US,it-IT`, fallback
+italiano con `ja-JP`, copy, notifiche ed etichette/chiavi dei formati. Da API 33
+verifica anche l'override reale tramite `LocaleManager` su sistema inglese,
+avviando `MainActivity` e ripristinando la selezione precedente in `finally`.
+Quest'ultimo test è escluso dalle API inferiori a 33 e richiede sistema inglese.
+
+La segnalazione Copilot riguarda la possibile precedenza delle risorse inglesi
+nelle liste multilingua. Su Android 16/API 36.1 tutti e quattro i test passano
+anche prima dell'aggiunta di `values-it`: il difetto non è stato riprodotto in
+questo ambiente. La modifica rende comunque esplicita la risoluzione
+dell'italiano dichiarato in `locales_config`, con copertura delle combinazioni
+prima non testate. Non cambia dati, preferenze o versione dell'app.
+
+Verifica dopo la modifica: `connectedDebugAndroidTest` e `lintDebug` riusciti
+su Android 16/API 36.1 con sistema inglese; 72 test strumentali superati senza
+esclusioni, inclusi i quattro nuovi casi. Lint debug con 0 errori e 140 warning.
+
+L'AAB alpha03/codice 4 già generato e caricato dall'utente precede questa
+modifica: non è stato sostituito. Per distribuirla occorre generare un nuovo
+artifact firmato con un codice versione non ancora utilizzato in Play Console.
+
 ## AAB firmato alpha03 — 27 ottobre 2026
 
 Versione corrente `1.0.0-alpha03`, `versionCode = 4`, application ID invariato
@@ -29,7 +58,8 @@ attività; la verifica server del bundle e la distribuzione restano successive.
 L'interfaccia Free supporta ora l'inglese tramite `res/values-en/strings.xml`:
 schermate, onboarding, guida Home, validazioni, dialoghi, accessibilità e
 notifiche. L'italiano resta la lingua delle risorse base (`res/values`) e il
-fallback per le lingue non supportate. La lingua segue la configurazione Android;
+fallback per le lingue non supportate; `res/values-it` qualifica inoltre
+esplicitamente l'italiano. La lingua segue la configurazione Android;
 `res/xml/locales_config.xml` dichiara `it` e `en` per la scelta della lingua
 dell'app nelle impostazioni di sistema da Android 13. Non è introdotto un
 selettore interno o una preferenza persistente aggiuntiva.
