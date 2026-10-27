@@ -26,6 +26,7 @@ import it.hendorsoftware.medishelf.feature.medicinedetail.MedicineDetailScreen
 import it.hendorsoftware.medishelf.feature.medicinedetail.MedicineDetailUiState
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
+import it.hendorsoftware.medishelf.setItalianContent
 import org.junit.Rule
 import org.junit.Test
 
@@ -36,7 +37,7 @@ class EmptyStatesTest {
     /** La prima Home invita ad aggiungere senza dichiarare tutto in ordine. */
     @Test fun shouldExplainEmptyHomeAndAllowAdding() {
         var clicks = 0
-        compose.setContent {
+        compose.setItalianContent {
             MediShelfTheme {
                 HomeScreen(HomeUiState(isLoading = false), { clicks++ }, {}, {}, {})
             }
@@ -49,7 +50,7 @@ class EmptyStatesTest {
 
     /** Una Home popolata senza priorità mantiene la rassicurazione contestuale. */
     @Test fun shouldReassureWhenNoMedicineNeedsAttention() {
-        compose.setContent {
+        compose.setItalianContent {
             MediShelfTheme {
                 HomeScreen(HomeUiState(isLoading = false, activeMedicineCount = 1), {}, {}, {}, {})
             }
@@ -61,7 +62,7 @@ class EmptyStatesTest {
     /** La CTA dell'inventario vuoto apre l'inserimento. */
     @Test fun shouldAddFromEmptyInventory() {
         var clicks = 0
-        compose.setContent {
+        compose.setItalianContent {
             MediShelfTheme {
                 InventoryScreen(InventoryUiState(isLoading = false), { clicks++ }, {}, {}, {}, {}, {})
             }
@@ -76,7 +77,7 @@ class EmptyStatesTest {
     @Test fun shouldResetSearchAndStatusWhenNoResults() {
         var cleared = false
         var selected = InventoryStatusFilter.Expired
-        compose.setContent {
+        compose.setItalianContent {
             MediShelfTheme {
                 InventoryScreen(
                     InventoryUiState(isLoading = false, hasActiveMedicines = true,
@@ -93,7 +94,7 @@ class EmptyStatesTest {
     /** Lo Scadenzario vuoto spiega cosa conterrà e permette l'aggiunta. */
     @Test fun shouldAddFromEmptyExpiry() {
         var clicks = 0
-        compose.setContent {
+        compose.setItalianContent {
             MediShelfTheme {
                 ExpiryScreen(ExpiryUiState(isLoading = false), {}, onAddMedicineClick = { clicks++ })
             }
@@ -107,7 +108,7 @@ class EmptyStatesTest {
     /** L'Archivio vuoto permette di tornare al percorso di origine. */
     @Test fun shouldLeaveEmptyArchive() {
         var clicks = 0
-        compose.setContent {
+        compose.setItalianContent {
             MediShelfTheme {
                 ArchiveScreen(ArchiveUiState(isLoading = false), {}, { clicks++ })
             }
@@ -120,7 +121,7 @@ class EmptyStatesTest {
     /** Un errore di caricamento espone un retry esplicito e nessun falso non trovato. */
     @Test fun shouldRetryDetailLoadingError() {
         var clicks = 0
-        compose.setContent {
+        compose.setItalianContent {
             MediShelfTheme {
                 MedicineDetailScreen(
                     MedicineDetailUiState(isLoading = false, hasLoadError = true),

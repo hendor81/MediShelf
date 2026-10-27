@@ -44,9 +44,10 @@ import java.time.ZoneOffset
 internal fun MedicinePackageFormSelector(value: String, enabled: Boolean, onChange: (String) -> Unit) {
     var expanded by rememberSaveable { mutableStateOf(false) }
     val options = stringArrayResource(R.array.medicine_package_forms)
+    val labels = stringArrayResource(R.array.medicine_package_form_labels)
     ExposedDropdownMenuBox(expanded = expanded, onExpandedChange = { if (enabled) expanded = it }) {
         OutlinedTextField(
-            value = value,
+            value = MedicinePackageForms.labelFor(value).orEmpty(),
             onValueChange = {},
             readOnly = true,
             enabled = enabled,
@@ -59,9 +60,9 @@ internal fun MedicinePackageFormSelector(value: String, enabled: Boolean, onChan
                 onChange("")
                 expanded = false
             })
-            options.forEach { option ->
+            options.forEachIndexed { index, option ->
                 DropdownMenuItem(
-                    text = { Text(option, style = MaterialTheme.typography.bodyLarge) },
+                    text = { Text(labels[index], style = MaterialTheme.typography.bodyLarge) },
                     leadingIcon = {
                         Image(
                             painter = painterResource(MedicinePackageForms.iconFor(option)),

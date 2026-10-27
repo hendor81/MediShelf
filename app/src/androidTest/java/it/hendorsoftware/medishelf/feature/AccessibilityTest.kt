@@ -21,6 +21,7 @@ import it.hendorsoftware.medishelf.feature.medicinedetail.*
 import it.hendorsoftware.medishelf.feature.settings.*
 import it.hendorsoftware.medishelf.domain.model.SettingsThemeMode
 import org.junit.Assert.*
+import it.hendorsoftware.medishelf.setItalianContent
 import org.junit.Rule
 import org.junit.Test
 
@@ -30,7 +31,7 @@ class AccessibilityTest {
 
     /** Edit e delete restano riconoscibili e hanno target di almeno 48 dp. */
     @Test fun shouldExposeAccessibleDetailActions() {
-        compose.setContent {
+        compose.setItalianContent {
             MediShelfTheme {
                 MedicineDetailScreen(
                     MedicineDetailUiState(isLoading = false, medicine = MedicineDetailUiModel(
@@ -50,7 +51,7 @@ class AccessibilityTest {
 
     /** Ogni stato è annunciato e visibile anche senza distinguere i colori. */
     @Test fun shouldExposeTextForEveryStatus() {
-        compose.setContent {
+        compose.setItalianContent {
             MediShelfTheme {
                 Column { MedicineStatusBadgeStatus.entries.forEach { MedicineStatusBadge(it) } }
             }
@@ -61,7 +62,7 @@ class AccessibilityTest {
 
     /** Le card si dispongono su due righe e le etichette non vengono tagliate. */
     @Test fun shouldKeepHomeLabelsReadableAtLargeFont() {
-        compose.setContent {
+        compose.setItalianContent {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, 2f)) {
                 MediShelfTheme {
@@ -83,7 +84,7 @@ class AccessibilityTest {
     /** Il nome completo del medicinale resta leggibile con badge e font grandi. */
     @Test fun shouldKeepMedicineNameReadableAtLargeFont() {
         val name = "Paracetamolo 500 mg compresse effervescenti"
-        compose.setContent {
+        compose.setItalianContent {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, 2f)) {
                 MediShelfTheme {
@@ -134,7 +135,7 @@ class AccessibilityTest {
         onNotificationsChanged: (Boolean) -> Unit = {},
         onThemeSelected: (SettingsThemeMode) -> Unit = {},
     ) {
-        compose.setContent {
+        compose.setItalianContent {
             MediShelfTheme {
                 SettingsScreen(state, {}, onThemeSelected, {}, {}, {}, {}, {}, onNotificationsChanged,
                     {}, {}, {}, {}, {}, {}, {}, {}, {})

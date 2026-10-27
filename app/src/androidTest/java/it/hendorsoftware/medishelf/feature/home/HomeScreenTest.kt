@@ -13,6 +13,7 @@ import androidx.compose.ui.test.performScrollTo
 import it.hendorsoftware.medishelf.core.designsystem.component.MedicineStatusBadgeStatus
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 import org.junit.Assert.assertEquals
+import it.hendorsoftware.medishelf.setItalianContent
 import org.junit.Rule
 import org.junit.Test
 
@@ -110,7 +111,7 @@ class HomeScreenTest {
         onInventoryClick: () -> Unit = {},
         onAttentionItemClick: (String) -> Unit = {},
     ) {
-        composeTestRule.setContent {
+        composeTestRule.setItalianContent {
             MediShelfTheme {
                 HomeScreen(
                     uiState = HomeUiState(

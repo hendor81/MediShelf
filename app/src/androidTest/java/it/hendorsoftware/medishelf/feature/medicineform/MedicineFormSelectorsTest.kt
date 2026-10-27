@@ -12,6 +12,7 @@ import androidx.compose.ui.test.performScrollTo
 import androidx.compose.ui.test.assertIsDisplayed
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 import org.junit.Assert.assertEquals
+import it.hendorsoftware.medishelf.setItalianContent
 import org.junit.Rule
 import org.junit.Test
 
@@ -24,7 +25,7 @@ class MedicineFormSelectorsTest {
     @Test
     fun shouldSelectPackageForm() {
         var selected = ""
-        compose.setContent {
+        compose.setItalianContent {
             var value by remember { mutableStateOf("") }
             MediShelfTheme {
                 MedicinePackageFormSelector(value, true) { value = it; selected = it }
@@ -39,7 +40,7 @@ class MedicineFormSelectorsTest {
     @Test
     fun shouldClearExpirationFromCalendar() {
         var selected = "2026-12-31"
-        compose.setContent {
+        compose.setItalianContent {
             MediShelfTheme { MedicineExpirationSelector(selected, true) { selected = it } }
         }
         compose.onNodeWithContentDescription("Data scadenza").performClick()

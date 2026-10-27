@@ -13,6 +13,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import it.hendorsoftware.medishelf.core.designsystem.theme.MediShelfTheme
 import org.junit.Assert.assertTrue
+import it.hendorsoftware.medishelf.setItalianContent
 import org.junit.Rule
 import org.junit.Test
 
@@ -71,7 +72,7 @@ class MedicineFormScreenTest {
     }
 
     private fun setMedicineFormContent(onCloseClick: () -> Unit = {}) {
-        composeTestRule.setContent {
+        composeTestRule.setItalianContent {
             var uiState by remember { mutableStateOf(MedicineFormUiState()) }
 
             MediShelfTheme {
