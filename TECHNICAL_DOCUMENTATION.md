@@ -23,7 +23,7 @@ prima non testate. Non cambia dati, preferenze o versione dell'app.
 
 Verifica dopo la modifica: `connectedDebugAndroidTest` e `lintDebug` riusciti
 su Android 16/API 36.1 con sistema inglese; 72 test strumentali superati senza
-esclusioni, inclusi i quattro nuovi casi. Lint debug con 0 errori e 140 warning.
+esclusioni, inclusi i quattro nuovi casi. Lint debug con 0 errori e 142 warning.
 
 L'AAB alpha03/codice 4 già generato e caricato dall'utente precede questa
 modifica: non è stato sostituito. Per distribuirla occorre generare un nuovo
