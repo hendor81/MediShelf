@@ -1,5 +1,64 @@
 # TECHNICAL_DOCUMENTATION.md
 
+## AAB firmato alpha03 — 27 ottobre 2026
+
+Versione corrente `1.0.0-alpha03`, `versionCode = 4`, application ID invariato
+`it.hendorsoftware.medishelf`. Incremento successivo alla prova della traduzione
+inglese su emulatore confermata dall'utente. Le sezioni sulle milestone e sulle
+alpha precedenti conservano versioni e risultati storici.
+
+Eseguito `:app:bundleRelease :app:lintRelease -PsignRelease=true --offline`:
+build riuscita, lint release con 0 errori e 125 warning. Il manifest release
+riporta codice 4, nome alpha03 e nessun flag debuggable.
+Firma AAB verificata con `jarsigner`; il certificato pubblico estratto dal
+blocco di firma corrisponde alla chiave stabile delle alpha precedenti
+(`3becc5a3f67639ac1461ff67ee8764b4d23c0ac92dc3ee5c051c4194d69bf8ef`).
+Il verificatore segnala certificato autofirmato, assenza di timestamp e avvisi
+sulla lettura sequenziale JarInputStream del layout ZIP prodotto da Gradle;
+la verifica tramite JarFile restituisce `jar verified.`.
+
+Copia per il caricamento:
+`app/build/distributions/MediShelf-1.0.0-alpha03-vc4.aab`, 13.386.560 byte,
+con file `.sha256` associato. SHA-256:
+`af65b0164b9f396a495af63a7097bc4d9ce1b5a78d8f02ede99272c59affc1f2`.
+Nessun caricamento su Play Console o nuovo APK firmato effettuato in questa
+attività; la verifica server del bundle e la distribuzione restano successive.
+
+## Localizzazione italiano/inglese — 27 ottobre 2026
+
+L'interfaccia Free supporta ora l'inglese tramite `res/values-en/strings.xml`:
+schermate, onboarding, guida Home, validazioni, dialoghi, accessibilità e
+notifiche. L'italiano resta la lingua delle risorse base (`res/values`) e il
+fallback per le lingue non supportate. La lingua segue la configurazione Android;
+`res/xml/locales_config.xml` dichiara `it` e `en` per la scelta della lingua
+dell'app nelle impostazioni di sistema da Android 13. Non è introdotto un
+selettore interno o una preferenza persistente aggiuntiva.
+
+I formati predefiniti delle confezioni separano le chiavi salvate
+(`medicine_package_forms`, non traducibile, valori italiani preesistenti) dalle
+etichette localizzate (`medicine_package_form_labels`, stesso ordine).
+`MedicinePackageForms.labelFor` risolve le etichette nella UI anche per i dati
+esistenti con differenze di maiuscole/minuscole; valori liberi sconosciuti,
+nomi, note, luoghi e unità inseriti dall'utente restano invariati. Il selettore
+mostra etichette inglesi ma emette le chiavi persistenti originali: nessuna
+migrazione Room e nessun cambiamento alle icone o alle regole di dominio.
+
+Le date nelle liste e nel dettaglio mantengono il formato `dd/MM/yyyy`; il campo
+del form conserva il valore ISO `yyyy-MM-dd` e il calendario usa le traduzioni
+Material 3. `MedicineFormLocalizationTest` verifica con contesti lingua isolati
+la selezione inglese con chiave italiana, la conservazione dei formati liberi e
+le risorse italiane/inglesi, comprese le notifiche con argomenti.
+Le regressioni UI che controllano il copy italiano usano `setItalianContent`
+con un contesto locale isolato; navigazione e guida continuano a risolvere le
+aspettative dalle risorse della lingua corrente. Nessun test cambia la lingua
+globale del dispositivo.
+
+Verifiche locali: build debug e APK dei test compilati; **116 test unitari** e
+**68 test strumentali** superati su emulatore Android 16/API 36.1, inclusi i tre
+test di localizzazione. Lint debug completato con **0 errori** (140 warning
+complessivi del progetto). Controllata la corrispondenza delle 230 stringhe,
+dei segnaposto di formato e dei 18 elementi degli array nelle due lingue.
+
 ## Stato attuale — Milestone 4: release Free (issue #35)
 
 Riferimento aggiornato al **26 ottobre 2026**, versione **1.0.0-alpha02**,

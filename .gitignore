@@ -10,6 +10,8 @@
 /.idea/deploymentTargetSelector.xml
 /.idea/misc.xml
 /.idea/androidTestResultsUserPreferences.xml
+/.idea/deviceManager.xml
+/.idea/planningMode.xml
 .DS_Store
 /build
 /captures

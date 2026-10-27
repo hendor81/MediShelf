@@ -1,7 +1,15 @@
 # MediShelf Free — note di release interne
 
 26 ottobre 2026 · Issue #35 · Milestone 4 — Hardening e release Free.
-Build: **1.0.0-alpha02**, codice **3**, Android 7.0/API 24 o successivo.
+Build: **1.0.0-alpha03**, codice **4**, Android 7.0/API 24 o successivo.
+
+Aggiornamento del 27 ottobre 2026: interfaccia disponibile in italiano e inglese,
+incluse notifiche, tutorial e accessibilità. Lingua dell'app selezionabile dalle
+impostazioni Android da Android 13. Formati delle confezioni localizzati senza
+modificare i valori persistiti. Traduzione provata dall'utente su emulatore;
+116 test unitari e 68 test strumentali superati prima dell'incremento versione.
+L'AAB firmato alpha03 è destinato al caricamento manuale in Play Console;
+questa preparazione non pubblica una release sullo store.
 Stato: alpha interna per installazione diretta; nessuna pubblicazione sullo store.
 
 ## Cosa include

@@ -63,10 +63,15 @@ Il prodotto è pensato a livelli:
 - `TECHNICAL_DOCUMENTATION.md` – documentazione tecnica viva del progetto
 
 ## Stato attuale
-Il nucleo Free è implementato come alpha interna **1.0.0-alpha02** (codice 3):
+Il nucleo Free è implementato come alpha interna **1.0.0-alpha03** (codice 4):
 inventario offline, quantità opzionali, scadenzario, dashboard, archivio con
 ripristino, impostazioni, onboarding e notifiche locali di scadenza.
 I reminder di assunzione/terapia sono esclusi.
+
+L'interfaccia è disponibile in italiano e inglese e segue la lingua del
+dispositivo. Da Android 13 è possibile scegliere la lingua di MediShelf dalle
+impostazioni di sistema dedicate all'app. I dati inseriti dall'utente restano
+nella lingua originale.
 
 Le [note interne della release Free](FREE_RELEASE_NOTES.md) riportano funzioni,
 esclusioni, limiti e verifiche. La prima sezione della
@@ -94,9 +99,9 @@ cambiare tra esecuzioni o differire da quella della versione già installata:
 in tal caso Android può rifiutare l'aggiornamento. La disinstallazione elimina
 l'inventario locale; non disinstallare una versione con dati da conservare.
 
-## Preparare l'APK alpha firmato
+## Preparare APK e AAB alpha firmati
 
-La versione alpha è `1.0.0-alpha02` (`versionCode = 3`). Per usare la chiave
+La versione alpha è `1.0.0-alpha03` (`versionCode = 4`). Per usare la chiave
 stabile locale, compilare `keystore.properties` dal modello
 `keystore.properties.example` e avviare:
 
@@ -107,6 +112,16 @@ stabile locale, compilare `keystore.properties` dal modello
 L'APK firmato è `app/build/outputs/apk/release/app-release.apk`. Il file delle
 credenziali e i keystore sono ignorati da Git. Gli artifact debug della CI
 continuano a usare la firma debug e sono distinti dall'alpha firmata.
+
+Per il caricamento in Play Console generare invece l'AAB firmato:
+
+```powershell
+.\gradlew.bat :app:bundleRelease -PsignRelease=true
+```
+
+Il bundle è `app/build/outputs/bundle/release/app-release.aab` e non si installa
+direttamente su un dispositivo. La copia alpha03 per il caricamento è
+`app/build/distributions/MediShelf-1.0.0-alpha03-vc4.aab`.
 
 La procedura, la continuità verso Play Store e le verifiche manuali sono in
 [`ALPHA_RELEASE_CHECKLIST.md`](ALPHA_RELEASE_CHECKLIST.md).
